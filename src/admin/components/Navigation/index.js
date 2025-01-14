@@ -1,0 +1,77 @@
+import React from "react";
+import { Link } from "react-router-dom"; // Import Link để điều hướng không reload trang
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import FormatListBulletedOutlinedIcon from "@mui/icons-material/FormatListBulletedOutlined";
+import GroupAddOutlinedIcon from "@mui/icons-material/GroupAddOutlined";
+import Groups2OutlinedIcon from "@mui/icons-material/Groups2Outlined";
+
+// Các component giao diện cho từng trang
+import DashboardPage from "../../pages/ListPage/DashboardPage";
+import ProductListPage from "../../pages/ListPage/ProductListPage";
+import CategoryPage from "../../pages/ListPage/CategoryPage";
+import RoleManagementPage from "../../pages/ListPage/RoleManagementPage";
+import PermissionPage from "../../pages/ListPage/PermissionPage";
+import AccountPage from "../../pages/ListPage/AccountPage";
+import SettingsPage from "../../pages/ListPage/SettingsPage";
+
+export const NAVIGATION = [
+  {
+    segment: "admin/dashboard",
+    title: "Tổng quan",
+    icon: <DashboardIcon />,
+    path: "/admin/dashboard",
+    component: DashboardPage,
+    link: <Link to="/admin/dashboard">Tổng quan</Link>, // Sử dụng Link thay vì a
+  },
+  {
+    segment: "admin/products",  
+    title: "Danh sách sản phẩm",
+    icon: <ShoppingCartIcon />,
+    path: "/admin/products",
+    component: ProductListPage,
+    link: <Link to="/admin/products">Danh sách sản phẩm</Link>, // Sử dụng Link thay vì a
+  },
+  {
+    segment: "admin/categories",
+    title: "Danh mục sản phẩm",
+    icon: <FormatListBulletedOutlinedIcon />,
+    path: "/admin/categories", 
+    component: CategoryPage,
+    link: <Link to="/admin/categories">Danh mục sản phẩm</Link>, // Sử dụng Link thay vì a
+  },
+  {
+    segment: "admin/roles",
+    title: "Nhóm quyền",
+    icon: <Groups2OutlinedIcon />,
+    path: "/admin/roles", 
+    component: RoleManagementPage,
+    link: <Link to="/admin/roles">Nhóm quyền</Link>, // Sử dụng Link thay vì a
+  },
+  {
+    segment: "admin/permissions",
+    title: "Phân quyền",
+    icon: <GroupAddOutlinedIcon />,
+    path: "/admin/permissions", 
+    component: PermissionPage,
+    link: <Link to="/admin/permissions">Phân quyền</Link>, // Sử dụng Link thay vì a
+  },
+  {
+    segment: "admin/accounts",
+    title: "Tài khoản",
+    icon: <AccountCircleIcon />,
+    path: "/admin/accounts", 
+    component: AccountPage,
+    link: <Link to="/admin/accounts">Tài khoản</Link>, // Sử dụng Link thay vì a
+  },
+  {
+    segment: "admin/settings",
+    title: "Cài đặt chung",
+    icon: <SettingsOutlinedIcon />,
+    path: "/admin/settings", 
+    component: SettingsPage,
+    link: <Link to="/admin/settings">Cài đặt chung</Link>, // Sử dụng Link thay vì a
+  },
+];
