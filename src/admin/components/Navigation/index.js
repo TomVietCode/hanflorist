@@ -9,13 +9,13 @@ import GroupAddOutlinedIcon from "@mui/icons-material/GroupAddOutlined";
 import Groups2OutlinedIcon from "@mui/icons-material/Groups2Outlined";
 
 // Các component giao diện cho từng trang
-import DashboardPage from "../../pages/ListPage/DashboardPage";
-import ProductListPage from "../../pages/ListPage/ProductListPage";
-import CategoryPage from "../../pages/ListPage/CategoryPage";
-import RoleManagementPage from "../../pages/ListPage/RoleManagementPage";
-import PermissionPage from "../../pages/ListPage/PermissionPage";
-import AccountPage from "../../pages/ListPage/AccountPage";
-import SettingsPage from "../../pages/ListPage/SettingsPage";
+import DashboardPage from "../../pages/ListPage/DashboardPage/DashboardPage";
+import ProductListPage from "../../pages/ListPage/ProductListPage/ProductListPage";
+import CategoryPage from "../../pages/ListPage/CategoryPage/CategoryPage";
+import RoleManagementPage from "../../pages/ListPage/RoleManagementPage/RoleManagementPage";
+import PermissionPage from "../../pages/ListPage/PermissionPage/PermissionPage";
+import AccountPage from "../../pages/ListPage/AccountPage/AccountPage";
+import SettingsPage from "../../pages/ListPage/SettingsPage/SettingsPage";
 
 export const NAVIGATION = [
   {

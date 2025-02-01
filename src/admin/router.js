@@ -1,13 +1,13 @@
 import { Navigate } from "react-router-dom";
 import DashboardLayout from "./components/AdminLayout.js";
 import Login from "./login";
-import DashboardPage from "./pages/ListPage/DashboardPage";
-import ProductListPage from "./pages/ListPage/ProductListPage";
-import CategoryPage from "./pages/ListPage/CategoryPage";
-import RoleManagementPage from "./pages/ListPage/RoleManagementPage";
-import PermissionPage from "./pages/ListPage/PermissionPage";
-import AccountPage from "./pages/ListPage/AccountPage";
-import SettingsPage from "./pages/ListPage/SettingsPage";
+import DashboardPage from "./pages/ListPage/DashboardPage/DashboardPage.js";
+import ProductListPage from "./pages/ListPage/ProductListPage/ProductListPage.js";
+import CategoryPage from "./pages/ListPage/CategoryPage/CategoryPage.js";
+import RoleManagementPage from "./pages/ListPage/RoleManagementPage/RoleManagementPage.js";
+import PermissionPage from "./pages/ListPage/PermissionPage/PermissionPage.js";
+import AccountPage from "./pages/ListPage/AccountPage/AccountPage.js";
+import SettingsPage from "./pages/ListPage/SettingsPage/SettingsPage.js";
 import PrivateRoute from "./privateRouter.js";
 
 

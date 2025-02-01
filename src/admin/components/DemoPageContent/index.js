@@ -4,19 +4,21 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { NAVIGATION } from "../Navigation"; // Import NAVIGATION
+import "./style.css";
+
 
 function DemoPageContent() {
   const location = useLocation(); // Lấy đường dẫn hiện tại
 
   return (
+    
     <Box
       sx={{
         py: 15,
         display: "flex",
         flexDirection: "column",
         backgroundColor: "#FAFBFD",
-        paddingLeft: "20px",
-        paddingRight: "20px",
+        
       }}
     >
       <Typography>

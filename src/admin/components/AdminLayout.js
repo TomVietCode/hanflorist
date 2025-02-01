@@ -7,7 +7,8 @@ import { Outlet } from "react-router-dom";
 import logo from "../assets/logo.svg";
 // theme.js (hoặc bất kỳ tên nào bạn chọn)
 import { createTheme } from '@mui/material/styles';
-
+import SidebarFooterAccount from "./SidebarFooterAccount";
+import BC from "../components/breadcrumb/index"; 
 
 
 
@@ -65,14 +66,20 @@ export default function AdminLayout(props) {
       navigation={NAVIGATION}
       branding={{
         logo: <img src={logo} alt="Logo" style={{ width: "100%" }} />,
-        title: "",
+        title: "Trang quản trị admin",
         homeUrl: "/admin/dashboard",
       }}
       theme={theme}
       window={demoWindow}
     >
-      <DashboardLayout>
-        <PageContainer>
+      <DashboardLayout
+        sidebarExpandedWidth={240}
+      >
+        <SidebarFooterAccount mini={false} />
+        <PageContainer
+          style={{maxWidth: 16000,transition: 'margin-left 0.3s ease-in-out',willChange: "margin-left"}}
+        >
+          <BC/>
           <Outlet />
         </PageContainer>
       </DashboardLayout>

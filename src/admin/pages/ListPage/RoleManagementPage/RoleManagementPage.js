@@ -1,0 +1,107 @@
+import React, { useState } from "react";
+import { DataGrid } from "@mui/x-data-grid";
+import { Paper, Grid, Button, Box } from "@mui/material"; 
+import AddIcon from "@mui/icons-material/Add"; 
+import DeleteIcon from "@mui/icons-material/Delete";
+import BorderColorIcon from "@mui/icons-material/BorderColor";
+import "./style.css"; 
+
+const sampleData = [
+  { id: 1, groupName: "Admin", description: "Quản trị viên hệ thống", totalMembers: 5 },
+  { id: 2, groupName: "Editor", description: "Biên tập viên", totalMembers: 10 },
+  { id: 3, groupName: "Viewer", description: "Người xem", totalMembers: 20 },
+].map((row, index) => ({ ...row, index: index + 1 }));
+
+const columns = [
+  { field: "index", headerName: "STT", flex: 0.5, headerAlign: "center", align: "center" },
+  { field: "groupName", headerName: "Nhóm quyền", flex: 1.5 },
+  { field: "description", headerName: "Mô tả ngắn", flex: 2 },
+  { field: "totalMembers", headerName: "Tổng thành viên", flex: 1, align: "center", headerAlign: "center" },
+  {
+    field: "actions",
+    headerName: "Hành động",
+    flex: 1.5,
+    headerAlign: "center",
+    align: "center",
+    renderCell: (params) => (
+      <Box sx={{ display: "flex", gap: "10px" }}>
+        <span
+          className="box_icon bi2"
+          style={{
+            color: "#ffc107",
+            border: "solid 1px #ffc107",
+            padding: "5px",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+          onClick={() => alert(`Chỉnh sửa nhóm quyền: ${params.row.groupName}`)}
+        >
+          <BorderColorIcon className="icon" />
+        </span>
+        <span
+          className="box_icon bi3"
+          style={{
+            color: "#dc3545",
+            border: "solid 1px #dc3545",
+            padding: "5px",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+          onClick={() => alert(`Xóa nhóm quyền: ${params.row.groupName}`)}
+        >
+          <DeleteIcon className="icon" />
+        </span>
+      </Box>
+    ),
+  },
+];
+
+export default function RoleGroupPage() {
+  const [paginationModel, setPaginationModel] = useState({ pageSize: 5, page: 0 });
+
+  const handleAddNew = () => {
+    alert("Thêm mới nhóm quyền");
+  };
+
+  return (
+    <Box>
+      <Paper className="RoleGroupPage" sx={{ height: "100%", width: "100%", mt: 2, p: 2 }}>
+        {/* Header + Button */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+          <h2 style={{ margin: 0 }}>Quản lý nhóm quyền</h2>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleAddNew}
+            sx={{
+              padding: "8px 15px",
+              border: "solid 1px #ccc",
+              minWidth: "auto",
+              fontSize: "1rem",
+            }}
+          >
+            Thêm mới
+          </Button>
+        </Box>
+
+        {/* Data Grid */}
+        <DataGrid
+          rowHeight={80}
+          rows={sampleData}
+          columns={columns}
+          pagination
+          paginationModel={paginationModel}
+          pageSizeOptions={[5, 10, 20]}
+          checkboxSelection
+          onPageChange={(newPage) => console.log(newPage)}
+          sx={{
+            "& .MuiDataGrid-cell": { display: "flex", alignItems: "center", cursor: "pointer" },
+            "& .MuiDataGrid-cell:focus, & .MuiDataGrid-columnHeader:focus": { outline: "none" },
+            userSelect: "none",
+          }}
+        />
+      </Paper>
+    </Box>
+  );
+}
