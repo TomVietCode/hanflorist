@@ -44,7 +44,7 @@ const FilterBar = () => {
             style={{
               padding: "8px 15px",
               display: "flex",
-              height: "80%",
+              height: "90%",
               marginLeft: 1,
               border: "solid 1px #ccc",
               minWidth: "auto",

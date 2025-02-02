@@ -100,7 +100,9 @@
 }
 
 
-
+.css-d5d3y6-MuiDataGrid-root{
+  border-radius : 0 !important;
+}
 .status-cell {
   display: block !important; /* Loại bỏ display: flex */
 }

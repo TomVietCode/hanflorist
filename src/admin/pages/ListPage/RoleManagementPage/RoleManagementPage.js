@@ -24,7 +24,7 @@ const columns = [
     headerAlign: "center",
     align: "center",
     renderCell: (params) => (
-      <Box sx={{ display: "flex", gap: "10px" }}>
+      <Box sx={{ display: "flex" }}>
         <span
           className="box_icon bi2"
           style={{
@@ -67,7 +67,7 @@ export default function RoleGroupPage() {
     <Box>
       <Paper className="RoleGroupPage" sx={{ height: "100%", width: "100%", mt: 2, p: 2 }}>
         {/* Header + Button */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5, padding: "10px"}}>
           <h2 style={{ margin: 0 }}>Quản lý nhóm quyền</h2>
           <Button
             variant="contained"
@@ -99,6 +99,7 @@ export default function RoleGroupPage() {
             "& .MuiDataGrid-cell": { display: "flex", alignItems: "center", cursor: "pointer" },
             "& .MuiDataGrid-cell:focus, & .MuiDataGrid-columnHeader:focus": { outline: "none" },
             userSelect: "none",
+
           }}
         />
       </Paper>

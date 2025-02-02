@@ -55,9 +55,21 @@ export default function SignUp(props) {
   const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
-  const [submitError, setSubmitError] = React.useState(""); // Thêm state để hiển thị lỗi đăng nhập
+  const [submitError, setSubmitError] = React.useState("");
+  const [rememberMe, setRememberMe] = React.useState(false); // Trạng thái "Ghi nhớ tài khoản"
 
-  const navigate = useNavigate(); // Khởi tạo useNavigate
+  const navigate = useNavigate();
+
+  // Kiểm tra nếu có thông tin đăng nhập đã lưu trong localStorage
+  React.useEffect(() => {
+    const savedEmail = localStorage.getItem("savedEmail");
+    const savedPassword = localStorage.getItem("savedPassword");
+    if (savedEmail && savedPassword) {
+      setRememberMe(true);
+      document.getElementById("email").value = savedEmail;
+      document.getElementById("password").value = savedPassword;
+    }
+  }, []);
 
   const validateInputs = () => {
     const email = document.getElementById("email");
@@ -65,18 +77,20 @@ export default function SignUp(props) {
 
     let isValid = true;
 
+    // Kiểm tra email hợp lệ
     // if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
     //   setEmailError(true);
-    //   setEmailErrorMessage("Vui lòng nhập email đúng mẫu.");
+    //   setEmailErrorMessage("Vui lòng nhập email hợp lệ.");
     //   isValid = false;
     // } else {
     //   setEmailError(false);
     //   setEmailErrorMessage("");
     // }
 
+    // Kiểm tra mật khẩu hợp lệ
     if (!password.value || password.value.length < 6) {
       setPasswordError(true);
-      setPasswordErrorMessage("Mật khẩu phải ít nhất 6 kí tự");
+      setPasswordErrorMessage("Mật khẩu phải ít nhất 6 kí tự.");
       isValid = false;
     } else {
       setPasswordError(false);
@@ -87,7 +101,6 @@ export default function SignUp(props) {
   };
 
   const handleSubmit = async (event) => {
-    //navigate("/admin");
     event.preventDefault();
     setSubmitError(""); // Reset lỗi khi submit
 
@@ -98,7 +111,15 @@ export default function SignUp(props) {
       username: data.get("email"),
       password: data.get("password"),
     };
-    console.log(userData);
+
+    // Lưu thông tin người dùng vào localStorage nếu "Ghi nhớ tài khoản" được chọn
+    if (rememberMe) {
+      localStorage.setItem("savedEmail", userData.username);
+      localStorage.setItem("savedPassword", userData.password);
+    } else {
+      localStorage.removeItem("savedEmail");
+      localStorage.removeItem("savedPassword");
+    }
 
     try {
       const response = await fetch(
@@ -112,19 +133,24 @@ export default function SignUp(props) {
           body: JSON.stringify(userData),
         }
       );
-      
-      if (response.status == 200) {
+
+      if (response.status === 200) {
         const result = await response.json();
         navigate("/admin");
         localStorage.setItem("token", result.data);
         console.log(response);
-
       } else {
-        setSubmitError("Đăng nhập thất bại!"); // Hiển thị lỗi đăng nhập
+        const errorData = await response.json();
+        // Kiểm tra mã lỗi từ server và hiển thị thông báo phù hợp
+        if (errorData.message) {
+          setSubmitError(errorData.message);
+        } else {
+          setSubmitError("Đăng nhập thất bại! Vui lòng kiểm tra lại thông tin.");
+        }
         console.error("Đăng nhập thất bại!");
       }
     } catch (error) {
-      setSubmitError("Đã có lỗi xảy ra, vui lòng thử lại sau."); // Hiển thị lỗi khi có vấn đề kết nối
+      setSubmitError("Đã có lỗi xảy ra, vui lòng thử lại sau.");
       console.error("Error:", error);
     }
   };
@@ -197,7 +223,14 @@ export default function SignUp(props) {
               </Typography>
             )}
             <FormControlLabel
-              control={<Checkbox value="allowExtraEmails" color="primary" />}
+              control={
+                <Checkbox
+                  value="allowExtraEmails"
+                  color="primary"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                />
+              }
               label="Ghi nhớ tài khoản"
             />
             <Button type="submit" fullWidth variant="contained">

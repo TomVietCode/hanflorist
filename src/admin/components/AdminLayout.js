@@ -9,7 +9,7 @@ import logo from "../assets/logo.svg";
 import { createTheme } from '@mui/material/styles';
 import SidebarFooterAccount from "./SidebarFooterAccount";
 import BC from "../components/breadcrumb/index"; 
-
+import "./style.css"
 
 
 
@@ -65,10 +65,24 @@ export default function AdminLayout(props) {
     <AppProvider
       navigation={NAVIGATION}
       branding={{
-        logo: <img src={logo} alt="Logo" style={{ width: "100%" }} />,
-        title: "Trang quản trị admin",
+        logo: <img src={logo} alt="Logo" style={{ width: "100%" }} className="Logo"/>,
+        title: (
+          <span
+            style={{
+              background: "linear-gradient(45deg,rgb(107, 134, 255),rgb(17, 50, 86))",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontWeight: "bold",
+              fontSize: "20px",
+              textShadow: "2px 2px 5px rgba(0, 0, 0, 0.3)",
+            }}
+          >
+            Trang Quản Trị ✨
+          </span>
+        ),
         homeUrl: "/admin/dashboard",
       }}
+      
       theme={theme}
       window={demoWindow}
     >
@@ -77,7 +91,12 @@ export default function AdminLayout(props) {
       >
         <SidebarFooterAccount mini={false} />
         <PageContainer
-          style={{maxWidth: 16000,transition: 'margin-left 0.3s ease-in-out',willChange: "margin-left"}}
+          style={{
+            maxWidth: 16000,
+            transition: 'margin-left 0.3s ease-in-out',
+            willChange: "margin-left",
+            
+          }} 
         >
           <BC/>
           <Outlet />

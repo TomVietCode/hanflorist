@@ -60,7 +60,7 @@ const columns = [
     headerAlign: "center",
     headerClassName: "header-style",
     renderCell: (params) => (
-      <Avatar src={params.value} alt="Avatar" sx={{ width: 80, height: 80 }} />
+      <Avatar src={params.value} alt="Avatar" sx={{ width: 60, height: 60 }} />
     ),
   },
   {
@@ -73,6 +73,7 @@ const columns = [
   {
     field: "role",
     headerName: "Phân quyền",
+    align: "center",
     flex: 2,
     headerAlign: "center",
     headerClassName: "header-style",
@@ -80,6 +81,7 @@ const columns = [
   {
     field: "email",
     headerName: "Email",
+    align: "center",
     flex: 2,
     headerAlign: "center",
     headerClassName: "header-style",
@@ -135,7 +137,8 @@ export default function UserListPage() {
                 display: "flex",
                 height: "80%",
                 marginLeft: 1,
-                border: "solid 1px #ccc",
+                marginTop:"8px",
+                
                 minWidth: "auto",
                 alignItems: "center",
                 justifyContent: "center",

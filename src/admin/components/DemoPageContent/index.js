@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { NAVIGATION } from "../Navigation"; // Import NAVIGATION
-import "./style.css";
 
 
 function DemoPageContent() {
@@ -20,8 +19,10 @@ function DemoPageContent() {
         backgroundColor: "#FAFBFD",
         
       }}
+      
+      
     >
-      <Typography>
+      <Typography >
         <Routes location={location}>
           {NAVIGATION.map((item) => (
             <Route

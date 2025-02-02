@@ -45,6 +45,9 @@
   color: white !important;
   background-color: #dc3545;
 }
+.bi2{
+  margin-right: 8px;
+}
 .icon{
   margin: 5px;
 }
@@ -97,4 +100,12 @@
   color: white; 
   border-color: #f44336;
   background-color: #f44336; 
+}
+
+.css-1gd5lh1-MuiPaper-root{
+  margin-top: 0 !important;
+  padding: 0 !important;
+}
+.css-14vrnb9-MuiDataGrid-root{
+  border-radius : 0 !important;
 }
