@@ -13,6 +13,7 @@ import { styled } from "@mui/material/styles";
 import AppTheme from "./shared-theme/AppTheme";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { useNavigate } from "react-router-dom";
+import logo from "./assets/logo.svg"
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -154,18 +155,24 @@ export default function SignUp(props) {
       console.error("Error:", error);
     }
   };
-
+  const Logo = styled("img")({
+    width: "auto",
+    height: "100px",
+    alignSelf: "center",
+    marginBottom: "16px",
+  });
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
       <SignUpContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
+        <Logo src={logo} alt="Logo" />
           <Typography
             component="h1"
             variant="h4"
             sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
           >
-            Đăng ký tài khoản
+            Đăng nhập
           </Typography>
           <Box
             component="form"

@@ -3,3 +3,48 @@
     margin: 0 !important;
     padding: 0 !important;
 }
+
+
+/* Css active bottom */
+.status-indicator-add {
+    padding: 6px 12px;
+    margin: 10px !important;
+    margin-top: 0px !important;
+    border-radius: 20px !important;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.3s ease, border-color 0.3s ease; 
+  }
+  
+  .status-indicator-add.active {
+    color: #4caf50; 
+    border: solid 1px #4caf50; 
+  }
+  
+  .status-indicator-add.inactive {
+    color: #f44336; 
+    border: solid 1px #f44336;
+  }
+
+  /* General style for select */
+.MuiSelect-root {
+    border-radius: 20px !important;
+    font-weight: 500;
+    padding: 6px 12px;
+    transition: color 0.3s ease, border-color 0.3s ease;
+  }
+  
+  /* Style for active status */
+  .MuiSelect-root.active {
+    color: #4caf50;
+    border: solid 1px #4caf50;
+    background-color: rgba(76, 175, 80, 0.1); /* Màu nền nhẹ cho active */
+  }
+  
+  /* Style for inactive status */
+  .MuiSelect-root.inactive {
+    color: #f44336;
+    border: solid 1px #f44336;
+    background-color: rgba(244, 67, 54, 0.1); /* Màu nền nhẹ cho inactive */
+  }
+  

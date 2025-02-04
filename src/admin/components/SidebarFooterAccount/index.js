@@ -4,25 +4,55 @@ import { Account, AccountPreview } from "@toolpad/core/Account";
 import MenuList from "@mui/material/MenuList";
 import MenuItem from "@mui/material/MenuItem";
 import Divider from "@mui/material/Divider";
-import Stack from "@mui/material/Stack"; // Đảm bảo rằng Stack được import từ MUI
-import { SignOutButton } from "@toolpad/core/Account"; // Đảm bảo import đúng SignOutButton
+import Stack from "@mui/material/Stack";
+import { SignOutButton } from "@toolpad/core/Account";
+import { useNavigate } from "react-router-dom"; // Thêm hook để chuyển hướng
 
 // Tạo component PreviewComponent
 const createPreviewComponent = (mini) => {
-  function PreviewComponent(props) {
+  return function PreviewComponent(props) {
     return <AccountPreview {...props} variant={mini ? "condensed" : "expanded"} />;
-  }
-  return PreviewComponent;
+  };
 };
 
-// SidebarFooterAccount nhận prop mini để xác định chế độ mini hay expanded
-function SidebarFooterAccount({ mini }) {
+// Component SidebarFooterAccountPopover
+const SidebarFooterAccountPopover = () => {
+  const navigate = useNavigate(); // Khởi tạo hook navigate
+
+  const handleProfileClick = () => {
+    navigate("/profile"); // Chuyển hướng đến trang thông tin tài khoản
+  };
+
+  const handleChangePasswordClick = () => {
+    navigate("/change-password"); // Chuyển hướng đến trang đổi mật khẩu
+  };
+
+  return (
+    <Stack direction="column">
+      <MenuList>
+        <MenuItem onClick={handleProfileClick}>
+          Thông tin tài khoản
+        </MenuItem>
+        <MenuItem onClick={handleChangePasswordClick}>
+          Đổi mật khẩu
+        </MenuItem>
+        <Divider />
+        <MenuItem>
+          <SignOutButton />
+        </MenuItem>
+      </MenuList>
+    </Stack>
+  );
+};
+
+// Component SidebarFooterAccount
+const SidebarFooterAccount = ({ mini }) => {
   const PreviewComponent = React.useMemo(() => createPreviewComponent(mini), [mini]);
 
   return (
     <Account
       slots={{
-        preview: PreviewComponent, // Sử dụng PreviewComponent đã tạo ở trên
+        preview: PreviewComponent, // Sử dụng PreviewComponent đã tạo
         popoverContent: SidebarFooterAccountPopover, // Sử dụng SidebarFooterAccountPopover cho popover
       }}
       slotProps={{
@@ -36,7 +66,9 @@ function SidebarFooterAccount({ mini }) {
               sx: {
                 overflow: "visible",
                 filter: (theme) =>
-                  `drop-shadow(0px 2px 8px ${theme.palette.mode === "dark" ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.32)"})`,
+                  `drop-shadow(0px 2px 8px ${
+                    theme.palette.mode === "dark" ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.32)"
+                  })`,
                 mt: 1,
                 "&::before": {
                   content: '""',
@@ -57,37 +89,10 @@ function SidebarFooterAccount({ mini }) {
       }}
     />
   );
-}
-
-SidebarFooterAccount.propTypes = {
-  mini: PropTypes.bool.isRequired, // Tham số mini để xác định dạng thu gọn hay mở rộng
 };
 
-// SidebarFooterAccountPopover function được gộp vào trong SidebarFooterAccount
-function SidebarFooterAccountPopover() {
-  return (
-    <Stack direction="column">
-      <MenuList>
-        <MenuItem
-          variant="body2"
-          mx={2}
-          mt={1}
-          onClick={() => {
-            alert("Chuyển hướng đến trang đổi mật khẩu");
-          }}
-        >
-          Thông tin tài khoản
-        </MenuItem>
-        <MenuItem>Đổi mật khẩu</MenuItem>
-
-        <Divider />
-
-        <MenuItem>
-          <SignOutButton />
-        </MenuItem>
-      </MenuList>
-    </Stack>
-  );
-}
+SidebarFooterAccount.propTypes = {
+  mini: PropTypes.bool.isRequired, // Prop mini để xác định chế độ thu gọn hay mở rộng
+};
 
 export default SidebarFooterAccount;

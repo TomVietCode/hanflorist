@@ -1,23 +1,31 @@
 import React, { useState } from "react";
-import { TextField, MenuItem, Box, Grid, Button } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import {
+  TextField,
+  MenuItem,
+  Box,
+  Grid,
+  Button,
+  FormControl,
+  Select,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CachedIcon from "@mui/icons-material/Cached";
 import AddIcon from "@mui/icons-material/Add";
 import "./style.css";
 
-// Định nghĩa các hằng số cho giá trị value
+// Định nghĩa hằng số bộ lọc
 const FILTER_OPTIONS = {
   ALL: "default",
-  TATCA: "Tất cả",
   ACTIVE: "Đang hoạt động",
   INACTIVE: "Dừng hoạt động",
   DELETE_ALL: "Xóa tất cả",
 };
 
-const OPTIONS = {
+const STATUS_OPTIONS = {
   ALL: "Tất cả",
-  POSITION1: "Đang hoạt động",
-  POSITION2: "Dừng hoạt động",
+  ACTIVE: "Đang hoạt động",
+  INACTIVE: "Dừng hoạt động",
 };
 
 const SORT_OPTIONS = {
@@ -29,28 +37,13 @@ const SORT_OPTIONS = {
 };
 
 const FilterBar = () => {
-  // Tách state cho từng TextField
-  const [filterAction, setFilterAction] = useState(FILTER_OPTIONS.ALL); // Cho TextField "Chọn hành động"
-  const [filterStatus, setFilterStatus] = useState(OPTIONS.ALL); // Cho TextField "Tất cả"
-  const [filterSort, setFilterSort] = useState(SORT_OPTIONS.ALL); // Cho TextField "Sắp xếp"
-
+  // State quản lý bộ lọc
+  const [filterAction, setFilterAction] = useState(FILTER_OPTIONS.ALL);
+  const [filterStatus, setFilterStatus] = useState(STATUS_OPTIONS.ALL);
+  const [filterSort, setFilterSort] = useState(SORT_OPTIONS.ALL);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const handleFilterActionChange = (event) => {
-    setFilterAction(event.target.value);
-  };
-
-  const handleFilterStatusChange = (event) => {
-    setFilterStatus(event.target.value);
-  };
-
-  const handleFilterSortChange = (event) => {
-    setFilterSort(event.target.value);
-  };
-
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
+  const navigate = useNavigate();
 
   const handleSearch = () => {
     console.log("Tìm kiếm:", searchTerm, "với bộ lọc:", {
@@ -60,187 +53,128 @@ const FilterBar = () => {
     });
   };
 
-  const handleAddNew = () => {
-    console.log('Nút "Thêm mới" được nhấn');
-  };
-
   return (
-    <Box sx={{ flexGrow: 1, padding: 2, boxSizing: "border-box" }}>
-      <Grid container spacing={1} sx={{ height: "100%" }}>
+    <Box sx={{ flexGrow: 1, p: 2 }}>
+      <Grid container spacing={1} alignItems="center">
+        {/* Nút Thêm mới */}
         <Grid item>
           <Button
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
-            onClick={handleAddNew}
-            style={{
-              padding: "8px 15px",
-              display: "flex",
-              height: "80%",
-              marginLeft: 1,
-              border: "solid 1px #ccc",
-              minWidth: "auto",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1rem",
-            }}
+            onClick={() => navigate("/admin/products/add")}
+            sx={{ height: "100%", px: 2 }}
           >
             Thêm mới
           </Button>
         </Grid>
+
+        {/* Ô tìm kiếm */}
         <Grid item xs>
           <TextField
-            fullWidth
             placeholder="Nhập từ khóa"
             variant="outlined"
             size="small"
-            sx={{
-              width: 250,
-              float: "right",
-              "& .MuiOutlinedInput-root": {
-                "&:hover fieldset": {
-                  borderColor: "#1976d2",
-                  transition: "border-color 0.3s ease",
-                },
-              },
-            }}
             value={searchTerm}
-            onChange={handleSearchChange}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            sx={{
+              float: "right",
+              "& .MuiOutlinedInput-root:hover fieldset": { borderColor: "#1976d2" },
+            }}
           />
         </Grid>
+
+        {/* Bộ lọc hành động */}
         <Grid item>
-          <TextField
-            select
-            value={filterAction}
-            onChange={handleFilterActionChange}
-            variant="outlined"
-            size="small"
-            sx={{
-              width: "11rem",
-              "& .MuiOutlinedInput-root": {
-                "&:hover fieldset": {
-                  borderColor: "#1976d2",
-                  transition: "border-color 0.3s ease",
-                },
-              },
-            }}
-          >
-            <MenuItem value={FILTER_OPTIONS.ALL} disabled>
-              Chọn hành động
-            </MenuItem>
-            <MenuItem value={FILTER_OPTIONS.TATCA}>Hoạt động</MenuItem>
-            <MenuItem value={FILTER_OPTIONS.ACTIVE}>Dừng hoạt động</MenuItem>
-            <MenuItem value={FILTER_OPTIONS.DELETE_ALL}>Xóa tất cả</MenuItem>
-          </TextField>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <Select
+              value={filterAction}
+              onChange={(e) => setFilterAction(e.target.value)}
+              displayEmpty
+              style={{
+                height: "2.6rem"
+              }}
+            >
+              <MenuItem value={FILTER_OPTIONS.ALL} disabled>Chọn hành động</MenuItem>
+              <MenuItem value={FILTER_OPTIONS.ACTIVE}>Đang hoạt động</MenuItem>
+              <MenuItem value={FILTER_OPTIONS.INACTIVE}>Dừng hoạt động</MenuItem>
+              <MenuItem value={FILTER_OPTIONS.DELETE_ALL}>Xóa tất cả</MenuItem>
+            </Select>
+          </FormControl>
         </Grid>
+
+        {/* Bộ lọc trạng thái */}
         <Grid item>
-          <TextField
-            select
-            value={filterStatus}
-            onChange={handleFilterStatusChange}
-            variant="outlined"
-            size="small"
-            sx={{
-              width: "9rem",
-              "& .MuiOutlinedInput-root": {
-                "&:hover fieldset": {
-                  borderColor: "#1976d2",
-                  transition: "border-color 0.3s ease",
-                },
-              },
-            }}
-          >
-            <MenuItem value={OPTIONS.ALL}>Tất cả</MenuItem>
-            <MenuItem value={OPTIONS.POSITION1} style={{ color: "green" }}>
-              Đang hoạt động
-            </MenuItem>
-            <MenuItem value={OPTIONS.POSITION2} style={{ color: "red" }}>
-              Dừng hoạt động
-            </MenuItem>
-          </TextField>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <Select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              displayEmpty
+              style={{
+                height: "2.6rem"
+              }}
+            >
+              <MenuItem value={STATUS_OPTIONS.ALL}>Tất cả</MenuItem>
+              <MenuItem value={STATUS_OPTIONS.ACTIVE} sx={{ color: "green" }}>Đang hoạt động</MenuItem>
+              <MenuItem value={STATUS_OPTIONS.INACTIVE} sx={{ color: "red" }}>Dừng hoạt động</MenuItem>
+            </Select>
+          </FormControl>
         </Grid>
+
+        {/* Bộ lọc sắp xếp */}
         <Grid item>
-          <TextField
-            select
-            value={filterSort}
-            onChange={handleFilterSortChange}
-            variant="outlined"
-            size="small"
-            sx={{
-              width: "9rem",
-              "& .MuiOutlinedInput-root": {
-                "&:hover fieldset": {
-                  borderColor: "#1976d2",
-                  transition: "border-color 0.3s ease",
-                },
-              },
-            }}
-          >
-            <MenuItem value={SORT_OPTIONS.ALL} disabled>
-              Sắp xếp
-            </MenuItem>
-            <MenuItem value={SORT_OPTIONS.DESC_POSITION}>
-              Vị trí giảm dần
-            </MenuItem>
-            <MenuItem value={SORT_OPTIONS.ASC_POSITION}>
-              Vị trí tăng dần
-            </MenuItem>
-            <MenuItem value={SORT_OPTIONS.DESC_PRICE}>Giá giảm dần</MenuItem>
-            <MenuItem value={SORT_OPTIONS.ASC_PRICE}>Giá tăng dần</MenuItem>
-          </TextField>
+          <FormControl size="small" sx={{ minWidth: 140 }}>
+            <Select
+              value={filterSort}
+              onChange={(e) => setFilterSort(e.target.value)}
+              displayEmpty
+              style={{
+                height: "2.6rem"
+              }}
+            >
+              <MenuItem value={SORT_OPTIONS.ALL} disabled>Sắp xếp</MenuItem>
+              <MenuItem value={SORT_OPTIONS.DESC_POSITION}>Vị trí giảm dần</MenuItem>
+              <MenuItem value={SORT_OPTIONS.ASC_POSITION}>Vị trí tăng dần</MenuItem>
+              <MenuItem value={SORT_OPTIONS.DESC_PRICE}>Giá giảm dần</MenuItem>
+              <MenuItem value={SORT_OPTIONS.ASC_PRICE}>Giá tăng dần</MenuItem>
+            </Select>
+          </FormControl>
         </Grid>
-        <Grid className="botton_reset" item>
+
+        {/* Nút reset */}
+        <Grid item>
           <Button
-            variant="text"
+            variant="outlined"
             onClick={handleSearch}
-            style={{
-              display: "flex",
-              height: "80%",
-              marginLeft: 1,
-              backgroundColor: "transparent",
-              border: "solid 1px #ccc",
-              padding: "8px",
-              minWidth: "auto",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
+            sx={{ minWidth: "auto", p: 1 }}
           >
-            <CachedIcon className="icon_reset" />
+            <CachedIcon />
           </Button>
         </Grid>
-        <Grid className="botton_delete" item>
+
+        {/* Nút xóa với badge hiển thị số */}
+        <Grid item>
           <Button
-            variant="text"
+            variant="outlined"
             onClick={handleSearch}
-            style={{
-              display: "flex",
-              height: "80%",
-              marginLeft: 1,
-              border: "solid 1px #ccc",
-              padding: "8px",
-              minWidth: "auto",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "relative", // Để định vị số lượng sản phẩm
-            }}
+            sx={{ minWidth: "auto", p: 1, position: "relative" }}
           >
             <DeleteIcon />
             <Box
               sx={{
-                position: "absolute", // Định vị tuyệt đối
-                top: 2, // Ở trên cùng
-                right: 2, // Ở bên phải
-                backgroundColor: "red", // Màu nền đỏ
-                color: "white", // Màu chữ trắng
-                borderRadius: "50%", // Hình tròn
-                width: "20px", // Kích thước
-                height: "20px", // Kích thước
+                position: "absolute",
+                top: 2,
+                right: 2,
+                backgroundColor: "red",
+                color: "white",
+                borderRadius: "50%",
+                width: 20,
+                height: 20,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "12px", // Kích thước chữ
+                fontSize: "12px",
                 transform: "translate(50%, -50%)",
-                pointerEvents: "none",
               }}
             >
               5

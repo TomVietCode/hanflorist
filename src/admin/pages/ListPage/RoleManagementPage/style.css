@@ -45,8 +45,8 @@
   color: white !important;
   background-color: #dc3545;
 }
-.bi2{
-  margin-right: 8px;
+.fix_bi2{
+  margin-right: 6px;
 }
 .icon{
   margin: 5px;
@@ -109,3 +109,6 @@
 .css-14vrnb9-MuiDataGrid-root{
   border-radius : 0 !important;
 }
+
+
+

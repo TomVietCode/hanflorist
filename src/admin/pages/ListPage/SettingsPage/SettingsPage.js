@@ -11,6 +11,7 @@ import {
   Avatar,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import SaveIcon from "@mui/icons-material/Save";
 import "./style.css"
 import Logo from "../../../assets/logo.svg";
 
@@ -36,7 +37,7 @@ const StoreInformation = () => {
   return (
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
       <Paper elevation={3} sx={{ p: 4, borderRadius: "12px" }}>
-        <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3, textAlign: "center", color: "#1976d2" }}>
+        <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1, textAlign: "center", color: "#1976d2" }}>
           Thông Tin Cửa Hàng
         </Typography>
 
@@ -82,6 +83,11 @@ const StoreInformation = () => {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               variant="outlined"
+              InputProps={{
+                style: {
+                  height: "2.5rem",
+                },
+              }}
               sx={{
                 borderRadius: "8px",
                 "& .MuiOutlinedInput-root": {
@@ -104,6 +110,11 @@ const StoreInformation = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               variant="outlined"
+              InputProps={{
+                style: {
+                  height: "2.5rem",
+                },
+              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "&:hover fieldset": {
@@ -127,6 +138,11 @@ const StoreInformation = () => {
               variant="outlined"
               multiline
               rows={2}
+              InputProps={{
+                style: {
+                  height: "3rem",
+                },
+              }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "&:hover fieldset": {
@@ -134,6 +150,7 @@ const StoreInformation = () => {
                     transition: "border-color 0.3s ease",
                   },
                 },
+               
               }}
             />
           </Grid>
@@ -144,6 +161,7 @@ const StoreInformation = () => {
               <Button
                 variant="contained"
                 color="primary"
+                startIcon={<SaveIcon />}
                 onClick={handleSave}
                 sx={{
                   px: 4,
@@ -155,7 +173,7 @@ const StoreInformation = () => {
                   "&:hover": { backgroundColor: "#1565c0" },
                 }}
               >
-                Cập nhật thông tin
+                Lưu thông tin
               </Button>
             </Box>
           </Grid>

@@ -26,7 +26,7 @@ const columns = [
     renderCell: (params) => (
       <Box sx={{ display: "flex" }}>
         <span
-          className="box_icon bi2"
+          className="box_icon bi2 fix_bi2"
           style={{
             color: "#ffc107",
             border: "solid 1px #ffc107",
@@ -87,7 +87,7 @@ export default function RoleGroupPage() {
 
         {/* Data Grid */}
         <DataGrid
-          rowHeight={80}
+          className="custom-data-grid"
           rows={sampleData}
           columns={columns}
           pagination
@@ -96,6 +96,7 @@ export default function RoleGroupPage() {
           checkboxSelection
           onPageChange={(newPage) => console.log(newPage)}
           sx={{
+
             "& .MuiDataGrid-cell": { display: "flex", alignItems: "center", cursor: "pointer" },
             "& .MuiDataGrid-cell:focus, & .MuiDataGrid-columnHeader:focus": { outline: "none" },
             userSelect: "none",

@@ -16,6 +16,7 @@ import RoleManagementPage from "../../pages/ListPage/RoleManagementPage/RoleMana
 import PermissionPage from "../../pages/ListPage/PermissionPage/PermissionPage";
 import AccountPage from "../../pages/ListPage/AccountPage/AccountPage";
 import SettingsPage from "../../pages/ListPage/SettingsPage/SettingsPage";
+import AddProductPage from "../../pages/ListPage/ModulesPage/NewProductPage"
 
 export const NAVIGATION = [
   {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";  // Thêm dòng này
 import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import { get } from "../../../../share/utils/http";
@@ -8,6 +9,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import FilterBar from "./filter";
 import "./style.css"; // Đúng// Import file CSS
+
+
+
 
 const columns = [
   {
@@ -66,7 +70,6 @@ const columns = [
           {params.row.title}
         </span>
         <span
-        
           style={{
             position: "absolute",
             left: "10px",
@@ -76,7 +79,6 @@ const columns = [
             opacity: 0,
             transition: "opacity 0.3s ease-in-out, visibility 0.3s ease-in-out, transform 0.3s ease-in-out",
             padding: 5,
-            
           }}
           className="hover-content"
         >
@@ -86,10 +88,9 @@ const columns = [
               color:"#17a2b8",
               border: "solid 1px #17a2b8",
             }}
-            onClick={() => alert(`Xem sản phẩm: ${params.row.title}`)}
+            // onClick={() => navigate(`/admin/products/view/${params.row.id}`)}
           >
-            <VisibilityIcon 
-            className="icon"/>
+            <VisibilityIcon className="icon"/>
           </span>
           <span
             className="box_icon bi2"
@@ -168,8 +169,8 @@ export default function ProductListPage() {
   const [data, setData] = useState([]);
   const [error, setError] = useState(null);
   const token = getLocalStorage("token");
-  const [paginationModel,setPaginationModel]= useState({ pageSize: 5, page: 0 })
-
+  const [paginationModel, setPaginationModel] = useState({ pageSize: 5, page: 0 });
+  const navigate = useNavigate();
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -193,10 +194,7 @@ export default function ProductListPage() {
     fetchData();
   }, [token]);
 
-
-
   return (
-    
     <Paper className="ProductListPage" sx={{ height: "100%", width: "100%" }}>
       <FilterBar/>
       <DataGrid

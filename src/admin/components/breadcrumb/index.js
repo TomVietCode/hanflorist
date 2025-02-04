@@ -10,11 +10,12 @@ import { Box } from "@mui/material";
 const breadcrumbNameMap = {
   dashboard: "Tổng quan",
   settings: "Cài đặt",
-  categories: "Danh mục",
+  categories: "Danh mục sản phẩm",
   roles: "Nhóm quyền",
   permissions: "Phân quyền",
-  products: "Sản phẩm",
+  products: "Danh sách sản phẩm",
   accounts: "Tài khoản",
+  add: "Thêm sản phẩm",
   "user-management": "Quản lý người dùng",
   "order-details": "Chi tiết đơn hàng",
 };
@@ -32,6 +33,8 @@ function DynamicBreadcrumbs() {
           display: "flex",
           alignItems: "center",
           "& .MuiBreadcrumbs-separator": { mx: 1 },
+          fontFamily: "'Roboto', sans-serif", // Chọn font đẹp và rõ ràng
+          
         }}
       >
         {/* Home Icon */}
@@ -39,8 +42,11 @@ function DynamicBreadcrumbs() {
           style={{
             display: "flex",
             alignItems: "center",
-            color: "inherit",
+            color: "#3f51b5", // Màu sắc cho Home
             textDecoration: "none",
+            fontSize: "18px", // Tăng cỡ chữ cho biểu tượng Home
+            transition: "color 0.3s ease", // Hiệu ứng khi hover
+            
           }}
           to="/admin/dashboard"
         >
@@ -51,18 +57,21 @@ function DynamicBreadcrumbs() {
         {pathnames.map((path, index) => {
           const isLast = index === pathnames.length - 1;
           const pathTo = `/${pathnames.slice(0, index + 1).join("/")}`;
-          const breadcrumbText = breadcrumbNameMap[path] || path.replace(/-/g, " ");
+          const breadcrumbText =
+            breadcrumbNameMap[path] || path.replace(/-/g, " ");
 
           return isLast ? (
             <Typography
               key={path}
               variant="h5"
               fontWeight="bold"
-              color="black"
+              color="primary"
               sx={{
                 textTransform: "capitalize",
                 fontSmooth: "always",
                 WebkitFontSmoothing: "antialiased",
+                color: "#212121", // Đảm bảo chữ cuối cùng dễ đọc
+                
               }}
             >
               {breadcrumbText}
@@ -73,10 +82,15 @@ function DynamicBreadcrumbs() {
               to={pathTo}
               style={{
                 textDecoration: "none",
-                color: "gray",
+                color: "#616161", // Màu chữ cho các liên kết
                 fontSize: "16px",
                 textTransform: "capitalize",
+                transition: "color 0.3s ease", // Hiệu ứng khi hover
+                fontWeight: 500,
+                
               }}
+              onMouseOver={(e) => (e.target.style.color = "#3f51b5")} // Hover color
+              onMouseOut={(e) => (e.target.style.color = "#616161")} // Color default khi không hover
             >
               {breadcrumbText}
             </Link>
