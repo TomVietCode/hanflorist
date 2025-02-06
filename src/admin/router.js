@@ -5,11 +5,13 @@ import DashboardPage from "./pages/ListPage/DashboardPage/DashboardPage.js";
 import ProductListPage from "./pages/ListPage/ProductListPage/ProductListPage.js";
 import AddProductPage from "./pages/ListPage/ModulesPage/NewProductPage"; // Thêm import
 import CategoryPage from "./pages/ListPage/CategoryPage/CategoryPage.js";
+import NewCategoryPage from "./pages/ListPage/ModulesPage/NewCategoryPage/index.js"
 import RoleManagementPage from "./pages/ListPage/RoleManagementPage/RoleManagementPage.js";
+import AddNewRole from "./pages/ListPage/ModulesPage/NewRole/index.js"
 import PermissionPage from "./pages/ListPage/PermissionPage/PermissionPage.js";
 import AccountPage from "./pages/ListPage/AccountPage/AccountPage.js";
 import SettingsPage from "./pages/ListPage/SettingsPage/SettingsPage.js";
-import ViewProductPage from "./pages/ListPage/ModulesPage/ViewProduct/index.js"
+import ProductDetail from "./pages/ListPage/ModulesPage/ProductDetail/index.js"
 import PrivateRoute from "./privateRouter.js";
 
 const routes = [
@@ -29,20 +31,28 @@ const routes = [
             element: <ProductListPage />,
           },
           {
-            path: "products/add", // Route cho Add Product Page
+            path: "products/add-products", // Route cho Add Product Page
             element: <AddProductPage />,
           },
           {
-            path: "products/view", // Route cho Add Product Page
-            element: <ViewProductPage />,
+            path: "products/view-products/:id", // Route cho Add Product Page
+            element: <ProductDetail />,
           },
           {
             path: "categories",
             element: <CategoryPage />,
           },
           {
+            path: "categories/add-categories",
+            element: <NewCategoryPage />,
+          },
+          {
             path: "roles",
             element: <RoleManagementPage />,
+          },
+          {
+            path: "roles/new",
+            element: <AddNewRole />,
           },
           {
             path: "permissions",

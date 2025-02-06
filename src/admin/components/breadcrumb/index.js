@@ -15,14 +15,25 @@ const breadcrumbNameMap = {
   permissions: "Phân quyền",
   products: "Danh sách sản phẩm",
   accounts: "Tài khoản",
-  add: "Thêm sản phẩm",
-  "user-management": "Quản lý người dùng",
-  "order-details": "Chi tiết đơn hàng",
+  view: "Sản phẩm",
+  new: "Thêm quyền",
+  "add-products": "Thêm sản phẩm", 
+  "add-categories": "Thêm danh mục",
 };
+
 
 function DynamicBreadcrumbs() {
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter((x) => x);
+
+  // Loại bỏ phần cuối cùng nếu đó là ID
+  const filteredPathnames = pathnames.filter((path, index) => {
+    // Loại bỏ phần cuối nếu là ID (dự đoán ID là chuỗi ký tự dài)
+    if (index === pathnames.length - 1 && /^[a-f0-9]{24}$/i.test(path)) {
+      return false; // Không hiển thị ID
+    }
+    return true; // Hiển thị các phần còn lại
+  });
 
   return (
     <Box display="flex" alignItems="center" marginBottom="8px" marginTop="0">
@@ -33,8 +44,7 @@ function DynamicBreadcrumbs() {
           display: "flex",
           alignItems: "center",
           "& .MuiBreadcrumbs-separator": { mx: 1 },
-          fontFamily: "'Roboto', sans-serif", // Chọn font đẹp và rõ ràng
-          
+          fontFamily: "'Roboto', sans-serif",
         }}
       >
         {/* Home Icon */}
@@ -42,11 +52,10 @@ function DynamicBreadcrumbs() {
           style={{
             display: "flex",
             alignItems: "center",
-            color: "#3f51b5", // Màu sắc cho Home
+            color: "#3f51b5",
             textDecoration: "none",
-            fontSize: "18px", // Tăng cỡ chữ cho biểu tượng Home
-            transition: "color 0.3s ease", // Hiệu ứng khi hover
-            
+            fontSize: "18px",
+            transition: "color 0.3s ease",
           }}
           to="/admin/dashboard"
         >
@@ -54,9 +63,9 @@ function DynamicBreadcrumbs() {
         </Link>
 
         {/* Hiển thị breadcrumb */}
-        {pathnames.map((path, index) => {
-          const isLast = index === pathnames.length - 1;
-          const pathTo = `/${pathnames.slice(0, index + 1).join("/")}`;
+        {filteredPathnames.map((path, index) => {
+          const isLast = index === filteredPathnames.length - 1;
+          const pathTo = `/${filteredPathnames.slice(0, index + 1).join("/")}`;
           const breadcrumbText =
             breadcrumbNameMap[path] || path.replace(/-/g, " ");
 
@@ -70,8 +79,7 @@ function DynamicBreadcrumbs() {
                 textTransform: "capitalize",
                 fontSmooth: "always",
                 WebkitFontSmoothing: "antialiased",
-                color: "#212121", // Đảm bảo chữ cuối cùng dễ đọc
-                
+                color: "#212121",
               }}
             >
               {breadcrumbText}
@@ -82,15 +90,14 @@ function DynamicBreadcrumbs() {
               to={pathTo}
               style={{
                 textDecoration: "none",
-                color: "#616161", // Màu chữ cho các liên kết
+                color: "#616161",
                 fontSize: "16px",
                 textTransform: "capitalize",
-                transition: "color 0.3s ease", // Hiệu ứng khi hover
+                transition: "color 0.3s ease",
                 fontWeight: 500,
-                
               }}
-              onMouseOver={(e) => (e.target.style.color = "#3f51b5")} // Hover color
-              onMouseOut={(e) => (e.target.style.color = "#616161")} // Color default khi không hover
+              onMouseOver={(e) => (e.target.style.color = "#3f51b5")}
+              onMouseOut={(e) => (e.target.style.color = "#616161")}
             >
               {breadcrumbText}
             </Link>
@@ -100,5 +107,6 @@ function DynamicBreadcrumbs() {
     </Box>
   );
 }
+
 
 export default DynamicBreadcrumbs;

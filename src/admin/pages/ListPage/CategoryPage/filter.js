@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   TextField,
   MenuItem,
@@ -21,6 +22,7 @@ const OPTIONS = {
 const FilterBar = () => {
   const [filterStatus, setFilterStatus] = useState(OPTIONS.ALL); // Cho TextField "Tất cả"
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
   const handleFilterStatusChange = (event) => {
     setFilterStatus(event.target.value);
@@ -28,16 +30,6 @@ const FilterBar = () => {
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
-  };
-
-  const handleSearch = () => {
-    console.log("Tìm kiếm:", searchTerm, "với bộ lọc:", {
-      filterStatus,
-    });
-  };
-
-  const handleAddNew = () => {
-    console.log('Nút "Thêm mới" được nhấn');
   };
 
   return (
@@ -48,7 +40,7 @@ const FilterBar = () => {
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
-            onClick={handleAddNew}
+            onClick={() => navigate("/admin/categories/add-categories")}
             style={{
               padding: "8px 15px",
               display: "flex",
@@ -94,19 +86,19 @@ const FilterBar = () => {
               sx={{
                 height: "2.5rem",
                 width: "9rem",
-                "& .MuiOutlinedInput-root": {
-                  "&:hover fieldset": {
-                    borderColor: "#1976d2",
-                    transition: "border-color 0.3s ease",
-                  },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1976d2",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1976d2",
                 },
               }}
             >
-              <MenuItem value={OPTIONS.ALL}>Tất cả</MenuItem>
-              <MenuItem value={OPTIONS.POSITION1} sx={{ color: "green" }}>
+              <MenuItem className="status-indicator-add"  value={OPTIONS.ALL}>Tất cả</MenuItem>
+              <MenuItem className="status-indicator-add active" value={OPTIONS.POSITION1} sx={{ color: "green" }}>
                 Đang hoạt động
               </MenuItem>
-              <MenuItem value={OPTIONS.POSITION2} sx={{ color: "red" }}>
+              <MenuItem className="status-indicator-add inactive"  value={OPTIONS.POSITION2} sx={{ color: "red" }}>
                 Dừng hoạt động
               </MenuItem>
             </Select>

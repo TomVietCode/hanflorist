@@ -9,7 +9,6 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
   Grid,
   Typography,
   InputAdornment 
@@ -355,7 +354,12 @@ const AddProductPage = () => {
                     backgroundColor: "#f5f5f5",
                     borderRadius: 1,
                     height: "2.5rem",
-                    
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#1976d2",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#1976d2",
+                    },
                   }}
                   MenuProps={{
                     PaperProps: {
@@ -399,8 +403,14 @@ const AddProductPage = () => {
                   sx={{
                     backgroundColor: "#f5f5f5",
                     borderRadius: 1,
+                    border: "none",
                     height: "2.5rem",
-                    
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      border: "none",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      border: "none",
+                    },
                   }}
                   className={
                     product.status === "active"

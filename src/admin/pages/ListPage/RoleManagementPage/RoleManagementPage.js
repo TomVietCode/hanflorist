@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DataGrid } from "@mui/x-data-grid";
-import { Paper, Grid, Button, Box } from "@mui/material"; 
-import AddIcon from "@mui/icons-material/Add"; 
+import { Paper, Button, Box } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
-import "./style.css"; 
+import Notification, { showConfirmDialog, showSuccess, showError } from "../../../components/Notification"; // Import Notification
+import "./style.css";
 
 const sampleData = [
   { id: 1, groupName: "Admin", description: "Quản trị viên hệ thống", totalMembers: 5 },
@@ -12,7 +14,7 @@ const sampleData = [
   { id: 3, groupName: "Viewer", description: "Người xem", totalMembers: 20 },
 ].map((row, index) => ({ ...row, index: index + 1 }));
 
-const columns = [
+const columns = (navigate, handleDelete) => [
   { field: "index", headerName: "STT", flex: 0.5, headerAlign: "center", align: "center" },
   { field: "groupName", headerName: "Nhóm quyền", flex: 1.5 },
   { field: "description", headerName: "Mô tả ngắn", flex: 2 },
@@ -34,7 +36,9 @@ const columns = [
             borderRadius: "4px",
             cursor: "pointer",
           }}
-          onClick={() => alert(`Chỉnh sửa nhóm quyền: ${params.row.groupName}`)}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
         >
           <BorderColorIcon className="icon" />
         </span>
@@ -47,7 +51,10 @@ const columns = [
             borderRadius: "4px",
             cursor: "pointer",
           }}
-          onClick={() => alert(`Xóa nhóm quyền: ${params.row.groupName}`)}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDelete(); // Call delete function
+          }}
         >
           <DeleteIcon className="icon" />
         </span>
@@ -58,22 +65,36 @@ const columns = [
 
 export default function RoleGroupPage() {
   const [paginationModel, setPaginationModel] = useState({ pageSize: 5, page: 0 });
+  const [notificationState, setNotificationState] = useState({ open: false, severity: "", message: "" });
+  const navigate = useNavigate();
 
-  const handleAddNew = () => {
-    alert("Thêm mới nhóm quyền");
+  // Handle delete logic
+  const handleDelete = () => {
+    showConfirmDialog(
+      "Bạn có chắc chắn muốn xóa?",
+      () => {
+        // Xóa thành công
+        showSuccess("Xóa thành công!", setNotificationState);
+        // Thực hiện xóa ở đây (ví dụ: gọi API để xóa dữ liệu)
+      },
+      () => {
+        // Hủy xóa
+        showError("Hủy xóa!", setNotificationState);
+      }
+    );
   };
 
   return (
     <Box>
       <Paper className="RoleGroupPage" sx={{ height: "100%", width: "100%", mt: 2, p: 2 }}>
         {/* Header + Button */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5, padding: "10px"}}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5, padding: "10px" }}>
           <h2 style={{ margin: 0 }}>Quản lý nhóm quyền</h2>
           <Button
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
-            onClick={handleAddNew}
+            onClick={() => navigate("/admin/roles/new")}
             sx={{
               padding: "8px 15px",
               border: "solid 1px #ccc",
@@ -89,21 +110,26 @@ export default function RoleGroupPage() {
         <DataGrid
           className="custom-data-grid"
           rows={sampleData}
-          columns={columns}
+          columns={columns(navigate, handleDelete)}
           pagination
           paginationModel={paginationModel}
           pageSizeOptions={[5, 10, 20]}
           checkboxSelection
           onPageChange={(newPage) => console.log(newPage)}
           sx={{
-
             "& .MuiDataGrid-cell": { display: "flex", alignItems: "center", cursor: "pointer" },
             "& .MuiDataGrid-cell:focus, & .MuiDataGrid-columnHeader:focus": { outline: "none" },
             userSelect: "none",
-
           }}
         />
       </Paper>
+
+      <Notification
+        open={notificationState.open}
+        severity={notificationState.severity}
+        message={notificationState.message}
+        onClose={() => setNotificationState({ ...notificationState, open: false })}
+      />
     </Box>
   );
 }

@@ -14,7 +14,7 @@ import CachedIcon from "@mui/icons-material/Cached";
 import AddIcon from "@mui/icons-material/Add";
 import "./style.css";
 
-// Định nghĩa hằng số bộ lọc
+// Define filter options constants
 const FILTER_OPTIONS = {
   ALL: "default",
   ACTIVE: "Đang hoạt động",
@@ -36,66 +36,99 @@ const SORT_OPTIONS = {
   ASC_PRICE: "Giá tăng dần",
 };
 
-const FilterBar = () => {
-  // State quản lý bộ lọc
-  const [filterAction, setFilterAction] = useState(FILTER_OPTIONS.ALL);
-  const [filterStatus, setFilterStatus] = useState(STATUS_OPTIONS.ALL);
-  const [filterSort, setFilterSort] = useState(SORT_OPTIONS.ALL);
-  const [searchTerm, setSearchTerm] = useState("");
+const FilterBar = ({ setSearchTerm, setFilterAction, setFilterStatus, setFilterSort }) => {
+  // Local state to manage filter values
+  const [filterAction, setFilterActionLocal] = useState(FILTER_OPTIONS.ALL);
+  const [filterStatus, setFilterStatusLocal] = useState(STATUS_OPTIONS.ALL);
+  const [filterSort, setFilterSortLocal] = useState(SORT_OPTIONS.ALL);
+  const [searchTermLocal, setSearchTermLocal] = useState("");
 
   const navigate = useNavigate();
 
+  // Handle search action
   const handleSearch = () => {
-    console.log("Tìm kiếm:", searchTerm, "với bộ lọc:", {
-      filterAction,
-      filterStatus,
-      filterSort,
-    });
+    setSearchTerm(searchTermLocal); // Gửi từ khóa tìm kiếm lên component cha
+  };
+
+  // Handle filter action change
+  const handleFilterActionChange = (e) => {
+    const selectedAction = e.target.value;
+    setFilterAction(selectedAction); // Cập nhật trạng thái lọc hành động
+    setFilterActionLocal(selectedAction);
+    if (selectedAction === FILTER_OPTIONS.DELETE_ALL) {
+      // Thêm hành động khi chọn "Xóa tất cả"
+      // Logic xóa sẽ thực hiện tại đây
+      console.log("Xóa tất cả sản phẩm");
+    }
+  };
+
+  // Handle filter status change
+  const handleFilterStatusChange = (e) => {
+    const selectedStatus = e.target.value;
+    setFilterStatus(selectedStatus); // Cập nhật trạng thái lọc
+    setFilterStatusLocal(selectedStatus);
+  };
+
+  // Handle filter sort change
+  const handleFilterSortChange = (e) => {
+    const selectedSort = e.target.value;
+    setFilterSort(selectedSort); // Cập nhật trạng thái lọc sắp xếp
+    setFilterSortLocal(selectedSort);
   };
 
   return (
     <Box sx={{ flexGrow: 1, p: 2 }}>
       <Grid container spacing={1} alignItems="center">
-        {/* Nút Thêm mới */}
+        {/* Button to add a new item */}
         <Grid item>
           <Button
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
-            onClick={() => navigate("/admin/products/add")}
-            sx={{ height: "100%", px: 2 }}
+            onClick={() => navigate("/admin/products/add-products")}
+            sx={{ height: "2.6rem", px: 2 }}
           >
             Thêm mới
           </Button>
         </Grid>
 
-        {/* Ô tìm kiếm */}
+        {/* Search Input */}
         <Grid item xs>
           <TextField
             placeholder="Nhập từ khóa"
             variant="outlined"
             size="small"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchTermLocal}
+            onChange={(e) => setSearchTermLocal(e.target.value)} // Update searchTermLocal
             sx={{
               float: "right",
-              "& .MuiOutlinedInput-root:hover fieldset": { borderColor: "#1976d2" },
+              "& .MuiOutlinedInput-root:hover fieldset": {
+                borderColor: "#1976d2",
+              },
             }}
           />
         </Grid>
 
-        {/* Bộ lọc hành động */}
+        {/* Filter for Action */}
         <Grid item>
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <Select
               value={filterAction}
-              onChange={(e) => setFilterAction(e.target.value)}
+              onChange={handleFilterActionChange} // Handle action change
               displayEmpty
-              style={{
-                height: "2.6rem"
+              sx={{
+                height: "2.6rem",
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1976d2",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1976d2",
+                },
               }}
             >
-              <MenuItem value={FILTER_OPTIONS.ALL} disabled>Chọn hành động</MenuItem>
+              <MenuItem value={FILTER_OPTIONS.ALL} disabled>
+                Chọn hành động
+              </MenuItem>
               <MenuItem value={FILTER_OPTIONS.ACTIVE}>Đang hoạt động</MenuItem>
               <MenuItem value={FILTER_OPTIONS.INACTIVE}>Dừng hoạt động</MenuItem>
               <MenuItem value={FILTER_OPTIONS.DELETE_ALL}>Xóa tất cả</MenuItem>
@@ -103,36 +136,56 @@ const FilterBar = () => {
           </FormControl>
         </Grid>
 
-        {/* Bộ lọc trạng thái */}
+        {/* Filter for Status */}
         <Grid item>
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <Select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={handleFilterStatusChange} // Handle status change
               displayEmpty
-              style={{
-                height: "2.6rem"
+              sx={{
+                height: "2.6rem",
+                width: "12rem",
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1976d2",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1976d2",
+                },
               }}
             >
-              <MenuItem value={STATUS_OPTIONS.ALL}>Tất cả</MenuItem>
-              <MenuItem value={STATUS_OPTIONS.ACTIVE} sx={{ color: "green" }}>Đang hoạt động</MenuItem>
-              <MenuItem value={STATUS_OPTIONS.INACTIVE} sx={{ color: "red" }}>Dừng hoạt động</MenuItem>
+              <MenuItem className="status-indicator-add" value={STATUS_OPTIONS.ALL}>Tất cả</MenuItem>
+              <MenuItem className="status-indicator-add active" value={STATUS_OPTIONS.ACTIVE} sx={{ color: "green" }}>
+                Đang hoạt động
+              </MenuItem>
+              <MenuItem className="status-indicator-add inactive" value={STATUS_OPTIONS.INACTIVE} sx={{ color: "red" }}>
+                Dừng hoạt động
+              </MenuItem>
             </Select>
           </FormControl>
         </Grid>
 
-        {/* Bộ lọc sắp xếp */}
+        {/* Filter for Sorting */}
         <Grid item>
           <FormControl size="small" sx={{ minWidth: 140 }}>
             <Select
               value={filterSort}
-              onChange={(e) => setFilterSort(e.target.value)}
+              onChange={handleFilterSortChange} // Handle sort change
               displayEmpty
-              style={{
-                height: "2.6rem"
+              sx={{
+                height: "2.6rem",
+                width: "11rem",
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1976d2",
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "#1976d2",
+                },
               }}
             >
-              <MenuItem value={SORT_OPTIONS.ALL} disabled>Sắp xếp</MenuItem>
+              <MenuItem value={SORT_OPTIONS.ALL} disabled>
+                Sắp xếp
+              </MenuItem>
               <MenuItem value={SORT_OPTIONS.DESC_POSITION}>Vị trí giảm dần</MenuItem>
               <MenuItem value={SORT_OPTIONS.ASC_POSITION}>Vị trí tăng dần</MenuItem>
               <MenuItem value={SORT_OPTIONS.DESC_PRICE}>Giá giảm dần</MenuItem>
@@ -141,23 +194,38 @@ const FilterBar = () => {
           </FormControl>
         </Grid>
 
-        {/* Nút reset */}
+        {/* Reset Button */}
         <Grid item>
           <Button
             variant="outlined"
             onClick={handleSearch}
-            sx={{ minWidth: "auto", p: 1 }}
+            sx={{
+              minWidth: "auto",
+              p: 1,
+              "&:hover": {
+                backgroundColor: "#1976d2",
+                color: "white",
+              },
+            }}
           >
             <CachedIcon />
           </Button>
         </Grid>
 
-        {/* Nút xóa với badge hiển thị số */}
+        {/* Delete Button with Badge */}
         <Grid item>
           <Button
             variant="outlined"
             onClick={handleSearch}
-            sx={{ minWidth: "auto", p: 1, position: "relative" }}
+            sx={{
+              minWidth: "auto",
+              p: 1,
+              position: "relative",
+              "&:hover": {
+                backgroundColor: "#1976d2",
+                color: "white",
+              },
+            }}
           >
             <DeleteIcon />
             <Box

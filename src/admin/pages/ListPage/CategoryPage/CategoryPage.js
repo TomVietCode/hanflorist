@@ -71,7 +71,9 @@ const columns = [
               color: "#ffc107",
               border: "solid 1px #ffc107",
             }}
-            onClick={() => alert(`Chỉnh sửa sản phẩm: ${params.row.title}`)}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
           >
             <DeleteIcon className="icon" />
           </span>
@@ -81,7 +83,9 @@ const columns = [
               color: "#dc3545",
               border: "solid 1px #dc3545",
             }}
-            onClick={() => alert(`Xóa sản phẩm: ${params.row.title}`)}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
           >
             <BorderColorIcon className="icon" />
           </span>
@@ -101,13 +105,16 @@ const columns = [
     field: "status",
     headerName: "Trạng thái",
     align: "center",
-    flex: 1.5,
+    flex: 1.7,
     headerAlign: "center",
     renderCell: (params) => {
       const isActive = params.value === "active";
       return (
         <span
           className={`status-indicator ${isActive ? "active" : "inactive"}`}
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
         >
           {isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
         </span>

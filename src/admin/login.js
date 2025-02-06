@@ -202,7 +202,7 @@ export default function SignUp(props) {
               />
             </FormControl>
             <FormControl>
-              <FormLabel htmlFor="password">Password</FormLabel>
+              <FormLabel htmlFor="password">Mật khẩu</FormLabel>
               <TextField
                 required
                 fullWidth
