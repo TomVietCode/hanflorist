@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 
 import { Editor } from "@tinymce/tinymce-react";
-import SaveIcon from "@mui/icons-material/Save";
+import AddIcon from "@mui/icons-material/Add";
 
 const AddRolePage = () => {
   const [product, setProduct] = useState({
@@ -99,7 +99,7 @@ const AddRolePage = () => {
               <Button
                 variant="contained"
                 color="primary"
-                startIcon={<SaveIcon />}
+                startIcon={<AddIcon />}
                 sx={{
                   marginTop: "1rem",
                   width: "12rem",
@@ -112,7 +112,7 @@ const AddRolePage = () => {
                   },
                 }}
               >
-                Lưu quyền
+                Thêm quyền
               </Button>
             </Grid>
           </Grid>

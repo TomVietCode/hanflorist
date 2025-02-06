@@ -12,8 +12,8 @@ import {
   Typography,
 } from "@mui/material";
 import { Editor } from "@tinymce/tinymce-react";
-import SaveIcon from "@mui/icons-material/Save";
-
+import AddIcon from "@mui/icons-material/Add";
+import "./style.css";
 
 const AddProductPage = () => {
   const [product, setProduct] = useState({
@@ -42,20 +42,18 @@ const AddProductPage = () => {
     }
   };
 
- 
   return (
     <Container maxWidth="md" sx={{ padding: 3 }}>
-      <Card sx={{ p: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-          Tiêu đề {" "}
-            <Typography component="span" color="error">
-              *
-            </Typography>
-          </Typography>
-          <Grid container spacing={3}>
-            {/* Product Information */}
-            <Grid item xs={12}>
+      <Grid container spacing={3} sx={{ p: 1 }}>
+        <Grid item xs={12} md={8}>
+          <Card sx={{ p: 2 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Tiêu đề{" "}
+                <Typography component="span" color="error">
+                  *
+                </Typography>
+              </Typography>
               <TextField
                 fullWidth
                 name="title"
@@ -78,10 +76,8 @@ const AddProductPage = () => {
                   },
                 }}
               />
-            </Grid>
 
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
                 Mô tả{" "}
                 <Typography component="span" color="error">
                   *
@@ -91,7 +87,7 @@ const AddProductPage = () => {
                 apiKey="n5h7bzsqjitms467t41qjuac0tthph4wjqvy7aj2a5pygbo8"
                 value={product.description}
                 init={{
-                  height: 300,
+                  height: 200,
                   menubar: false,
                   plugins: [
                     "advlist autolink lists link image charmap print preview anchor",
@@ -103,8 +99,13 @@ const AddProductPage = () => {
                     bullist numlist outdent indent | removeformat | help`,
                 }}
               />
-            </Grid>
-            <Grid item xs={4}>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Card sx={{ p: 2 }}>
+            <CardContent>
               <Typography variant="h6" gutterBottom>
                 Danh mục{" "}
                 <Typography component="span" color="error">
@@ -131,14 +132,14 @@ const AddProductPage = () => {
                   MenuProps={{
                     PaperProps: {
                       style: {
-                        maxHeight: 200, // Giới hạn chiều cao của menu
-                        overflowY: "auto", // Thêm cuộn dọc nếu cần
+                        maxHeight: 200,
+                        overflowY: "auto",
                       },
                     },
                   }}
                 >
                   <MenuItem value="" disabled>
-                    Chọn danh mục cha
+                    Chọn danh mục
                   </MenuItem>
                   <MenuItem value="flowers">Hoa tươi</MenuItem>
                   <MenuItem value="gifts">Quà tặng</MenuItem>
@@ -152,85 +153,78 @@ const AddProductPage = () => {
                   <MenuItem value="electronics">Điện tử</MenuItem>
                 </Select>
               </FormControl>
-            </Grid>
 
-            <Grid item xs={2.3}>
               <Typography variant="h6" gutterBottom>
-                Trạng thái{" "}
-                <Typography component="span" color="error">
-                  *
+                  Trạng thái{" "}
+                  <Typography component="span" color="error">
+                    *
+                  </Typography>
                 </Typography>
-              </Typography>
-              <FormControl fullWidth>
-                <Select
-                  name="status"
-                  value={product.status}
-                  onChange={handleChange}
-                  displayEmpty
-                  sx={{
-                    backgroundColor: "#f5f5f5",
-                    borderRadius: 1,
-                    border: "none",
-                    height: "2.5rem",
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                <FormControl fullWidth>
+                  <Select
+                    name="status"
+                    value={product.status}
+                    onChange={handleChange}
+                    displayEmpty
+                    sx={{
+                      backgroundColor: "#f5f5f5",
+                      borderRadius: 1,
                       border: "none",
-                    },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      border: "none",
-                    },
-                  }}
-                  className={
-                    product.status === "active"
-                      ? "active"
-                      : product.status === "inactive"
-                        ? "inactive"
-                        : ""
-                  }
-                >
-                  <MenuItem
-                    className="status-indicator-add active"
-                    value="active"
+                      height: "2.5rem",
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        border: "none",
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        border: "none",
+                      },
+                    }}
+                    className={
+                      product.status === "active"
+                        ? "active"
+                        : product.status === "inactive"
+                          ? "inactive"
+                          : ""
+                    }
                   >
-                    Hoạt động
-                  </MenuItem>
-                  <MenuItem
-                    className="status-indicator-add inactive"
-                    value="inactive"
-                  >
-                    Dừng hoạt động
-                  </MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
+                    <MenuItem
+                      className="status-indicator-add active"
+                      value="active"
+                    >
+                      Hoạt động
+                    </MenuItem>
+                    <MenuItem
+                      className="status-indicator-add inactive"
+                      value="inactive"
+                    >
+                      Dừng hoạt động
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+            </CardContent>
+          </Card>
 
-            {/* Submit Button */}
-            <Grid
-              item
-              xs={12}
-              sx={{ display: "flex", justifyContent: "center" }}
+          <Grid item xs={12} sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              sx={{
+                width: "100%",
+                maxWidth: 200,
+                fontSize: "1rem",
+                justifyContent: "center",
+                display: "flex",
+                alignItems: "center",
+                "&:hover": {
+                  backgroundColor: "#1565c0", // Hover effect color
+                },
+              }}
             >
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<SaveIcon />}
-                sx={{
-                  marginTop: "1rem",
-                  width: "12rem",
-                  justifyContent: "center",
-                  display: "flex",
-                  alignItems: "center",
-                  fontSize: "1rem",
-                  "&:hover": {
-                    backgroundColor: "#1565c0", // Hover effect color
-                  },
-                }}
-              >
-                Lưu danh mục
-              </Button>
-            </Grid>
+              Thêm danh mục
+            </Button>
           </Grid>
-        </CardContent>
-      </Card>
+        </Grid>
+      </Grid>
     </Container>
   );
 };
