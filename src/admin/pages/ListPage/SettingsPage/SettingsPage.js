@@ -9,10 +9,13 @@ import {
   Input,
   Box,
   Avatar,
+  CircularProgress,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import SaveIcon from "@mui/icons-material/Save";
-import "./style.css"
+import "./style.css";
 import Logo from "../../../assets/logo.svg";
 
 const StoreInformation = () => {
@@ -22,6 +25,10 @@ const StoreInformation = () => {
   const [address, setAddress] = useState(
     "Phenikaa University - Yên Nghĩa - Hà Đông - Hà Nội"
   );
+  const [loading, setLoading] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
   const handleLogoChange = (event) => {
     const file = event.target.files[0];
@@ -31,19 +38,26 @@ const StoreInformation = () => {
   };
 
   const handleSave = () => {
-    console.log("Thông tin đã được cập nhật");
+    setLoading(true);
+    // Simulate an API call
+    setTimeout(() => {
+      setLoading(false);
+      setSnackbarMessage("Thông tin đã được cập nhật thành công!");
+      setSnackbarSeverity("success");
+      setSnackbarOpen(true);
+    }, 2000);
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4,  }}>
+    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
       <Paper elevation={3} sx={{ p: 4, borderRadius: "12px" }}>
-        <Typography variant="h5" sx={{ fontWeight: "bold", mb: 1, textAlign: "center", color: "#1976d2" }}>
-          Thông Tin Cửa Hàng
-        </Typography>
-
         <Grid container spacing={3}>
           {/* Logo Section */}
-          <Grid item xs={12} sx={{ textAlign: "center" }}>
+          <Grid item xs={12} md={5}>
             <Typography variant="h6" gutterBottom>
               Logo cửa hàng
             </Typography>
@@ -51,7 +65,12 @@ const StoreInformation = () => {
               <Avatar
                 src={logo || Logo}
                 alt="Logo"
-                sx={{ width: "auto", height: 150, borderRadius: "8px", boxShadow: 3 }}
+                sx={{
+                  width: "auto",
+                  height: 200,
+                  borderRadius: "8px",
+                  boxShadow: 3,
+                }}
               />
               <Input
                 accept="image/*"
@@ -73,86 +92,87 @@ const StoreInformation = () => {
             </Box>
           </Grid>
 
-          {/* Phone Number Section */}
-          <Grid item xs={12} md={6}>
-            <Typography variant="h6" gutterBottom>
-              Số điện thoại
-            </Typography>
-            <TextField
-              fullWidth
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              variant="outlined"
-              InputProps={{
-                style: {
-                  height: "2.5rem",
-                },
-              }}
-              sx={{
-                borderRadius: "8px",
-                "& .MuiOutlinedInput-root": {
-                  "&:hover fieldset": {
-                    borderColor: "#1976d2",
-                    transition: "border-color 0.3s ease",
-                  },
-                },
-              }}
-            />
-          </Grid>
+          {/* Phone Number, Email, Address Section */}
+          <Grid item xs={12} md={7}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Số điện thoại
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  variant="outlined"
+                  InputProps={{
+                    style: {
+                      height: "2.5rem",
+                    },
+                  }}
+                  sx={{
+                    borderRadius: "8px",
+                    "& .MuiOutlinedInput-root": {
+                      "&:hover fieldset": {
+                        borderColor: "#1976d2",
+                        transition: "border-color 0.3s ease",
+                      },
+                    },
+                  }}
+                />
+              </Grid>
 
-          {/* Email Section */}
-          <Grid item xs={12} md={6}>
-            <Typography variant="h6" gutterBottom>
-              Email
-            </Typography>
-            <TextField
-              fullWidth
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              variant="outlined"
-              InputProps={{
-                style: {
-                  height: "2.5rem",
-                },
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "&:hover fieldset": {
-                    borderColor: "#1976d2",
-                    transition: "border-color 0.3s ease",
-                  },
-                },
-              }}
-            />
-          </Grid>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Email
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  variant="outlined"
+                  InputProps={{
+                    style: {
+                      height: "2.5rem",
+                    },
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "&:hover fieldset": {
+                        borderColor: "#1976d2",
+                        transition: "border-color 0.3s ease",
+                      },
+                    },
+                  }}
+                />
+              </Grid>
 
-          {/* Address Section */}
-          <Grid item xs={12}>
-            <Typography variant="h6" gutterBottom>
-              Địa chỉ cửa hàng
-            </Typography>
-            <TextField
-              fullWidth
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              variant="outlined"
-              multiline
-              rows={2}
-              InputProps={{
-                style: {
-                  height: "3rem",
-                },
-              }}
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "&:hover fieldset": {
-                    borderColor: "#1976d2",
-                    transition: "border-color 0.3s ease",
-                  },
-                },
-               
-              }}
-            />
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  Địa chỉ cửa hàng
+                </Typography>
+                <TextField
+                  fullWidth
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  variant="outlined"
+                  multiline
+                  rows={2}
+                  InputProps={{
+                    style: {
+                      height: "3rem",
+                    },
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "&:hover fieldset": {
+                        borderColor: "#1976d2",
+                        transition: "border-color 0.3s ease",
+                      },
+                    },
+                  }}
+                />
+              </Grid>
+            </Grid>
           </Grid>
 
           {/* Save Button */}
@@ -161,8 +181,9 @@ const StoreInformation = () => {
               <Button
                 variant="contained"
                 color="primary"
-                startIcon={<SaveIcon />}
+                startIcon={loading ? <CircularProgress size={24} /> : <SaveIcon />}
                 onClick={handleSave}
+                disabled={loading}
                 sx={{
                   px: 4,
                   py: 1,
@@ -173,12 +194,24 @@ const StoreInformation = () => {
                   "&:hover": { backgroundColor: "#1565c0" },
                 }}
               >
-                Lưu thông tin
+                {loading ? "Đang lưu..." : "Lưu thông tin"}
               </Button>
             </Box>
           </Grid>
         </Grid>
       </Paper>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

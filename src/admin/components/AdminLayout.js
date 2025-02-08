@@ -3,13 +3,12 @@ import { AppProvider } from "@toolpad/core/AppProvider";
 import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { PageContainer } from "@toolpad/core/PageContainer";
 import { NAVIGATION } from "./Navigation";
-import { Outlet, useLocation, Link } from "react-router-dom"; // Import useLocation và Link
+import { Outlet, useLocation } from "react-router-dom"; // Import useLocation và Link
 import logo from "../assets/logo.svg";
 import flower from "../assets/flower.svg";
 import { createTheme } from "@mui/material/styles";
 import SidebarFooterAccount from "./SidebarFooterAccount"; // Thành phần Sidebar
-import BC from "../components/breadcrumb/index"; // Thành phần Breadcrumb
-import LocalFloristIcon from "@mui/icons-material/LocalFlorist"; // Biểu tượng hoa
+import BC from "../components/breadcrumb/index"; // Thành phần Breadcrum
 import "./style.css";
 
 export default function AdminLayout(props) {

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { CircularProgress } from "@mui/material";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
@@ -13,7 +14,7 @@ import { styled } from "@mui/material/styles";
 import AppTheme from "./shared-theme/AppTheme";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { useNavigate } from "react-router-dom";
-import logo from "./assets/logo.svg"
+import logo from "./assets/logo.svg";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -101,11 +102,17 @@ export default function SignUp(props) {
     return isValid;
   };
 
+  const [loading, setLoading] = React.useState(false); // Trạng thái loading
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setSubmitError(""); // Reset lỗi khi submit
+    setLoading(true); // Bắt đầu hiệu ứng loading
 
-    if (!validateInputs()) return;
+    if (!validateInputs()) {
+      setLoading(false);
+      return;
+    }
 
     const data = new FormData(event.currentTarget);
     const userData = {
@@ -123,50 +130,44 @@ export default function SignUp(props) {
     }
 
     try {
-      const response = await fetch(
-        "http://localhost:3001/admin/auth/login",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(userData),
-        }
-      );
+      const response = await fetch("http://localhost:3001/admin/login", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
 
       if (response.status === 200) {
         const result = await response.json();
-        navigate("/admin");
         localStorage.setItem("token", result.data);
-        console.log(response);
+        navigate("/admin"); // Chuyển hướng sau khi đăng nhập thành công
       } else {
         const errorData = await response.json();
-        // Kiểm tra mã lỗi từ server và hiển thị thông báo phù hợp
-        if (errorData.message) {
-          setSubmitError(errorData.message);
-        } else {
-          setSubmitError("Đăng nhập thất bại! Vui lòng kiểm tra lại thông tin.");
-        }
-        console.error("Đăng nhập thất bại!");
+        setSubmitError(errorData.message || "Đăng nhập thất bại!");
       }
     } catch (error) {
       setSubmitError("Đã có lỗi xảy ra, vui lòng thử lại sau.");
       console.error("Error:", error);
+    } finally {
+      setLoading(false); // Kết thúc loading
     }
   };
+
   const Logo = styled("img")({
     width: "auto",
     height: "100px",
     alignSelf: "center",
     marginBottom: "16px",
   });
+
   return (
     <AppTheme {...props}>
       <CssBaseline enableColorScheme />
       <SignUpContainer direction="column" justifyContent="space-between">
         <Card variant="outlined">
-        <Logo src={logo} alt="Logo" />
+          <Logo src={logo} alt="Logo" />
           <Typography
             component="h1"
             variant="h4"
@@ -184,6 +185,7 @@ export default function SignUp(props) {
               <TextField
                 required
                 fullWidth
+                disabled={loading}
                 id="email"
                 placeholder="your@email.com"
                 name="email"
@@ -206,6 +208,7 @@ export default function SignUp(props) {
               <TextField
                 required
                 fullWidth
+                disabled={loading}
                 name="password"
                 placeholder="••••••"
                 type="password"
@@ -240,8 +243,28 @@ export default function SignUp(props) {
               }
               label="Ghi nhớ tài khoản"
             />
-            <Button type="submit" fullWidth variant="contained">
-              Đăng nhập
+            <Button
+              type="submit"
+              fullWidth
+              disabled={loading}
+              startIcon={
+                loading ? <CircularProgress size={24} color="inherit" sx={{ color: "white" }} /> : ""
+              }
+              sx={{
+                px: 4,
+                py: 1,
+                fontSize: "16px",
+                borderRadius: "8px",
+                textTransform: "none",
+                transition: "0.3s",
+                backgroundColor: "#1565c0",
+                color: loading ? "white" : "white", // Thay đổi màu chữ khi loading
+                "&:hover": { backgroundColor: "#0d47a1" },
+              }}
+            >
+              <span style={{ color: loading ? "white" : "white" }}>
+                {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+              </span>
             </Button>
           </Box>
         </Card>

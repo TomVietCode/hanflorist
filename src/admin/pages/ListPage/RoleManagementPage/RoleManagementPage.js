@@ -38,6 +38,7 @@ const columns = (navigate, handleDelete) => [
           }}
           onClick={(e) => {
             e.stopPropagation();
+            navigate(`/admin/roles/edit-role`);
           }}
         >
           <BorderColorIcon className="icon" />
@@ -94,7 +95,7 @@ export default function RoleGroupPage() {
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
-            onClick={() => navigate("/admin/roles/new")}
+            onClick={() => navigate("/admin/roles/new-role")}
             sx={{
               padding: "8px 15px",
               border: "solid 1px #ccc",

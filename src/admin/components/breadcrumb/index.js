@@ -15,10 +15,13 @@ const breadcrumbNameMap = {
   permissions: "Phân quyền",
   products: "Danh sách sản phẩm",
   accounts: "Tài khoản",
-  view: "Sản phẩm",
-  new: "Thêm quyền",
   "add-products": "Thêm sản phẩm", 
+  "view-products": "Sản phẩm",
+  "edit-products": "Sửa sản phẩm",
   "add-categories": "Thêm danh mục",
+  "new-categories": "Thêm quyền",
+  "new-roles" : "Thêm quyền",
+  "edit-role" : "sửa quyền"
 };
 
 

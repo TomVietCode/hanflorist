@@ -12,6 +12,7 @@ import PermissionPage from "./pages/ListPage/PermissionPage/PermissionPage.js";
 import AccountPage from "./pages/ListPage/AccountPage/AccountPage.js";
 import SettingsPage from "./pages/ListPage/SettingsPage/SettingsPage.js";
 import ProductDetail from "./pages/ListPage/ModulesPage/ProductDetail/index.js"
+import EditProduct from "./pages/ListPage/ModulesPage/EditProduct"
 import PrivateRoute from "./privateRouter.js";
 
 const routes = [
@@ -31,12 +32,16 @@ const routes = [
             element: <ProductListPage />,
           },
           {
-            path: "products/add-products", // Route cho Add Product Page
+            path: "products/add-products",
             element: <AddProductPage />,
           },
           {
-            path: "products/view-products/:id", // Route cho Add Product Page
+            path: "products/view-products/:id",
             element: <ProductDetail />,
+          },
+          {
+            path: "products/edit-products/:id",
+            element: <EditProduct />,
           },
           {
             path: "categories",
@@ -51,7 +56,11 @@ const routes = [
             element: <RoleManagementPage />,
           },
           {
-            path: "roles/new",
+            path: "roles/new-role",
+            element: <AddNewRole />,
+          },
+          {
+            path: "roles/edit-role",
             element: <AddNewRole />,
           },
           {

@@ -8,10 +8,148 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import FilterBar from "./filter";
-import Skeleton from "@mui/material/Skeleton"; // Import Skeleton
+import { useSearchStore, useResetStore, useStatusStore } from "./store";
 import "./style.css";
 
-const columns = (navigate, handleDelete) => [
+const SkeletonRow = () => (
+  <div
+    style={{
+      display: "flex",
+      width: "100%",
+      alignItems: "center",
+      gap: "10px",
+      padding: "10px",
+      borderBottom: "1px solid #e0e0e0", // Đường viền dưới
+      backgroundColor: "#f9f9f9", // Màu nền nhạt
+    }}
+  >
+    {/* Skeleton cho cột STT */}
+    <div style={{ flex: "0.5", display: "flex", justifyContent: "center" }}>
+      <div
+        style={{
+          width: "100%",
+          height: "50px",
+          backgroundColor: "#e0e0e0",
+          borderRadius: "4px",
+          animation: "pulse 1.5s infinite", // Hiệu ứng nhấp nháy
+        }}
+      />
+    </div>
+    {/* Skeleton cho cột Hình ảnh */}
+    <div style={{ flex: "1.2", display: "flex", justifyContent: "center" }}>
+      <div
+        style={{
+          width: "100px",
+          height: "100px",
+          backgroundColor: "#e0e0e0",
+          borderRadius: "4px",
+          animation: "pulse 1.5s infinite",
+        }}
+      />
+    </div>
+    {/* Skeleton cho cột Tiêu đề */}
+    <div style={{ flex: "2.5" }}>
+      <div
+        style={{
+          width: "100%",
+          height: "20px",
+          backgroundColor: "#e0e0e0",
+          borderRadius: "4px",
+          animation: "pulse 1.5s infinite",
+        }}
+      />
+      <div
+        style={{
+          width: "80%",
+          height: "20px",
+          backgroundColor: "#e0e0e0",
+          borderRadius: "4px",
+          marginTop: "10px",
+          animation: "pulse 1.5s infinite",
+        }}
+      />
+    </div>
+    {/* Skeleton cho cột Giá */}
+    <div style={{ flex: "1.2", display: "flex", justifyContent: "flex-end" }}>
+      <div
+        style={{
+          width: "80%",
+          height: "20px",
+          backgroundColor: "#e0e0e0",
+          borderRadius: "4px",
+          animation: "pulse 1.5s infinite",
+        }}
+      />
+    </div>
+    {/* Skeleton cho cột Số lượng */}
+    <div style={{ flex: "0.9", display: "flex", justifyContent: "center" }}>
+      <div
+        style={{
+          width: "50%",
+          height: "20px",
+          backgroundColor: "#e0e0e0",
+          borderRadius: "4px",
+          animation: "pulse 1.5s infinite",
+        }}
+      />
+    </div>
+    {/* Skeleton cho cột Trạng thái */}
+    <div style={{ flex: "1.7", display: "flex", justifyContent: "center" }}>
+      <div
+        style={{
+          width: "80%",
+          height: "20px",
+          backgroundColor: "#e0e0e0",
+          borderRadius: "4px",
+          animation: "pulse 1.5s infinite",
+        }}
+      />
+    </div>
+    {/* Skeleton cho cột Tạo bởi */}
+    <div style={{ flex: "1.5", display: "flex", justifyContent: "center" }}>
+      <div
+        style={{
+          width: "60%",
+          height: "20px",
+          backgroundColor: "#e0e0e0",
+          borderRadius: "4px",
+          animation: "pulse 1.5s infinite",
+        }}
+      />
+    </div>
+    {/* Skeleton cho cột Cập nhật */}
+    <div style={{ flex: "1.2", display: "flex", justifyContent: "center" }}>
+      <div
+        style={{
+          width: "80%",
+          height: "20px",
+          backgroundColor: "#e0e0e0",
+          borderRadius: "4px",
+          animation: "pulse 1.5s infinite",
+        }}
+      />
+    </div>
+  </div>
+);
+
+// Hàm đánh dấu từ khớp với searchTerm
+const highlightText = (text, searchTerm) => {
+  if (!searchTerm) return text; // Nếu không có searchTerm, trả về text gốc
+
+  // Tạo regex để tìm kiếm không phân biệt hoa thường
+  const regex = new RegExp(`(${searchTerm})`, "gi");
+  return text.split(regex).map((part, index) =>
+    regex.test(part) ? (
+      <span key={index} style={{ backgroundColor: "yellow" }}>
+        {part}
+      </span>
+    ) : (
+      part
+    )
+  );
+};
+
+const columns = (navigate, handleDelete, searchTerm) => [
   {
     field: "stt",
     headerName: "STT",
@@ -64,7 +202,7 @@ const columns = (navigate, handleDelete) => [
             cursor: "pointer",
           }}
         >
-          {params.row.title}
+          {highlightText(params.row.title, searchTerm)}
         </span>
         <span
           className="hover-content"
@@ -85,7 +223,7 @@ const columns = (navigate, handleDelete) => [
             style={{ color: "#17a2b8", border: "solid 1px #17a2b8" }}
             onClick={(e) => {
               e.stopPropagation(); // Ngừng sự kiện để không thay đổi trạng thái checkbox
-              navigate(`/admin/products/view/${params.row.id}`);
+              navigate(`/admin/products/view-products/${params.row.id}`);
             }}
           >
             <VisibilityIcon className="icon" />
@@ -95,7 +233,7 @@ const columns = (navigate, handleDelete) => [
             style={{ color: "#ffc107", border: "solid 1px #ffc107" }}
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/admin/products/edit/${params.row.id}`);
+              navigate(`/admin/products/edit-products/${params.row.id}`);
             }}
           >
             <BorderColorIcon className="icon" />
@@ -144,12 +282,11 @@ const columns = (navigate, handleDelete) => [
             e.stopPropagation();
           }}
         >
-          {isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
+          {isActive ? "Đang hoạt động" : "Dừng hoạt động"}
         </span>
       );
     },
   },
-
   {
     field: "creatorName",
     headerName: "Tạo bởi",
@@ -169,9 +306,7 @@ const columns = (navigate, handleDelete) => [
 
 export default function ProductListPage() {
   const [data, setData] = useState([]); // Lưu trữ dữ liệu chưa lọc
-  const [filteredData, setFilteredData] = useState([]); // Lưu trữ dữ liệu đã lọc
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState(""); // State để lưu từ khóa tìm kiếm
   const [loading, setLoading] = useState(true); // State để kiểm tra xem dữ liệu có đang tải không
   const [filterStatus, setFilterStatus] = useState(""); // Lưu trạng thái lọc
   const [filterSort, setFilterSort] = useState(""); // Lưu bộ lọc sắp xếp
@@ -180,115 +315,98 @@ export default function ProductListPage() {
     pageSize: 5,
     page: 0,
   });
-
   const navigate = useNavigate();
+  const { searchTerm } = useSearchStore();
 
-  // Hàm lấy dữ liệu từ API
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const result = await get(token, "/admin/products");
-        if (result.data?.length) {
-          const formattedData = result.data.map((row, index) => ({
-            ...row,
-            id: row._id,
-            stt: index + 1,
-            price: `${row.price.toLocaleString()} VND`,
-          }));
-          setData(formattedData);
-          setFilteredData(formattedData); // Khi lấy dữ liệu xong, cập nhật filteredData
-        }
-        setLoading(false); // Đặt loading thành false khi đã tải xong dữ liệu
-      } catch (err) {
-        setError(err.message);
-        setLoading(false); // Đặt loading thành false khi có lỗi
-      }
-    };
-    fetchData();
-  }, [token]);
-
-  // Lọc dữ liệu mỗi khi `searchTerm`, `filterStatus`, hoặc `filterSort` thay đổi
-  useEffect(() => {
-    let filtered = data;
-
-    if (searchTerm) {
-      filtered = filtered.filter((item) =>
-        item.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (filterStatus) {
-      filtered = filtered.filter((item) => item.status === filterStatus);
-    }
-
-    if (filterSort) {
-      if (filterSort === "DESC_PRICE") {
-        filtered = filtered.sort((a, b) => b.price - a.price);
-      } else if (filterSort === "ASC_PRICE") {
-        filtered = filtered.sort((a, b) => a.price - b.price);
-      }
-    }
-
-    setFilteredData(filtered);
-  }, [searchTerm, data, filterStatus, filterSort]);
-
-  // Xử lý xóa sản phẩm
+  // Hàm xử lý xóa sản phẩm
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Bạn có chắc chắn muốn xóa sản phẩm này?"
-    );
-    if (confirmDelete) {
-      try {
-        await del(token, `/admin/products/${id}`); // Gọi API xóa sản phẩm
-        setData((prevData) => prevData.filter((item) => item.id !== id)); // Cập nhật lại dữ liệu sau khi xóa
-        setFilteredData((prevData) =>
-          prevData.filter((item) => item.id !== id)
-        );
-      } catch (err) {
-        setError("Lỗi khi xóa sản phẩm");
-      }
+    try {
+      const response = await del(token, `/admin/products/${id}`);
+      console.log("API Response:", response); // Kiểm tra response từ server
+  
+      setData((prevData) => prevData.filter((item) => item.id !== id));
+    } catch (err) {
+      setError(err.message);
     }
   };
+ 
+  const { isActive } = useResetStore();
+  const {statusTerm} = useStatusStore();
+useEffect(() => {
+ 
+  const fetchData = async () => {
+    setLoading(true); // Đặt loading thành true khi bắt đầu gọi API
+    try {
+      let url = `/admin/products?search=${encodeURIComponent(searchTerm)}`;
+    
+    if (statusTerm !== "ALL") { 
+      url += `&status=${statusTerm}`;  // Chỉ thêm nếu không phải "Tất cả"
+    }
+      const result = await get(token, url);
+      if (result.data?.length) {
+        const formattedData = result.data.map((row, index) => ({
+          ...row,
+          id: row._id,
+          stt: index + 1,
+          price: `${row.price.toLocaleString()} VND`,
+        }));
+        setData(formattedData);
+      } else {
+        setData([]); // Nếu không có dữ liệu, đặt danh sách về rỗng
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false); // Đảm bảo loading luôn được tắt sau khi gọi API
+    }
+  };
+
+  fetchData();
+}, [token, searchTerm, isActive, statusTerm]); // Gọi lại khi token, searchTerm hoặc isActive thay đổi
 
   return (
     <Paper className="ProductListPage" sx={{ height: "100%", width: "100%" }}>
       {error && (
         <div style={{ color: "red", padding: "10px" }}>Error: {error}</div>
       )}
-      <FilterBar 
-        setSearchTerm={setSearchTerm} 
+      <FilterBar
         setFilterStatus={setFilterStatus}
-        setFilterSort={setFilterSort} 
+        setFilterSort={setFilterSort}
       />
-      {loading ? (
-        // Hiển thị Skeleton khi dữ liệu đang tải
-        <Skeleton variant="rectangular" width="100%" height={400} />
-      ) : (
-        <DataGrid
-          rowHeight={90}
-          rows={filteredData}
-          columns={columns(navigate, handleDelete)} // Thêm handleDelete vào columns
-          pagination
-          paginationModel={paginationModel}
-          pageSizeOptions={[5, 10, 20]}
-          checkboxSelection
-          paginationMode="server"
-          onPaginationModelChange={(newPaginationModel) =>
-            setPaginationModel(newPaginationModel)
-          }
-          sx={{
-            "& .center-cell": {
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            },
-            "& .MuiDataGrid-cell:focus, & .MuiDataGrid-columnHeader:focus": {
-              outline: "none",
-            },
-            userSelect: "none",
-          }}
-        />
-      )}
+      <DataGrid
+        rowHeight={90}
+        rows={data}
+        columns={columns(navigate, handleDelete, searchTerm)}
+        pagination
+        paginationModel={paginationModel}
+        pageSizeOptions={[5, 10, 20]}
+        checkboxSelection
+        paginationMode="server"
+        onPaginationModelChange={(newPaginationModel) =>
+          setPaginationModel(newPaginationModel)
+        }
+        loading={loading} // Hiển thị loading overlay khi loading là true
+        slots={{
+          loadingOverlay: () => (
+            <div>
+              {[...Array(5)].map((_, index) => (
+                <SkeletonRow key={index} />
+              ))}
+            </div>
+          ),
+        }}
+        sx={{
+          "& .center-cell": {
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          },
+          "& .MuiDataGrid-cell:focus, & .MuiDataGrid-columnHeader:focus": {
+            outline: "none",
+          },
+          userSelect: "none",
+        }}
+      />
     </Paper>
   );
 }
