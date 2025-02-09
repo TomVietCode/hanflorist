@@ -147,13 +147,7 @@ const AddProductPage = () => {
                   <Typography component="span" color="error" sx={{ ml: 0.5 }}>
                     *
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    color="textSecondary"
-                    sx={{ ml: 0.5, marginTop: "4px" }}
-                  >
-                    (Tối đa 5 ảnh)
-                  </Typography>
+                  
                 </Typography>
 
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -161,7 +155,7 @@ const AddProductPage = () => {
                   <Box
                     sx={{
                       width: "100%",
-                      height: "17.3rem",
+                      height: "17.45rem",
                       backgroundColor: "#f5f5f5",
                       display: "flex",
                       alignItems: "center",

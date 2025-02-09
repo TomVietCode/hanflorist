@@ -149,7 +149,7 @@ const highlightText = (text, searchTerm) => {
   );
 };
 
-const columns = (navigate, handleDelete, searchTerm) => [
+const getColumns = (navigate, handleDelete, searchTerm, toggleStatus) => [
   {
     field: "stt",
     headerName: "STT",
@@ -280,6 +280,7 @@ const columns = (navigate, handleDelete, searchTerm) => [
           className={`status-indicator ${isActive ? "active" : "inactive"}`}
           onClick={(e) => {
             e.stopPropagation();
+            toggleStatus(params.row.id); // Gọi toggleStatus với id của hàng
           }}
         >
           {isActive ? "Đang hoạt động" : "Dừng hoạt động"}
@@ -317,52 +318,86 @@ export default function ProductListPage() {
   });
   const navigate = useNavigate();
   const { searchTerm } = useSearchStore();
+  const { statusTerm } = useStatusStore();
 
-  // Hàm xử lý xóa sản phẩm
   const handleDelete = async (id) => {
     try {
       const response = await del(token, `/admin/products/${id}`);
-      console.log("API Response:", response); // Kiểm tra response từ server
-  
-      setData((prevData) => prevData.filter((item) => item.id !== id));
-    } catch (err) {
-      setError(err.message);
-    }
-  };
- 
-  const { isActive } = useResetStore();
-  const {statusTerm} = useStatusStore();
-useEffect(() => {
- 
-  const fetchData = async () => {
-    setLoading(true); // Đặt loading thành true khi bắt đầu gọi API
-    try {
-      let url = `/admin/products?search=${encodeURIComponent(searchTerm)}`;
-    
-    if (statusTerm !== "ALL") { 
-      url += `&status=${statusTerm}`;  // Chỉ thêm nếu không phải "Tất cả"
-    }
-      const result = await get(token, url);
-      if (result.data?.length) {
-        const formattedData = result.data.map((row, index) => ({
-          ...row,
-          id: row._id,
-          stt: index + 1,
-          price: `${row.price.toLocaleString()} VND`,
-        }));
-        setData(formattedData);
+      console.log("API Response:", response);
+      if (response.data === true) {
+        setData((prevData) => prevData.filter((item) => item._id !== id));
       } else {
-        setData([]); // Nếu không có dữ liệu, đặt danh sách về rỗng
+        console.error("Delete failed:", response);
+        setError("Xóa sản phẩm thất bại!");
       }
     } catch (err) {
+      console.error("Delete error:", err);
       setError(err.message);
-    } finally {
-      setLoading(false); // Đảm bảo loading luôn được tắt sau khi gọi API
     }
   };
 
-  fetchData();
-}, [token, searchTerm, isActive, statusTerm]); // Gọi lại khi token, searchTerm hoặc isActive thay đổi
+  const toggleStatus = async (id) => {
+    // Cập nhật trạng thái ngay trên UI trước khi gửi API
+    setData((prev) =>
+      prev.map((item) =>
+        item._id === id ? { ...item, status: item.status === "active" ? "inactive" : "active" } : item
+      )
+    );
+
+    // Gửi API cập nhật trạng thái
+    try {
+      const response = await fetch(`http://localhost:3001/admin/products/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          status: data.find((item) => item._id === id).status === "active" ? "inactive" : "active",
+        }),
+      });
+      console.log(response)
+      if (!response.ok) {
+        throw new Error("Không thể cập nhật trạng thái!");
+      }
+    } catch (error) {
+      console.error("Lỗi cập nhật trạng thái:", error);
+      // Nếu API lỗi, rollback trạng thái về ban đầu
+      setData((prev) =>
+        prev.map((item) =>
+          item._id === id ? { ...item, status: item.status === "active" ? "inactive" : "active" } : item
+        )
+      );
+    }
+  };
+  const { isActive } = useResetStore();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true); // Đặt loading thành true khi bắt đầu gọi API
+      try {
+        let url = `/admin/products?search=${encodeURIComponent(searchTerm)}`;
+        if (statusTerm !== "ALL") {
+          url += `&status=${statusTerm}`; // Chỉ thêm nếu không phải "Tất cả"
+        }
+        const result = await get(token, url);
+        if (result.data?.length) {
+          const formattedData = result.data.map((row, index) => ({
+            ...row,
+            id: row._id,
+            stt: index + 1,
+            price: `${row.price.toLocaleString()} VND`,
+          }));
+          setData(formattedData);
+        } else {
+          setData([]); // Nếu không có dữ liệu, đặt danh sách về rỗng
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false); // Đảm bảo loading luôn được tắt sau khi gọi API
+      }
+    };
+
+    fetchData();
+  }, [token, searchTerm,isActive, statusTerm]); // Gọi lại khi token, searchTerm hoặc statusTerm thay đổi
 
   return (
     <Paper className="ProductListPage" sx={{ height: "100%", width: "100%" }}>
@@ -376,7 +411,7 @@ useEffect(() => {
       <DataGrid
         rowHeight={90}
         rows={data}
-        columns={columns(navigate, handleDelete, searchTerm)}
+        columns={getColumns(navigate, handleDelete, searchTerm, toggleStatus)}
         pagination
         paginationModel={paginationModel}
         pageSizeOptions={[5, 10, 20]}

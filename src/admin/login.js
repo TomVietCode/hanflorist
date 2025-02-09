@@ -130,7 +130,7 @@ export default function SignUp(props) {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/admin/login", {
+      const response = await fetch("http://localhost:3001/admin/auth/login", {
         method: "POST",
         headers: {
           Accept: "application/json",

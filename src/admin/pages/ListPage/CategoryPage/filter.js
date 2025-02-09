@@ -10,6 +10,7 @@ import {
   Select,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import { useSearchStore, useStatusStore } from "../ProductListPage/store";
 import "./style.css";
 
 // Định nghĩa các hằng số cho giá trị value
@@ -21,16 +22,20 @@ const OPTIONS = {
 
 const FilterBar = () => {
   const [filterStatus, setFilterStatus] = useState(OPTIONS.ALL); // Cho TextField "Tất cả"
-  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
   const handleFilterStatusChange = (event) => {
     setFilterStatus(event.target.value);
   };
 
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-  };
+  const [searchTermLocal, setSearchTermLocal] = useState("");
+  const { setSearchTerm } = useSearchStore(); // Lấy setter từ Zustand
+    const handleSearch = (e) => {
+      const value = e.target.value;
+      setSearchTermLocal(value); // Cập nhật UI
+      setSearchTerm(value); // Cập nhật Zustand store
+    };
+  
 
   return (
     <Box sx={{ flexGrow: 1, padding: 2, boxSizing: "border-box" }}>
@@ -72,8 +77,8 @@ const FilterBar = () => {
                 },
               },
             }}
-            value={searchTerm}
-            onChange={handleSearchChange}
+            value={searchTermLocal}
+            onChange={handleSearch}
           />
         </Grid>
         <Grid item>

@@ -51,7 +51,7 @@ const ProductDetail = () => {
   }, [id]);
 
   const handleEdit = () => {
-    navigate(`/edit-product/${id}`);
+    navigate(`/admin/products/view-products/${id}`);
   };
 
   if (loading) {
@@ -89,7 +89,7 @@ const ProductDetail = () => {
     >
       <Grid container spacing={3} sx={{  maxWidth: "1200px" }}>
         {/* Hình ảnh */}
-        <Grid item xs={12} md={6} sx={{ height: "600px" }}>
+        <Grid item xs={12} md={4} sx={{ height: "600px" }}>
           <Card
             sx={{
               borderRadius: 1,
@@ -113,7 +113,7 @@ const ProductDetail = () => {
         </Grid>
 
         {/* Thông tin sản phẩm */}
-        <Grid item xs={12} md={6} sx={{ height: "600px" }}>
+        <Grid item xs={12} md={8} sx={{ height: "600px" }}>
           <Card
             sx={{
               borderRadius: 1,

@@ -57,7 +57,7 @@ function DynamicBreadcrumbs() {
             alignItems: "center",
             color: "#3f51b5",
             textDecoration: "none",
-            fontSize: "18px",
+            fontSize: "22px",
             transition: "color 0.3s ease",
           }}
           to="/admin/dashboard"
@@ -75,14 +75,13 @@ function DynamicBreadcrumbs() {
           return isLast ? (
             <Typography
               key={path}
-              variant="h5"
+              
               fontWeight="bold"
               color="primary"
               sx={{
-                textTransform: "capitalize",
-                fontSmooth: "always",
-                WebkitFontSmoothing: "antialiased",
-                color: "#212121",
+                fontWeight: "bold",
+                color: "#333",
+                fontSize: "22px",
               }}
             >
               {breadcrumbText}
@@ -93,11 +92,11 @@ function DynamicBreadcrumbs() {
               to={pathTo}
               style={{
                 textDecoration: "none",
-                color: "#616161",
-                fontSize: "16px",
+                fontSize: "20px",
                 textTransform: "capitalize",
                 transition: "color 0.3s ease",
                 fontWeight: 500,
+                color: "#616161",
               }}
               onMouseOver={(e) => (e.target.style.color = "#3f51b5")}
               onMouseOut={(e) => (e.target.style.color = "#616161")}

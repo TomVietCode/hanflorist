@@ -12,7 +12,7 @@ import PermissionPage from "./pages/ListPage/PermissionPage/PermissionPage.js";
 import AccountPage from "./pages/ListPage/AccountPage/AccountPage.js";
 import SettingsPage from "./pages/ListPage/SettingsPage/SettingsPage.js";
 import ProductDetail from "./pages/ListPage/ModulesPage/ProductDetail/index.js"
-import EditProduct from "./pages/ListPage/ModulesPage/EditProduct"
+import EditProduct from "./pages/ListPage/ModulesPage/EditProduct/index.js"
 import PrivateRoute from "./privateRouter.js";
 
 const routes = [

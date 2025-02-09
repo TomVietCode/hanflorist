@@ -1,204 +1,176 @@
 import React, { useState, useEffect } from "react";
-import { DataGrid } from "@mui/x-data-grid";
-import Paper from "@mui/material/Paper";
+import {
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  Collapse,
+} from "@mui/material";
 import { get } from "../../../../share/utils/http";
 import { getLocalStorage } from "../../../../share/hepler/localStorage";
 import DeleteIcon from "@mui/icons-material/Delete";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import FilterBar from "./filter";
+import { useSearchStore, useStatusStore } from "../ProductListPage/store";
 import "./style.css";
 
-const columns = [
-  {
-    field: "stt",
-    headerName: "STT",
-    flex: 0.5,
-    headerAlign: "center",
-    align: "center",
-  },
-  {
-    field: "title",
-    headerName: "Tiêu đề",
-    flex: 3,
-    renderCell: (params) => (
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          maxWidth: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "start",
-          padding: "0 10px",
-          overflow: "hidden",
-          fontSize: "17px",
+const CategoryRow = ({ row, depth = 0, handleDelete, navigate, searchTerm }) => {
+  const [open, setOpen] = useState(false);
+
+  const hasChildren = row.children && row.children.length > 0;
+
+  return (
+    <>
+      <TableRow
+        sx={{
+          backgroundColor: open ? "#f5f5f5" : "inherit",
+          "&:hover": {
+            backgroundColor: "#f0f0f0",
+          },
         }}
-        className="hover-cell"
       >
-        {/* Phần title */}
-        <span
-          style={{
-            transition: "transform 0.3s ease-in-out",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            maxWidth: "100%",
-            cursor: "pointer",
-          }}
-          className="hover-title"
-        >
-          {params.row.title}
-        </span>
-        <span
-          style={{
-            position: "absolute",
-            left: "10px",
-            bottom: "-10px",
-            display: "flex",
-            gap: "5px",
-            opacity: 0,
-            transition:
-              "opacity 0.3s ease-in-out, visibility 0.3s ease-in-out, transform 0.3s ease-in-out",
-            padding: 5,
-          }}
-          className="hover-content"
-        >
-          <span
-            className="box_icon bi2"
-            style={{
-              color: "#ffc107",
-              border: "solid 1px #ffc107",
-            }}
+        <TableCell sx={{ paddingLeft: `${depth * 40}px` }}>
+          {hasChildren && (
+            <IconButton onClick={() => setOpen(!open)} size="small">
+              {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            </IconButton>
+          )}
+          {row.title} ({row.products})
+        </TableCell>
+        <TableCell>{row.featured ? "✅" : "❌"}</TableCell>
+        <TableCell>{row.products} products</TableCell>
+        <TableCell>
+          <span className={`status-indicator ${row.status === "active" ? "active" : "inactive"}`}>
+            {row.status === "active" ? "Đang hoạt động" : "Ngừng hoạt động"}
+          </span>
+        </TableCell>
+        <TableCell>
+          <IconButton
+            color="primary"
             onClick={(e) => {
               e.stopPropagation();
+              navigate(`/admin/products/edit-products/${row.id}`);
             }}
           >
-            <DeleteIcon className="icon" />
-          </span>
-          <span
-            className="box_icon bi3"
-            style={{
-              color: "#dc3545",
-              border: "solid 1px #dc3545",
-            }}
+            <BorderColorIcon />
+          </IconButton>
+          <IconButton
+            color="error"
             onClick={(e) => {
               e.stopPropagation();
+              handleDelete(row.id);
             }}
           >
-            <BorderColorIcon className="icon" />
-          </span>
-        </span>
-      </div>
-    ),
-    cellClassName: "hover-cell",
-  },
-  {
-    field: "stock",
-    headerName: "Số sản phẩm",
-    flex: 1,
-    headerAlign: "center",
-    align: "center",
-  },
-  {
-    field: "status",
-    headerName: "Trạng thái",
-    align: "center",
-    flex: 1.7,
-    headerAlign: "center",
-    renderCell: (params) => {
-      const isActive = params.value === "active";
-      return (
-        <span
-          className={`status-indicator ${isActive ? "active" : "inactive"}`}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          {isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
-        </span>
-      );
-    },
-  },
-  {
-    field: "creatorName",
-    headerName: "Tạo bởi",
-    align: "center",
-    flex: 1.2,
-    headerAlign: "center",
-  },
-  {
-    field: "updatedAt",
-    headerName: "Cập nhật",
-    align: "center",
-    flex: 1,
-    headerAlign: "center",
-    renderCell: (params) => new Date(params.value).toLocaleDateString(),
-  },
-];
+            <DeleteIcon />
+          </IconButton>
+        </TableCell>
+      </TableRow>
+      {hasChildren && (
+        <TableRow>
+          <TableCell colSpan={5} sx={{ padding: 0 }}>
+            <Collapse in={open} timeout="auto" unmountOnExit>
+              <Table size="small" sx={{ backgroundColor: "#fafafa" }}>
+                <TableBody>
+                  {row.children.map((child) => (
+                    <CategoryRow
+                      key={child._id}
+                      row={child}
+                      depth={depth + 1}
+                      handleDelete={handleDelete}
+                      navigate={navigate}
+                      searchTerm={searchTerm}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </Collapse>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  );
+};
 
 export default function CategoryPage() {
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const token = getLocalStorage("token");
-  const [paginationModel, setPaginationModel] = useState({
-    pageSize: 5,
-    page: 0,
-  });
+  const { statusTerm } = useStatusStore();
+  const { searchTerm } = useSearchStore();
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const result = await get(token, "/admin/products");
-
-        if (result.data && result.data.length > 0) {
-          const processedData = result.data.map((row, index) => ({
+        let url = `/admin/categories?search=${encodeURIComponent(searchTerm)}`;
+        if (statusTerm !== "ALL") {
+          url += `&status=${statusTerm}`;
+        }
+        const result = await get(token, url);
+        if (result.data?.length) {
+          const formattedData = result.data.map((row, index) => ({
             ...row,
             id: row._id,
             stt: index + 1,
           }));
-
-          setData(processedData);
+          setData(formattedData);
+        } else {
+          setData([]);
         }
       } catch (err) {
         setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, [token]);
+  }, [token, searchTerm, statusTerm]);
+
+  const handleDelete = (id) => {
+    // Xử lý xóa ở đây
+    console.log("Delete item with id:", id);
+  };
+
+  const navigate = (path) => {
+    // Xử lý điều hướng ở đây
+    console.log("Navigate to:", path);
+  };
 
   return (
     <Paper className="ProductListPage" sx={{ height: "100%", width: "100%" }}>
       <FilterBar />
-      <DataGrid
-        rowHeight={90}
-        rows={data}
-        columns={columns}
-        pagination
-        paginationModel={paginationModel}
-        pageSizeOptions={[5, 10, 20]}
-        checkboxSelection
-        paginationMode="server"
-        onPageChange={(newPage) => {
-          console.log(newPage);
-        }}
-        sx={{
-          "& .center-cell": {
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          },
-          "& .MuiDataGrid-cell:focus": {
-            outline: "none",
-          },
-          "& .MuiDataGrid-columnHeader:focus": {
-            outline: "none",
-          },
-          userSelect: "none",
-        }}
-      />
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Featured</TableCell>
+              <TableCell>Products</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((row) => (
+              <CategoryRow
+                key={row.id}
+                row={row}
+                handleDelete={handleDelete}
+                navigate={navigate}
+                searchTerm={searchTerm}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Paper>
   );
 }

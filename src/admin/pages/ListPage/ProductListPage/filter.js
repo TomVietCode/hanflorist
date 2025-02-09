@@ -86,19 +86,21 @@ const FilterBar = () => {
   };
 
   // reset
-  const { isActive, setActive } = useResetStore(); // Truy cập Zustand
+  const { isActive, toggleActive } = useResetStore(); // Truy cập Zustand
 
   const handleReset = useCallback(() => {
     setStatusTerm("ALL");
     setFilterStatus("Tất cả");
     setSearchTermLocal(""); // Cập nhật UI
     setSearchTerm("");
-  }, [setStatusTerm, setSearchTerm]);
+    toggleActive(false); // Đặt lại trạng thái tránh vòng lặp vô hạn
+  }, [setStatusTerm, setSearchTerm, toggleActive]);
   
   useEffect(() => {
-    handleReset();
+    if (isActive) {  // Chỉ reset khi `isActive` thật sự thay đổi
+      handleReset();
+    }
   }, [isActive, handleReset]);
-  
 
   return (
     <Box sx={{ flexGrow: 1, p: 2 }}>
@@ -110,7 +112,7 @@ const FilterBar = () => {
             color="primary"
             startIcon={<AddIcon />}
             onClick={() => navigate("/admin/products/add-products")}
-            sx={{ height: "2.6rem", px: 2 }}
+            sx={{ height: "2.6rem", px: 2 ,fontSize : "18px"}}
           >
             Thêm mới
           </Button>
