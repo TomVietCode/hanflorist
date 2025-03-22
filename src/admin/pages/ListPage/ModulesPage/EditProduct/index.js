@@ -20,88 +20,146 @@ import {
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import AddCircleTwoToneIcon from "@mui/icons-material/AddCircleTwoTone";
-import SaveIcon from '@mui/icons-material/Save';
+import SaveIcon from "@mui/icons-material/Save";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Editor } from "@tinymce/tinymce-react";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CategorySelect from "../../CategoryPage/CateforySelect.js";
+import NotificationAndDialog, {
+  showNotification,
+} from "../../../../components/NotificationAndDialog/index.js"; // Import component thông báo
 import "./style.css";
 
 const EditProductPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFeatured, setIsFeatured] = useState(false);
-
-   const fetchProductById = async (productId) => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(
-          `http://localhost:3001/admin/products/${productId}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (!response.ok) {
-          throw new Error(`Error: ${response.statusText}`);
-        }
-        const data = await response.json();
-        setProduct(data.data);
-        console.log(data)
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    useEffect(() => {
-      fetchProductById(id);
-    }, [id]);
-
-
-    const handleChange = (e) => {
-      const { title, value } = e.target;
-      setProduct({ ...product, [title]: value });
-    };
-  
-    const handleImageChange = (e) => {
-      const files = Array.from(e.target.files);
-      if (files.length) {
-        setProduct({
-          ...product,
-          thumbnail: files.map((file) => URL.createObjectURL(file)),
-        });
-      }
-    };
-  
-    const handleDeleteImage = (index) => {
-      const updatedImages = [...product.thumbnail ];
-      updatedImages.splice(index, 1); // Xóa ảnh tại vị trí index
-      setProduct((prev) => ({ ...prev, thumbnail: updatedImages })); // Cập nhật lại state
-    };
-  
-
-  //description
   const [description, setDescription] = useState("");
+
+  // State cho thông báo
+  const [openNotification, setOpenNotification] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const fetchProductById = async (productId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:3001/admin/products/${productId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+      const data = await response.json();
+      setProduct(data.data);
+      setIsFeatured(data.data.isFeatured || false);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProductById(id);
+  }, [id]);
 
   useEffect(() => {
     setDescription(product?.description || "Chưa có mô tả");
   }, [product?.description]);
 
-  // Khi nhấp vào, nếu là "Chưa có mô tả" thì xóa nội dung
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProduct({ ...product, [name]: value });
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProduct({
+        ...product,
+        thumbnail: file,
+      });
+    }
+  };
+
+  const handleDeleteImage = () => {
+    setProduct((prev) => ({ ...prev, thumbnail: null }));
+  };
+
   const handleEditorFocus = () => {
     if (description === "Chưa có mô tả") {
       setDescription("");
     }
   };
 
-  
+  const handleCategoryChange = (category) => {
+    setProduct((prev) => ({ ...prev, category: category._id }));
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const baseUrl = "http://localhost:3001";
+      const path = `/admin/products/${id}`;
+
+      const formData = new FormData();
+      formData.append("title", product.title);
+      formData.append("description", description);
+      formData.append("price", product.price);
+      formData.append("discountPercentage", product.discountPercentage || "0");
+      formData.append("stock", product.stock);
+      formData.append("category", product.category);
+      formData.append("status", product.status || "active");
+      formData.append("isFeatured", isFeatured);
+      if (product.thumbnail && product.thumbnail instanceof File) {
+        formData.append("thumbnail", product.thumbnail);
+      }
+
+      const response = await fetch(`${baseUrl}${path}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Sản phẩm đã được cập nhật:", result.data);
+      setError(null);
+      showNotification(setOpenNotification, "Cập nhật sản phẩm thành công", "success"); // Hiển thị thông báo thành công
+      
+      // Trì hoãn chuyển hướng để thông báo hiển thị trong 2 giây
+      setTimeout(() => {
+        navigate("/admin/products");
+      }, 2000); // Chuyển hướng sau 2 giây
+    } catch (error) {
+      console.error("Lỗi khi cập nhật sản phẩm:", error);
+      setError(error.message || "Cập nhật sản phẩm thất bại");
+      showNotification(
+        setOpenNotification,
+        error.message || "Cập nhật sản phẩm thất bại",
+        "error"
+      ); // Hiển thị thông báo lỗi
+    }
+  };
 
   if (loading) {
     return (
@@ -111,14 +169,14 @@ const EditProductPage = () => {
     );
   }
 
-  if (error) {
+  if (error && !openNotification.open) {
     return (
       <Container maxWidth="lg" sx={{ padding: 3 }}>
         <Alert severity="error">{error}</Alert>
       </Container>
     );
   }
-  console.log(product)
+
   return (
     <Container maxWidth="lg" sx={{ padding: 3 }}>
       <Grid container spacing={2}>
@@ -136,7 +194,7 @@ const EditProductPage = () => {
                 <TextField
                   fullWidth
                   name="title"
-                  value={product?.title }
+                  value={product?.title || ""}
                   onChange={handleChange}
                   placeholder="Tên sản phẩm"
                   sx={{
@@ -157,33 +215,32 @@ const EditProductPage = () => {
                 />
               </Grid>
 
-              {/* mô tả */}
+              {/* Mô tả */}
               <Grid item xs={12}>
-      <Typography variant="h6" gutterBottom>
-        Mô tả{" "}
-        <Typography component="span" color="error">
-          *
-        </Typography>
-      </Typography>
-      <Editor
-        apiKey="n5h7bzsqjitms467t41qjuac0tthph4wjqvy7aj2a5pygbo8"
-        value={description}
-        onEditorChange={(content) => setDescription(content)}
-        onFocus={handleEditorFocus} // Xóa nếu giá trị là "Chưa có mô tả"
-        // onBlur={handleEditorBlur} // Đặt lại giá trị mặc định nếu trống
-        init={{
-          height: 190,
-          menubar: false,
-          plugins: [
-            "advlist autolink lists link image charmap print preview anchor",
-            "searchreplace visualblocks code fullscreen",
-            "insertdatetime media table paste code help wordcount",
-          ],
-          toolbar:
-            "undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help",
-        }}
-      />
-    </Grid>
+                <Typography variant="h6" gutterBottom>
+                  Mô tả{" "}
+                  <Typography component="span" color="error">
+                    *
+                  </Typography>
+                </Typography>
+                <Editor
+                  apiKey="n5h7bzsqjitms467t41qjuac0tthph4wjqvy7aj2a5pygbo8"
+                  value={description}
+                  onEditorChange={(content) => setDescription(content)}
+                  onFocus={handleEditorFocus}
+                  init={{
+                    height: 190,
+                    menubar: false,
+                    plugins: [
+                      "advlist autolink lists link image charmap print preview anchor",
+                      "searchreplace visualblocks code fullscreen",
+                      "insertdatetime media table paste code help wordcount",
+                    ],
+                    toolbar:
+                      "undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help",
+                  }}
+                />
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
@@ -208,11 +265,9 @@ const EditProductPage = () => {
                   <Typography component="span" color="error" sx={{ ml: 0.5 }}>
                     *
                   </Typography>
-                  
                 </Typography>
 
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  {/* Ảnh lớn nhất */}
                   <Box
                     sx={{
                       width: "100%",
@@ -223,26 +278,28 @@ const EditProductPage = () => {
                       justifyContent: "center",
                       borderRadius: 1,
                       overflow: "hidden",
-                      border:
-                        product?.thumbnail?.length > 0
-                          ? "2px solid #1565c0"
-                          : "2px dashed #ccc",
+                      border: product?.thumbnail
+                        ? "2px solid #1565c0"
+                        : "2px dashed #ccc",
                       position: "relative",
                       "&:hover .delete-icon": {
                         opacity: 1,
                       },
                     }}
                   >
-                    {product?.thumbnail?.length > 0 ? (
+                    {product?.thumbnail ? (
                       <>
                         <img
-                          src={product.thumbnail}
+                          src={
+                            product.thumbnail instanceof File
+                              ? URL.createObjectURL(product.thumbnail)
+                              : product.thumbnail
+                          }
                           alt="Main"
                           width="100%"
                           height="100%"
                           style={{ objectFit: "cover" }}
                         />
-                        {/* Nút xóa ảnh chính */}
                         <IconButton
                           sx={{
                             position: "absolute",
@@ -258,7 +315,7 @@ const EditProductPage = () => {
                             zIndex: 2,
                           }}
                           className="delete-icon"
-                          onClick={() => handleDeleteImage(0)}
+                          onClick={handleDeleteImage}
                         >
                           <DeleteIcon sx={{ color: "white" }} />
                         </IconButton>
@@ -287,7 +344,6 @@ const EditProductPage = () => {
                           type="file"
                           id="upload-image"
                           hidden
-                          multiple
                           accept="image/*"
                           onChange={handleImageChange}
                         />
@@ -343,7 +399,7 @@ const EditProductPage = () => {
                     Giảm giá
                   </Typography>
                   <TextField
-                    name="discount"
+                    name="discountPercentage"
                     type="number"
                     value={product?.discountPercentage || "0"}
                     onChange={handleChange}
@@ -376,7 +432,7 @@ const EditProductPage = () => {
                     </Typography>
                   </Typography>
                   <TextField
-                    name="quantity"
+                    name="stock"
                     type="number"
                     value={product?.stock || ""}
                     onChange={handleChange}
@@ -406,58 +462,10 @@ const EditProductPage = () => {
                 justifyContent="center"
                 alignItems="center"
               >
-                {/* Cột chọn danh mục */}
                 <Grid item xs={5}>
-                  <Typography variant="h6" gutterBottom>
-                    Danh mục{" "}
-                    <Typography component="span" color="error">
-                      *
-                    </Typography>
-                  </Typography>
-                  <FormControl fullWidth>
-                    <Select
-                      name="category"
-                      value={product?.category || ""}
-                      onChange={handleChange}
-                      displayEmpty
-                      sx={{
-                        backgroundColor: "#f5f5f5",
-                        borderRadius: 1,
-                        height: "2.5rem",
-                        "&:hover .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
-                        },
-                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                          borderColor: "#1976d2",
-                        },
-                      }}
-                      MenuProps={{
-                        PaperProps: {
-                          style: {
-                            maxHeight: 200,
-                            overflowY: "auto",
-                          },
-                        },
-                      }}
-                    >
-                      <MenuItem value="" disabled>
-                        Chọn danh mục
-                      </MenuItem>
-                      <MenuItem value="flowers">Hoa tươi</MenuItem>
-                      <MenuItem value="gifts">Quà tặng</MenuItem>
-                      <MenuItem value="plants">Cây cảnh</MenuItem>
-                      <MenuItem value="home_decor">Trang trí nhà cửa</MenuItem>
-                      <MenuItem value="accessories">Phụ kiện</MenuItem>
-                      <MenuItem value="beauty">Sắc đẹp</MenuItem>
-                      <MenuItem value="toys">Đồ chơi</MenuItem>
-                      <MenuItem value="stationery">Văn phòng phẩm</MenuItem>
-                      <MenuItem value="outdoor">Ngoài trời</MenuItem>
-                      <MenuItem value="electronics">Điện tử</MenuItem>
-                    </Select>
-                  </FormControl>
+                  <CategorySelect onCategoryChange={handleCategoryChange} />
                 </Grid>
 
-                {/* Cột checkbox sản phẩm nổi bật */}
                 <Grid
                   item
                   xs={5}
@@ -486,7 +494,7 @@ const EditProductPage = () => {
                     }}
                     control={
                       <Checkbox
-                        
+                        checked={isFeatured}
                         onChange={(e) => setIsFeatured(e.target.checked)}
                         icon={
                           <RadioButtonUncheckedIcon
@@ -541,8 +549,8 @@ const EditProductPage = () => {
                     product?.status === "active"
                       ? "active"
                       : product?.status === "inactive"
-                      ? "inactive"
-                      : ""
+                        ? "inactive"
+                        : ""
                   }
                 >
                   <MenuItem
@@ -575,6 +583,7 @@ const EditProductPage = () => {
               variant="contained"
               color="primary"
               startIcon={<SaveIcon />}
+              onClick={handleSubmit}
               sx={{
                 background: "#ffc107",
                 marginTop: "1rem",
@@ -589,11 +598,32 @@ const EditProductPage = () => {
                 },
               }}
             >
-              Lưu sản phẩm 
+              Lưu sản phẩm
             </Button>
           </Grid>
+          {error && !openNotification.open && (
+            <Typography color="error" sx={{ mt: 2, textAlign: "center" }}>
+              {error}
+            </Typography>
+          )}
         </Grid>
       </Grid>
+
+      {/* Component thông báo */}
+      <NotificationAndDialog
+        openNotification={openNotification.open}
+        setOpenNotification={(value) =>
+          setOpenNotification((prev) => ({ ...prev, open: value.open }))
+        }
+        notificationMessage={openNotification.message}
+        notificationSeverity={openNotification.severity}
+        dialogOpen={false} // Không cần dialog trong trang này
+        setDialogOpen={() => {}} // Placeholder cho prop bắt buộc
+        dialogTitle=""
+        dialogMessage=""
+        onConfirm={() => {}}
+        onCancel={() => {}}
+      />
     </Container>
   );
 };

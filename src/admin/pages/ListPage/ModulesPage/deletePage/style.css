@@ -1,0 +1,26 @@
+.box_icon {
+  padding: 6px 12px;
+  font-weight: 500;
+  margin: 0 10px;
+  margin-left: 0;
+  cursor: pointer;
+  text-align: center;
+  transition:
+    color 0.3s ease,
+    border-color 0.3s ease;
+  background-color: white !important;
+  width: 2.7rem;
+}
+
+.box_icon.deleted:hover {
+  color: white !important;
+  border-color: #f44336 !important;
+  background-color: #f44336 !important;
+  border: none;
+}
+.box_icon.restore:hover {
+  color: white !important;
+  border-color: #4caf50 !important;
+  background-color: #4caf50 !important;
+  border: none;
+}

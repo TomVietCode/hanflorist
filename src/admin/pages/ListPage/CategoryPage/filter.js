@@ -10,7 +10,7 @@ import {
   Select,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { useSearchStore, useStatusStore } from "../ProductListPage/store";
+import { useSearchStore, useStatusStore } from "../../../components/store";
 import "./style.css";
 
 // Định nghĩa các hằng số cho giá trị value
@@ -30,32 +30,48 @@ const FilterBar = () => {
 
   const [searchTermLocal, setSearchTermLocal] = useState("");
   const { setSearchTerm } = useSearchStore(); // Lấy setter từ Zustand
-    const handleSearch = (e) => {
-      const value = e.target.value;
-      setSearchTermLocal(value); // Cập nhật UI
-      setSearchTerm(value); // Cập nhật Zustand store
-    };
-  
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchTermLocal(value); // Cập nhật UI
+    setSearchTerm(value); // Cập nhật Zustand store
+  };
 
   return (
     <Box sx={{ flexGrow: 1, padding: 2, boxSizing: "border-box" }}>
-      <Grid container justifyContent="center" alignItems="center" spacing={1} sx={{ height: "100%" }}>
+      <Grid
+        container
+        justifyContent="center"
+        alignItems="center"
+        spacing={1}
+        sx={{ height: "100%" }}
+      >
         <Grid item>
           <Button
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
             onClick={() => navigate("/admin/categories/add-categories")}
-            style={{
-              padding: "8px 15px",
-              display: "flex",
-              height: "90%",
-              marginLeft: 1,
-              border: "solid 1px #ccc",
-              minWidth: "auto",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "1rem",
+            sx={{
+              height: "2.6rem",
+              px: 2,
+              fontSize: "18px",
+              backgroundColor: "#1976d2", // Xanh dương
+              borderRadius: "8px",
+              textTransform: "none",
+              fontWeight: "bold",
+              boxShadow: "0 3px 5px rgba(0, 0, 0, 0.2)",
+              "&:hover": {
+                backgroundColor: "#1565c0", // Tối hơn khi hover
+                boxShadow: "0 5px 10px rgba(0, 0, 0, 0.3)",
+                transform: "translateY(-2px)",
+                transition: "all 0.3s ease",
+              },
+              "&:active": {
+                backgroundColor: "#0d47a1", // Đậm hơn khi nhấn
+                transform: "translateY(1px)",
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+              },
+              transition: "all 0.3s ease",
             }}
           >
             Thêm mới
@@ -99,11 +115,21 @@ const FilterBar = () => {
                 },
               }}
             >
-              <MenuItem className="status-indicator-add"  value={OPTIONS.ALL}>Tất cả</MenuItem>
-              <MenuItem className="status-indicator-add active" value={OPTIONS.POSITION1} sx={{ color: "green" }}>
+              <MenuItem className="status-indicator-add" value={OPTIONS.ALL}>
+                Tất cả
+              </MenuItem>
+              <MenuItem
+                className="status-indicator-add active"
+                value={OPTIONS.POSITION1}
+                sx={{ color: "green" }}
+              >
                 Đang hoạt động
               </MenuItem>
-              <MenuItem className="status-indicator-add inactive"  value={OPTIONS.POSITION2} sx={{ color: "red" }}>
+              <MenuItem
+                className="status-indicator-add inactive"
+                value={OPTIONS.POSITION2}
+                sx={{ color: "red" }}
+              >
                 Dừng hoạt động
               </MenuItem>
             </Select>

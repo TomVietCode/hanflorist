@@ -13,6 +13,8 @@ import AccountPage from "./pages/ListPage/AccountPage/AccountPage.js";
 import SettingsPage from "./pages/ListPage/SettingsPage/SettingsPage.js";
 import ProductDetail from "./pages/ListPage/ModulesPage/ProductDetail/index.js"
 import EditProduct from "./pages/ListPage/ModulesPage/EditProduct/index.js"
+import DeletePage from "./pages/ListPage/ModulesPage/deletePage/index.js"
+import NotFound from "./pages/ListPage/ModulesPage/404NotFound/index.js"
 import PrivateRoute from "./privateRouter.js";
 
 const routes = [
@@ -30,6 +32,10 @@ const routes = [
           {
             path: "products",
             element: <ProductListPage />,
+          },
+          {
+            path: "products/delete",
+            element: <DeletePage />,
           },
           {
             path: "products/add-products",
@@ -84,16 +90,12 @@ const routes = [
     ],
   },
   {
-    path: "/admin/login",
+    path: "/admin/auth/login",
     element: <Login />,
   },
   {
-    path: "/",
-    element: <Navigate to="/admin/login" replace />,
-  },
-  {
     path: "*",
-    element: <div>404 - Page Not Found</div>,
+    element: <NotFound/>,
   },
 ];
 

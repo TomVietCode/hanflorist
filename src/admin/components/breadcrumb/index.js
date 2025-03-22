@@ -15,22 +15,26 @@ const breadcrumbNameMap = {
   permissions: "Phân quyền",
   products: "Danh sách sản phẩm",
   accounts: "Tài khoản",
-  "add-products": "Thêm sản phẩm", 
+  "add-products": "Thêm sản phẩm",
   "view-products": "Sản phẩm",
   "edit-products": "Sửa sản phẩm",
   "add-categories": "Thêm danh mục",
   "new-categories": "Thêm quyền",
-  "new-roles" : "Thêm quyền",
-  "edit-role" : "sửa quyền"
+  "new-roles": "Thêm quyền",
+  "edit-role": "Sửa quyền",
+  delete: "Sản phẩm đã xóa",
 };
-
 
 function DynamicBreadcrumbs() {
   const location = useLocation();
   const pathnames = location.pathname.split("/").filter((x) => x);
 
-  // Loại bỏ phần cuối cùng nếu đó là ID
+  // Loại bỏ phần "admin" và phần cuối cùng nếu đó là ID
   const filteredPathnames = pathnames.filter((path, index) => {
+    // Loại bỏ "admin"
+    if (path === "admin") {
+      return false;
+    }
     // Loại bỏ phần cuối nếu là ID (dự đoán ID là chuỗi ký tự dài)
     if (index === pathnames.length - 1 && /^[a-f0-9]{24}$/i.test(path)) {
       return false; // Không hiển thị ID
@@ -57,31 +61,39 @@ function DynamicBreadcrumbs() {
             alignItems: "center",
             color: "#3f51b5",
             textDecoration: "none",
-            fontSize: "22px",
+            fontSize: "21px",
             transition: "color 0.3s ease",
           }}
           to="/admin/dashboard"
         >
-          <HomeIcon sx={{ mr: 0.5 }} fontSize="small" />
+          <HomeIcon
+            sx={{
+              mr: 0,
+              fontSize: "21px",
+              marginBottom: "3px",
+              
+            }}
+            fontSize="small"
+          />
         </Link>
 
         {/* Hiển thị breadcrumb */}
         {filteredPathnames.map((path, index) => {
           const isLast = index === filteredPathnames.length - 1;
-          const pathTo = `/${filteredPathnames.slice(0, index + 1).join("/")}`;
+          // Thêm "admin" vào đường dẫn để đảm bảo đường dẫn chính xác
+          const pathTo = `/admin/${filteredPathnames.slice(0, index + 1).join("/")}`;
           const breadcrumbText =
             breadcrumbNameMap[path] || path.replace(/-/g, " ");
 
           return isLast ? (
             <Typography
               key={path}
-              
               fontWeight="bold"
               color="primary"
               sx={{
                 fontWeight: "bold",
                 color: "#333",
-                fontSize: "22px",
+                fontSize: "20px",
               }}
             >
               {breadcrumbText}
@@ -92,7 +104,7 @@ function DynamicBreadcrumbs() {
               to={pathTo}
               style={{
                 textDecoration: "none",
-                fontSize: "20px",
+                fontSize: "21px",
                 textTransform: "capitalize",
                 transition: "color 0.3s ease",
                 fontWeight: 500,
@@ -109,6 +121,5 @@ function DynamicBreadcrumbs() {
     </Box>
   );
 }
-
 
 export default DynamicBreadcrumbs;

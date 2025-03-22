@@ -7,7 +7,7 @@ function PrivateRoute() {
   return (
 
     <>  
-      {isLogin.length > 0 ? (<Outlet/>) : (<Navigate to="/admin/login"/>)}
+      {isLogin.length > 0 ? (<Outlet/>) : (<Navigate to="/admin/auth/login"/>)}
     </>
   )
 }

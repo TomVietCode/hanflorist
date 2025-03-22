@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useCallback  } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   TextField,
@@ -12,8 +12,16 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import CachedIcon from "@mui/icons-material/Cached";
 import AddIcon from "@mui/icons-material/Add";
-import { useSearchStore, useResetStore, useStatusStore } from "./store";
-
+import {
+  useSearchStore,
+  useResetStore,
+  useStatusStore,
+  useSortStore,
+  useActionStore,
+  useDeleteStore,
+} from "../../../components/store";
+import { getLocalStorage } from "../../../../share/hepler/localStorage";
+import { get } from "../../../../share/utils/http"; // Thêm hàm remove
 import "./style.css";
 
 // Define filter options constants
@@ -32,15 +40,15 @@ const STATUS_OPTIONS = {
 
 const SORT_OPTIONS = {
   ALL: "default",
-  DESC_POSITION: "Vị trí giảm dần",
-  ASC_POSITION: "Vị trí tăng dần",
-  DESC_PRICE: "Giá giảm dần",
-  ASC_PRICE: "Giá tăng dần",
+  DESC_STOCK: "Số lượng giảm dần",
+  ASC_STOCK: "Số lượng tăng dần",
+  NEWEST: "Mới nhất",
+  OLDEST: "Cũ nhất",
 };
 
 const FilterBar = () => {
+  const token = getLocalStorage("token");
   // Local state to manage filter values
-  const [filterAction, setFilterActionLocal] = useState(FILTER_OPTIONS.ALL);
   const [filterSort, setFilterSortLocal] = useState(SORT_OPTIONS.ALL);
   const [searchTermLocal, setSearchTermLocal] = useState("");
 
@@ -78,30 +86,79 @@ const FilterBar = () => {
     } else if (value === "Dừng hoạt động") {
       apiStatus = "inactive";
     } else {
-      apiStatus = "ALL"; // Trường hợp "Tất cả"
+      apiStatus = ""; // Trường hợp "Tất cả"
     }
 
     setFilterStatus(value); // Cập nhật UI
     setStatusTerm(apiStatus); // Cập nhật Zustand để gửi API
   };
 
+  //sort
+  const { sortTerm, setSortTerm } = useSortStore();
+
+  const handleSortChange = (event) => {
+    const value = event.target.value;
+
+    setFilterSortLocal(value); // Cập nhật UI
+    setSortTerm(value); // Cập nhật Zustand để gửi API
+  };
+  //action
+  const [filterAction, setFilterAction] = useState(FILTER_OPTIONS.ALL); // Đặt giá trị mặc định
+  const { selectedAction, setSelectedAction } = useActionStore();
+
+  const handleActionChange = (event) => {
+    setFilterAction(event.target.value);
+    setSelectedAction(event.target.value);
+  };
+
   // reset
   const { isActive, toggleActive } = useResetStore(); // Truy cập Zustand
 
   const handleReset = useCallback(() => {
-    setStatusTerm("ALL");
+    //reset status
+    setStatusTerm("");
     setFilterStatus("Tất cả");
+    //reset sort
+    setFilterSortLocal("default");
+    setSortTerm("");
     setSearchTermLocal(""); // Cập nhật UI
     setSearchTerm("");
+    setSelectedAction("default");
+    setFilterAction("default");
     toggleActive(false); // Đặt lại trạng thái tránh vòng lặp vô hạn
-  }, [setStatusTerm, setSearchTerm, toggleActive]);
-  
+  }, [setStatusTerm, setSearchTerm, toggleActive, setSelectedAction]);
+
   useEffect(() => {
-    if (isActive) {  // Chỉ reset khi `isActive` thật sự thay đổi
+    if (isActive) {
+      // Chỉ reset khi `isActive` thật sự thay đổi
       handleReset();
     }
   }, [isActive, handleReset]);
 
+  // State cho số lượng sản phẩm đã xóa
+  const [deletedCount, setDeletedCount] = useState(0);
+  const { isDeleted, setDelete } = useDeleteStore();
+
+  // Hàm đếm số lượng sản phẩm có status là "deleted"
+  useEffect(() => {
+    const fetchDeletedCount = async () => {
+      try {
+        const result = await get(token, "/admin/products?status=deleted");
+        const deletedProducts = result.data || []; // Nếu không có dữ liệu, trả về mảng rỗng
+        setDeletedCount(deletedProducts.length); // Đếm số lượng sản phẩm
+      } catch (err) {
+        console.error("Failed to fetch deleted products:", err);
+        setDeletedCount(0); // Đặt về 0 nếu lỗi
+      }
+    };
+
+    fetchDeletedCount(); // Gọi hàm ngay lập tức khi mount hoặc khi dependency thay đổi
+
+    if (isDeleted) {
+      fetchDeletedCount(); // Gọi lại khi isDeleted là true
+      setDelete(false); // Đặt lại trạng thái về false sau khi fetch
+    }
+  }, [token, isDeleted, setDelete]); // Thêm isDeleted vào dependency
   return (
     <Box sx={{ flexGrow: 1, p: 2 }}>
       <Grid container spacing={1} alignItems="center">
@@ -112,7 +169,28 @@ const FilterBar = () => {
             color="primary"
             startIcon={<AddIcon />}
             onClick={() => navigate("/admin/products/add-products")}
-            sx={{ height: "2.6rem", px: 2 ,fontSize : "18px"}}
+            sx={{
+              height: "2.6rem",
+              px: 2,
+              fontSize: "18px",
+              backgroundColor: "#1976d2", // Xanh dương
+              borderRadius: "8px",
+              textTransform: "none",
+              fontWeight: "bold",
+              boxShadow: "0 3px 5px rgba(0, 0, 0, 0.2)",
+              "&:hover": {
+                backgroundColor: "#1565c0", // Tối hơn khi hover
+                boxShadow: "0 5px 10px rgba(0, 0, 0, 0.3)",
+                transform: "translateY(-2px)",
+                transition: "all 0.3s ease",
+              },
+              "&:active": {
+                backgroundColor: "#0d47a1", // Đậm hơn khi nhấn
+                transform: "translateY(1px)",
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+              },
+              transition: "all 0.3s ease",
+            }}
           >
             Thêm mới
           </Button>
@@ -142,17 +220,23 @@ const FilterBar = () => {
               value={filterStatus}
               onChange={handleStatusChange}
               displayEmpty
+              className={
+                filterStatus === STATUS_OPTIONS.ACTIVE
+                  ? "active"
+                  : filterStatus === STATUS_OPTIONS.INACTIVE
+                    ? "inactive"
+                    : ""
+              }
               sx={{
-                backgroundColor: "#f5f5f5",
                 borderRadius: 1,
                 height: "2.6rem",
                 width: "12rem",
                 "&:hover .MuiOutlinedInput-notchedOutline": {
                   borderColor: "#1976d2",
                 },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#1976d2",
-                },
+                // "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                //   border: "none",
+                // },
               }}
             >
               <MenuItem
@@ -179,13 +263,14 @@ const FilterBar = () => {
 
         {/* Filter for Sorting */}
         <Grid item>
-          <FormControl size="small" sx={{ minWidth: 140 }}>
+          <FormControl size="small">
             <Select
               value={filterSort}
+              onChange={handleSortChange}
               displayEmpty
               sx={{
-                height: "2.6rem",
-                width: "11rem",
+                height: "2.8rem",
+                width: "13rem",
                 "&:hover .MuiOutlinedInput-notchedOutline": {
                   borderColor: "#1976d2",
                 },
@@ -197,25 +282,26 @@ const FilterBar = () => {
               <MenuItem value={SORT_OPTIONS.ALL} disabled>
                 Sắp xếp
               </MenuItem>
-              <MenuItem value={SORT_OPTIONS.DESC_POSITION}>
-                Vị trí giảm dần
+              <MenuItem value={SORT_OPTIONS.DESC_STOCK}>
+                Số lượng giảm dần
               </MenuItem>
-              <MenuItem value={SORT_OPTIONS.ASC_POSITION}>
-                Vị trí tăng dần
+              <MenuItem value={SORT_OPTIONS.ASC_STOCK}>
+                Số lượng tăng dần
               </MenuItem>
-              <MenuItem value={SORT_OPTIONS.DESC_PRICE}>Giá giảm dần</MenuItem>
-              <MenuItem value={SORT_OPTIONS.ASC_PRICE}>Giá tăng dần</MenuItem>
+              <MenuItem value={SORT_OPTIONS.NEWEST}>Mới nhất</MenuItem>
+              <MenuItem value={SORT_OPTIONS.OLDEST}>Cũ nhất</MenuItem>
             </Select>
           </FormControl>
         </Grid>
         {/* Filter for Action */}
         <Grid item>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
+          <FormControl size="small">
             <Select
               value={filterAction}
-              onChange={""} // Handle action change
+              onChange={handleActionChange} // Handle action change
               displayEmpty
               sx={{
+                width: "12rem",
                 height: "2.6rem",
                 "&:hover .MuiOutlinedInput-notchedOutline": {
                   borderColor: "#1976d2",
@@ -228,9 +314,11 @@ const FilterBar = () => {
               <MenuItem value={FILTER_OPTIONS.ALL} disabled>
                 Chọn hành động
               </MenuItem>
-              <MenuItem value={FILTER_OPTIONS.ACTIVE}>Đang hoạt động</MenuItem>
-              <MenuItem value={FILTER_OPTIONS.INACTIVE}>Dừng hoạt động</MenuItem>
               <MenuItem value={FILTER_OPTIONS.DELETE_ALL}>Xóa tất cả</MenuItem>
+              <MenuItem value={FILTER_OPTIONS.ACTIVE}>Đang hoạt động</MenuItem>
+              <MenuItem value={FILTER_OPTIONS.INACTIVE}>
+                Dừng hoạt động
+              </MenuItem>
             </Select>
           </FormControl>
         </Grid>
@@ -257,7 +345,7 @@ const FilterBar = () => {
         <Grid item>
           <Button
             variant="outlined"
-            onClick={""}
+            onClick={() => navigate("/admin/products/delete")}
             sx={{
               minWidth: "auto",
               p: 1,
@@ -286,7 +374,7 @@ const FilterBar = () => {
                 transform: "translate(50%, -50%)",
               }}
             >
-              5
+              {deletedCount} {/* Hiển thị số lượng động */}
             </Box>
           </Button>
         </Grid>

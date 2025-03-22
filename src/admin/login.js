@@ -181,7 +181,7 @@ export default function SignUp(props) {
             sx={{ display: "flex", flexDirection: "column", gap: 2 }}
           >
             <FormControl>
-              <FormLabel htmlFor="email">Email</FormLabel>
+              <FormLabel htmlFor="email">Tài khoản</FormLabel>
               <TextField
                 required
                 fullWidth

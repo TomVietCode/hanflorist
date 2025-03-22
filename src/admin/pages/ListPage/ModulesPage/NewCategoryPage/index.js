@@ -1,232 +1,275 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   TextField,
   Button,
   Card,
   CardContent,
-  Select,
-  MenuItem,
-  FormControl,
   Grid,
   Typography,
+  CircularProgress,
+  Box,
+  FormControl,
+  Select,
+  MenuItem,
+  Divider,
 } from "@mui/material";
-import { Editor } from "@tinymce/tinymce-react";
 import AddIcon from "@mui/icons-material/Add";
-import "./style.css";
+import { useNavigate } from "react-router-dom";
+import NotificationAndDialog, {
+  showNotification,
+} from "../../../../components/NotificationAndDialog/index.js";
+import { useCategoryStore } from "../../../../components/store.js";
 
-const AddProductPage = () => {
-  const [product, setProduct] = useState({
-    images: [],
+const AddCategoryPage = () => {
+  const navigate = useNavigate();
+  const { selectedCategory, setSelectedCategory } = useCategoryStore();
+  const [category, setCategory] = useState({
     title: "",
-    description: "",
-    price: "",
-    discount: "",
-    quantity: "",
-    category: "",
     status: "active",
   });
+  const [categories, setCategories] = useState([]);
+  const [openSelect, setOpenSelect] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/admin/categories", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const result = await response.json();
+        setCategories(result.data || []);
+      } catch (err) {
+        console.error("Lỗi khi lấy danh mục:", err);
+      }
+    };
+
+    if (token) {
+      fetchCategories();
+    }
+  }, [token]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProduct({ ...product, [name]: value });
+    setCategory({ ...category, [name]: value });
   };
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length) {
-      setProduct({
-        ...product,
-        images: files.map((file) => URL.createObjectURL(file)),
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const requestBody = {
+        title: category.title,
+        status: category.status,
+        createdBy: "admin",
+        updatedBy: "admin",
+      };
+      if (selectedCategory?._id) {
+        requestBody.parentId = selectedCategory._id;
+      }
+
+      const response = await fetch("http://localhost:3001/admin/categories", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestBody),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Tạo mới danh mục thất bại");
+      }
+
+      showNotification(setNotification, "Tạo danh mục thành công", "success");
+      setTimeout(() => navigate("/admin/categories"), 2000);
+    } catch (error) {
+      showNotification(
+        setNotification,
+        error.message || "Tạo danh mục thất bại",
+        "error"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
+  const flattenCategories = (cats, depth = 0) => {
+    let flat = [];
+    cats.forEach((cat) => {
+      flat.push({ ...cat, depth, isParent: !cat.parentId });
+      if (cat.children && cat.children.length > 0) {
+        flat = flat.concat(flattenCategories(cat.children, depth + 1));
+      }
+    });
+    return flat;
+  };
+
+  const renderCategories = () => {
+    const flatCategories = flattenCategories(categories);
+    return flatCategories.map((category) => (
+      <MenuItem
+        key={category._id}
+        value={category._id}
+        sx={{
+          pl: 2 + category.depth * 2,
+          fontWeight: category.isParent ? "bold" : "normal",
+          backgroundColor: selectedCategory?._id === category._id ? "#e3f2fd" : "inherit",
+          "&:hover": { backgroundColor: "#f5f5f5" },
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setSelectedCategory(category);
+          setOpenSelect(false);
+        }}
+      >
+        {category.title}
+      </MenuItem>
+    ));
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <Container maxWidth="md" sx={{ padding: 3 }}>
-      <Grid container spacing={3} sx={{ p: 1 }}>
-        <Grid item xs={12} md={8}>
-          <Card sx={{ p: 2 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Tiêu đề{" "}
-                <Typography component="span" color="error">
-                  *
-                </Typography>
+    <Container sx={{ py: 4 }}>
+      <Card sx={{ boxShadow: 3, borderRadius: 2 }}>
+        <CardContent>
+
+          {/* Form nhập liệu */}
+          <Grid container spacing={2}>
+            {/* Tiêu đề danh mục */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" gutterBottom>
+                Tiêu đề danh mục <span style={{ color: "red" }}>*</span>
               </Typography>
               <TextField
                 fullWidth
                 name="title"
-                value={product.title}
+                value={category.title}
                 onChange={handleChange}
-                placeholder="Tiêu đề"
-                sx={{
-                  backgroundColor: "#f5f5f5",
-                  borderRadius: 1,
-                  "& .MuiOutlinedInput-root": {
-                    "&:hover fieldset": {
-                      borderColor: "#1976d2",
-                      transition: "border-color 0.3s ease",
-                    },
-                  },
-                }}
-                InputProps={{
-                  style: {
-                    height: "2.5rem",
-                  },
-                }}
+                placeholder="Nhập tiêu đề danh mục"
+                variant="outlined"
+                size="small"
+                sx={{ bgcolor: "#fafafa" }}
               />
+            </Grid>
 
-              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                Mô tả{" "}
-                <Typography component="span" color="error">
-                  *
-                </Typography>
-              </Typography>
-              <Editor
-                apiKey="n5h7bzsqjitms467t41qjuac0tthph4wjqvy7aj2a5pygbo8"
-                value={product.description}
-                init={{
-                  height: 200,
-                  menubar: false,
-                  plugins: [
-                    "advlist autolink lists link image charmap print preview anchor",
-                    "searchreplace visualblocks code fullscreen",
-                    "insertdatetime media table paste code help wordcount",
-                  ],
-                  toolbar: `undo redo | formatselect | bold italic backcolor | 
-                    alignleft aligncenter alignright alignjustify | 
-                    bullist numlist outdent indent | removeformat | help`,
-                }}
-              />
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card sx={{ p: 2 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Danh mục{" "}
-                <Typography component="span" color="error">
-                  *
-                </Typography>
+            {/* Danh mục cha */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" gutterBottom>
+                Danh mục cha
               </Typography>
               <FormControl fullWidth>
                 <Select
-                  name="category"
-                  value={product.category}
-                  onChange={handleChange}
+                  open={openSelect}
+                  onOpen={() => setOpenSelect(true)}
+                  onClose={() => setOpenSelect(false)}
+                  value={selectedCategory ? selectedCategory._id : ""}
                   displayEmpty
-                  sx={{
-                    backgroundColor: "#f5f5f5",
-                    borderRadius: 1,
-                    height: "2.5rem",
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#1976d2",
-                    },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#1976d2",
-                    },
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        maxHeight: 200,
-                        overflowY: "auto",
-                      },
-                    },
-                  }}
+                  renderValue={() =>
+                    selectedCategory
+                      ? selectedCategory.title
+                      : "Không chọn (Danh mục gốc)"
+                  }
+                  variant="outlined"
+                  size="small"
+                  sx={{ bgcolor: "#fafafa" }}
                 >
-                  <MenuItem value="" disabled>
-                    Chọn danh mục
+                  <MenuItem
+                    value=""
+                    onClick={() => {
+                      setSelectedCategory(null);
+                      setOpenSelect(false);
+                    }}
+                  >
+                    Không chọn (Danh mục gốc)
                   </MenuItem>
-                  <MenuItem value="flowers">Hoa tươi</MenuItem>
-                  <MenuItem value="gifts">Quà tặng</MenuItem>
-                  <MenuItem value="plants">Cây cảnh</MenuItem>
-                  <MenuItem value="home_decor">Trang trí nhà cửa</MenuItem>
-                  <MenuItem value="accessories">Phụ kiện</MenuItem>
-                  <MenuItem value="beauty">Sắc đẹp</MenuItem>
-                  <MenuItem value="toys">Đồ chơi</MenuItem>
-                  <MenuItem value="stationery">Văn phòng phẩm</MenuItem>
-                  <MenuItem value="outdoor">Ngoài trời</MenuItem>
-                  <MenuItem value="electronics">Điện tử</MenuItem>
+                  {renderCategories()}
                 </Select>
               </FormControl>
+            </Grid>
 
-              <Typography variant="h6" gutterBottom>
-                  Trạng thái{" "}
-                  <Typography component="span" color="error">
-                    *
-                  </Typography>
-                </Typography>
-                <FormControl fullWidth>
-                  <Select
-                    name="status"
-                    value={product.status}
-                    onChange={handleChange}
-                    displayEmpty
-                    sx={{
-                      backgroundColor: "#f5f5f5",
-                      borderRadius: 1,
-                      border: "none",
-                      height: "2.5rem",
-                      "&:hover .MuiOutlinedInput-notchedOutline": {
-                        border: "none",
-                      },
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                        border: "none",
-                      },
-                    }}
-                    className={
-                      product.status === "active"
-                        ? "active"
-                        : product.status === "inactive"
-                          ? "inactive"
-                          : ""
-                    }
-                  >
-                    <MenuItem
-                      className="status-indicator-add active"
-                      value="active"
-                    >
-                      Hoạt động
-                    </MenuItem>
-                    <MenuItem
-                      className="status-indicator-add inactive"
-                      value="inactive"
-                    >
-                      Dừng hoạt động
-                    </MenuItem>
-                  </Select>
-                </FormControl>
-            </CardContent>
-          </Card>
+            {/* Trạng thái */}
+           
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" gutterBottom>
+                Trạng thái <span style={{ color: "red" }}>*</span>
+              </Typography>
+              <FormControl fullWidth>
+                <Select
+                  name="status"
+                  value={category.status}
+                  onChange={handleChange}
+                  variant="outlined"
+                  size="small"
+                  sx={{ bgcolor: "#fafafa" }}
+                >
+                  <MenuItem className="status-indicator active" value="active">Hoạt động</MenuItem>
+                  <MenuItem className="status-indicator inactive" value="inactive">Dừng hoạt động</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-          <Grid item xs={12} sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              sx={{
-                width: "100%",
-                maxWidth: 200,
-                fontSize: "1rem",
-                justifyContent: "center",
-                display: "flex",
-                alignItems: "center",
-                "&:hover": {
-                  backgroundColor: "#1565c0", // Hover effect color
-                },
-              }}
-            >
-              Thêm danh mục
-            </Button>
+            {/* Nút hành động */}
+            <Grid item xs={12}>
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 3, gap: 2 }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<AddIcon />}
+                  onClick={handleSubmit}
+                  disabled={loading || !category.title}
+                  sx={{ minWidth: 120 }}
+                >
+                  {loading ? "Đang thêm..." : "Thêm"}
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => navigate("/admin/categories")}
+                  sx={{ minWidth: 120 }}
+                >
+                  Hủy
+                </Button>
+              </Box>
+            </Grid>
           </Grid>
-        </Grid>
-      </Grid>
+        </CardContent>
+      </Card>
+
+      {/* Thông báo */}
+      <NotificationAndDialog
+        openNotification={notification.open}
+        setOpenNotification={(value) =>
+          setNotification((prev) => ({ ...prev, open: value }))
+        }
+        notificationMessage={notification.message}
+        notificationSeverity={notification.severity}
+        dialogOpen={false}
+        setDialogOpen={() => {}}
+        dialogTitle=""
+        dialogMessage=""
+        onConfirm={() => {}}
+        onCancel={() => {}}
+      />
     </Container>
   );
 };
 
-export default AddProductPage;
+export default AddCategoryPage;

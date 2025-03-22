@@ -6,13 +6,29 @@ import {
   CardContent,
   Typography,
   Button,
-  Chip,
   CircularProgress,
   Alert,
   Box,
+  Divider,
+  Stack,
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
+import { styled } from "@mui/system";
+import "./style.css";
+
+// Hàm để loại bỏ tất cả thẻ HTML và chỉ giữ nội dung văn bản thô
+const stripHTML = (html) => {
+  if (!html) return "";
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return doc.body.textContent || "";
+};
+
+const StyledCard = styled(Card)(({ theme }) => ({
+  borderRadius: theme.shape.borderRadius * 2,
+  boxShadow: theme.shadows[4],
+  transition: "transform 0.2s ease-in-out",
+}));
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -39,6 +55,7 @@ const ProductDetail = () => {
       }
       const data = await response.json();
       setProduct(data.data);
+      console.log(data.data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -51,150 +68,256 @@ const ProductDetail = () => {
   }, [id]);
 
   const handleEdit = () => {
-    navigate(`/admin/products/view-products/${id}`);
+    navigate(`/admin/products/edit-products/${id}`);
   };
+
+  const handleBack = () => {
+    navigate("/admin/products");
+  };
+
+  // Calculate discounted price if discountPercentage exists
+  const calculateDiscountedPrice = (price, discountPercentage) => {
+    if (!discountPercentage || discountPercentage <= 0) return price;
+    const discount = (price * discountPercentage) / 100;
+    return price - discount;
+  };
+
+  // Format date for display
+  const formatDate = (dateString) =>
+    new Date(dateString).toLocaleDateString("vi-VN", {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+    });
 
   if (loading) {
     return (
-      <Grid
-        container
+      <Box
+        display="flex"
         justifyContent="center"
         alignItems="center"
-        sx={{ height: "80%" }}
+        minHeight="80vh"
       >
         <CircularProgress />
-      </Grid>
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <Grid
-        container
+      <Box
+        display="flex"
         justifyContent="center"
         alignItems="center"
-        sx={{ height: "80%" }}
+        minHeight="80vh"
       >
         <Alert severity="error">{error}</Alert>
-      </Grid>
+      </Box>
     );
   }
 
+  // Format price for display
+  const formatPrice = (price) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+
+  // Calculate the discounted price
+  const discountedPrice = calculateDiscountedPrice(
+    product?.price || 0,
+    product?.discountPercentage || 0
+  );
+
   return (
-    <Box
-      sx={{
-        height: "100vh", // Chiều cao toàn màn hình
-        overflow: "hidden",
-      }}
-    >
-      <Grid container spacing={3} sx={{  maxWidth: "1200px" }}>
-        {/* Hình ảnh */}
-        <Grid item xs={12} md={4} sx={{ height: "600px" }}>
-          <Card
-            sx={{
-              borderRadius: 1,
-              boxShadow: 3,
-              height: "100%",
-              display: "flex",
-            }}
-          >
-            <CardMedia
-              component="img"
-              image={product?.thumbnail || "https://via.placeholder.com/400"}
-              alt={product?.title}
-              sx={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                borderRadius: 1,
-              }}
-            />
-          </Card>
-        </Grid>
-
-        {/* Thông tin sản phẩm */}
-        <Grid item xs={12} md={8} sx={{ height: "600px" }}>
-          <Card
-            sx={{
-              borderRadius: 1,
-              boxShadow: 3,
-              padding: 2,
-              height: "100%",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-            }}
-          >
-            <CardContent>
-              <Typography variant="h4" fontWeight={700} gutterBottom>
-                {product?.title}
-              </Typography>
-
-              <Typography
-                variant="h6"
-                color="text.secondary"
+    <Box sx={{ p: 2, bgcolor: "#f5f5f5", minHeight: "100vh" }}>
+      <Box sx={{ maxWidth: "1400px", mx: "auto" }}>
+        {/* Tiêu đề và nút quay lại */}
+        <Grid container spacing={2.5}>
+          {/* Hình ảnh sản phẩm */}
+          <Grid item xs={12} md={5}>
+            <StyledCard>
+              <CardMedia
+                component="img"
+                image={product?.thumbnail || "https://via.placeholder.com/400"}
+                alt={product?.title}
                 sx={{
-                  minHeight: "90px",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  mb: 3,
+                  width: "100%",
+                  height: "75vh",
+                  objectFit: "cover",
+                  borderRadius: "inherit",
                 }}
-              >
-                {product?.description || "Chưa có mô tả"}
-              </Typography>
+              />
+            </StyledCard>
+          </Grid>
 
-              <Typography
-                variant="h4"
-                color="primary"
-                fontWeight={700}
-                sx={{ mb: 3 }}
-              >
-                {new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(product?.price)}
-              </Typography>
+          {/* Thông tin chính */}
+          <Grid item xs={12} md={7}>
+            <StyledCard
+              sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+            >
+              <CardContent sx={{ flexGrow: 1 }}>
+                {/* Tiêu đề sản phẩm */}
+                <Typography variant="h4" fontWeight={700} gutterBottom>
+                  {product?.title || "Không có tiêu đề"}
+                </Typography>
 
-              <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-                <strong>Danh mục:</strong> {product?.slug}
-              </Typography>
+                {/* Giá và giảm giá */}
+                <Stack direction="row" spacing={2} alignItems="center" mb={2}>
+                  {product?.discountPercentage > 0 ? (
+                    <>
+                      {/* Giá gốc (gạch ngang) */}
+                      <Typography
+                        variant="h6"
+                        color="text.secondary"
+                        sx={{ textDecoration: "line-through" }}
+                      >
+                        {formatPrice(product?.price || 0)}
+                      </Typography>
+                      {/* Giá sau giảm giá với discount ở góc trên */}
+                      <Box
+                        sx={{ position: "relative", display: "inline-block" }}
+                      >
+                        <Typography
+                          variant="h5"
+                          color="primary"
+                          fontWeight={700}
+                        >
+                          {formatPrice(discountedPrice)}
+                        </Typography>
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            top: "-10px", // Điều chỉnh vị trí lên trên
+                            right: "-40px", // Điều chỉnh vị trí sang phải
+                            backgroundColor: "red", // Màu đỏ cho discount
+                            color: "white", // Chữ trắng để nổi bật
+                            borderRadius: "100px", // Bo góc nhẹ
+                            padding: "2px 6px", // Khoảng đệm bên trong
+                            fontSize: "12px", // Kích thước chữ nhỏ hơn
+                          }}
+                        >
+                          {`-${product.discountPercentage}%`}
+                        </Box>
+                      </Box>
+                    </>
+                  ) : (
+                    <Typography variant="h5" color="primary" fontWeight={700}>
+                      {formatPrice(product?.price || 0)}
+                    </Typography>
+                  )}
+                </Stack>
 
-              <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-                <strong>Trạng thái:</strong>{" "}
-                <Chip
-                  label={
-                    product?.status === "active"
-                      ? "Đang hoạt động"
-                      : "Ngừng hoạt động"
-                  }
-                  color={product?.status === "active" ? "success" : "error"}
-                  size="medium"
-                />
-              </Typography>
+                {/* Danh mục và trạng thái */}
+                <Stack direction="row" spacing={2} mb={2}>
+                  <Typography variant="body1" color="text.secondary">
+                    <strong>Danh mục:</strong>{" "}
+                    {product?.categoryId?.title || "Chưa có"}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={{ minWidth: "200px" }} // Khoảng cách cố định cho phần Trạng thái
+                  >
+                    <strong>Trạng thái:</strong>{" "}
+                    <span
+                      className={`status-indicator ${
+                        product?.status === "active" ? "active" : "inactive"
+                      }`}
+                    >
+                      {product?.status === "active"
+                        ? "Đang hoạt động"
+                        : "Ngừng hoạt động"}
+                    </span>
+                  </Typography>
+                </Stack>
 
-              <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
-                <strong>Số lượng:</strong> {product?.stock}
-              </Typography>
+                {/* Số lượng tồn kho */}
+                <Typography variant="body1" color="text.secondary" mb={2}>
+                  <strong>Số lượng tồn kho:</strong> {product?.stock || 0}
+                </Typography>
 
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleEdit}
-                startIcon = {<BorderColorIcon sx={{marginBottom: "4px"}} />}
-                sx={{
-                  borderRadius: 2,
-                  width: "10rem",
-                  mt: 4,
-                  fontSize: "14px",
-                  background: "#ffc107",
-                }}
-              >
-                Sửa sản phẩm
-              </Button>
-            </CardContent>
-          </Card>
+                {/* Người tạo và ngày tạo trên cùng một dòng */}
+                {(product?.createdBy || product?.createdAt) && (
+                  <Stack direction="row" spacing={2} alignItems="center" mb={2}>
+                    <Typography variant="body1" color="text.secondary">
+                      <strong>Người tạo:</strong>{" "}
+                      {product?.createdBy?.name || "Không xác định"}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      sx={{ minWidth: "200px" }} // Đảm bảo khoảng cách cố định cho phần Ngày
+                    >
+                      <strong>Ngày:</strong>{" "}
+                      {product?.createdAt
+                        ? formatDate(product.createdAt)
+                        : "Không xác định"}
+                    </Typography>
+                  </Stack>
+                )}
+
+                {/* Người cập nhật và ngày cập nhật trên cùng một dòng */}
+                {(product?.updatedBy || product?.updatedAt) && (
+                  <Stack direction="row" spacing={2} alignItems="center" mb={2}>
+                    <Typography variant="body1" color="text.secondary">
+                      <strong>Cập nhật:</strong>{" "}
+                      {product?.updatedBy?.name || "Không xác định"}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      sx={{ minWidth: "200px" }} // Khoảng cách cố định cho phần Ngày
+                    >
+                      <strong>Ngày:</strong>{" "}
+                      {product?.updatedAt
+                        ? formatDate(product.updatedAt)
+                        : "Không xác định"}
+                    </Typography>
+                  </Stack>
+                )}
+
+                {/* Mô tả sản phẩm */}
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" fontWeight={600} mb={1}>
+                  Mô tả sản phẩm
+                </Typography>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{
+                    maxHeight: 150,
+                    overflowY: "auto",
+                    whiteSpace: "pre-wrap",
+                    mb: 3,
+                  }}
+                >
+                  {stripHTML(product?.description) || "Chưa có mô tả"}
+                </Typography>
+              </CardContent>
+
+              {/* Button nằm dưới cùng */}
+              <Box sx={{ p: 2.5, pt: 0, width: "18rem" }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleEdit}
+                  startIcon={<BorderColorIcon />}
+                  fullWidth
+                  sx={{
+                    borderRadius: 2,
+                    py: 1,
+                    fontSize: "1.2rem",
+                    bgcolor: "#ffc107",
+                  }}
+                >
+                  Sửa sản phẩm
+                </Button>
+              </Box>
+            </StyledCard>
+          </Grid>
         </Grid>
-      </Grid>
+      </Box>
     </Box>
   );
 };

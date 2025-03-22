@@ -2,15 +2,27 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
-import { get, del } from "../../../../share/utils/http"; // Thêm hàm remove
+import { get, del } from "../../../../share/utils/http";
 import { getLocalStorage } from "../../../../share/hepler/localStorage";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import FilterBar from "./filter";
-import { useSearchStore, useResetStore, useStatusStore } from "./store";
+import {
+  useSearchStore,
+  useResetStore,
+  useStatusStore,
+  useSortStore,
+  useActionStore,
+  useDeleteStore,
+} from "../../../components/store";
+import NotificationAndDialog, {
+  showNotification,
+  showConfirmDialog,
+} from "../../../components/NotificationAndDialog/index.js"; // Import component thông báo và dialog
 import "./style.css";
 
+// Skeleton cho loading
 const SkeletonRow = () => (
   <div
     style={{
@@ -19,11 +31,10 @@ const SkeletonRow = () => (
       alignItems: "center",
       gap: "10px",
       padding: "10px",
-      borderBottom: "1px solid #e0e0e0", // Đường viền dưới
-      backgroundColor: "#f9f9f9", // Màu nền nhạt
+      borderBottom: "1px solid #e0e0e0",
+      backgroundColor: "#f9f9f9",
     }}
   >
-    {/* Skeleton cho cột STT */}
     <div style={{ flex: "0.5", display: "flex", justifyContent: "center" }}>
       <div
         style={{
@@ -31,11 +42,10 @@ const SkeletonRow = () => (
           height: "50px",
           backgroundColor: "#e0e0e0",
           borderRadius: "4px",
-          animation: "pulse 1.5s infinite", // Hiệu ứng nhấp nháy
+          animation: "pulse 1.5s infinite",
         }}
       />
     </div>
-    {/* Skeleton cho cột Hình ảnh */}
     <div style={{ flex: "1.2", display: "flex", justifyContent: "center" }}>
       <div
         style={{
@@ -47,7 +57,6 @@ const SkeletonRow = () => (
         }}
       />
     </div>
-    {/* Skeleton cho cột Tiêu đề */}
     <div style={{ flex: "2.5" }}>
       <div
         style={{
@@ -69,7 +78,6 @@ const SkeletonRow = () => (
         }}
       />
     </div>
-    {/* Skeleton cho cột Giá */}
     <div style={{ flex: "1.2", display: "flex", justifyContent: "flex-end" }}>
       <div
         style={{
@@ -81,7 +89,6 @@ const SkeletonRow = () => (
         }}
       />
     </div>
-    {/* Skeleton cho cột Số lượng */}
     <div style={{ flex: "0.9", display: "flex", justifyContent: "center" }}>
       <div
         style={{
@@ -93,7 +100,6 @@ const SkeletonRow = () => (
         }}
       />
     </div>
-    {/* Skeleton cho cột Trạng thái */}
     <div style={{ flex: "1.7", display: "flex", justifyContent: "center" }}>
       <div
         style={{
@@ -105,7 +111,6 @@ const SkeletonRow = () => (
         }}
       />
     </div>
-    {/* Skeleton cho cột Tạo bởi */}
     <div style={{ flex: "1.5", display: "flex", justifyContent: "center" }}>
       <div
         style={{
@@ -117,7 +122,6 @@ const SkeletonRow = () => (
         }}
       />
     </div>
-    {/* Skeleton cho cột Cập nhật */}
     <div style={{ flex: "1.2", display: "flex", justifyContent: "center" }}>
       <div
         style={{
@@ -134,9 +138,8 @@ const SkeletonRow = () => (
 
 // Hàm đánh dấu từ khớp với searchTerm
 const highlightText = (text, searchTerm) => {
-  if (!searchTerm) return text; // Nếu không có searchTerm, trả về text gốc
+  if (!searchTerm) return text;
 
-  // Tạo regex để tìm kiếm không phân biệt hoa thường
   const regex = new RegExp(`(${searchTerm})`, "gi");
   return text.split(regex).map((part, index) =>
     regex.test(part) ? (
@@ -220,9 +223,9 @@ const getColumns = (navigate, handleDelete, searchTerm, toggleStatus) => [
         >
           <span
             className="box_icon bi1"
-            style={{ color: "#17a2b8", border: "solid 1px #17a2b8" }}
+            style={{width:"2.5rem" , color: "#17a2b8", border: "solid 1px #17a2b8" }}
             onClick={(e) => {
-              e.stopPropagation(); // Ngừng sự kiện để không thay đổi trạng thái checkbox
+              e.stopPropagation();
               navigate(`/admin/products/view-products/${params.row.id}`);
             }}
           >
@@ -230,7 +233,7 @@ const getColumns = (navigate, handleDelete, searchTerm, toggleStatus) => [
           </span>
           <span
             className="box_icon bi2"
-            style={{ color: "#ffc107", border: "solid 1px #ffc107" }}
+            style={{width:"2.5rem" , color: "#ffc107", border: "solid 1px #ffc107" }}
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/admin/products/edit-products/${params.row.id}`);
@@ -240,7 +243,7 @@ const getColumns = (navigate, handleDelete, searchTerm, toggleStatus) => [
           </span>
           <span
             className="box_icon bi3"
-            style={{ color: "#dc3545", border: "solid 1px #dc3545" }}
+            style={{ width:"2.5rem" , color: "#dc3545", border: "solid 1px #dc3545" }}
             onClick={(e) => {
               e.stopPropagation();
               handleDelete(params.row.id);
@@ -280,7 +283,7 @@ const getColumns = (navigate, handleDelete, searchTerm, toggleStatus) => [
           className={`status-indicator ${isActive ? "active" : "inactive"}`}
           onClick={(e) => {
             e.stopPropagation();
-            toggleStatus(params.row.id); // Gọi toggleStatus với id của hàng
+            toggleStatus(params.row.id);
           }}
         >
           {isActive ? "Đang hoạt động" : "Dừng hoạt động"}
@@ -306,11 +309,11 @@ const getColumns = (navigate, handleDelete, searchTerm, toggleStatus) => [
 ];
 
 export default function ProductListPage() {
-  const [data, setData] = useState([]); // Lưu trữ dữ liệu chưa lọc
+  const [data, setData] = useState([]);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true); // State để kiểm tra xem dữ liệu có đang tải không
-  const [filterStatus, setFilterStatus] = useState(""); // Lưu trạng thái lọc
-  const [filterSort, setFilterSort] = useState(""); // Lưu bộ lọc sắp xếp
+  const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterSort, setFilterSort] = useState("");
   const token = getLocalStorage("token");
   const [paginationModel, setPaginationModel] = useState({
     pageSize: 5,
@@ -319,95 +322,227 @@ export default function ProductListPage() {
   const navigate = useNavigate();
   const { searchTerm } = useSearchStore();
   const { statusTerm } = useStatusStore();
-
-  const handleDelete = async (id) => {
-    try {
-      const response = await del(token, `/admin/products/${id}`);
-      console.log("API Response:", response);
-      if (response.data === true) {
-        setData((prevData) => prevData.filter((item) => item._id !== id));
-      } else {
-        console.error("Delete failed:", response);
-        setError("Xóa sản phẩm thất bại!");
-      }
-    } catch (err) {
-      console.error("Delete error:", err);
-      setError(err.message);
-    }
-  };
-
-  const toggleStatus = async (id) => {
-    // Cập nhật trạng thái ngay trên UI trước khi gửi API
-    setData((prev) =>
-      prev.map((item) =>
-        item._id === id ? { ...item, status: item.status === "active" ? "inactive" : "active" } : item
-      )
-    );
-
-    // Gửi API cập nhật trạng thái
-    try {
-      const response = await fetch(`http://localhost:3001/admin/products/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          status: data.find((item) => item._id === id).status === "active" ? "inactive" : "active",
-        }),
-      });
-      console.log(response)
-      if (!response.ok) {
-        throw new Error("Không thể cập nhật trạng thái!");
-      }
-    } catch (error) {
-      console.error("Lỗi cập nhật trạng thái:", error);
-      // Nếu API lỗi, rollback trạng thái về ban đầu
-      setData((prev) =>
-        prev.map((item) =>
-          item._id === id ? { ...item, status: item.status === "active" ? "inactive" : "active" } : item
-        )
-      );
-    }
-  };
+  const { setDelete } = useDeleteStore();
   const { isActive } = useResetStore();
+  const { sortTerm } = useSortStore();
+  const { selectedAction } = useActionStore();
+  const [selectedProductIds, setSelectedProductIds] = useState([]);
 
+  // State cho thông báo
+  const [openNotification, setOpenNotification] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  // State cho dialog xác nhận
+  const [dialogOpen, setDialogOpen] = useState({
+    open: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    onCancel: null,
+  });
+
+  // Hàm xóa sản phẩm với xác nhận
+  const handleDelete = (id) => {
+    showConfirmDialog(
+      setDialogOpen,
+      "Xác nhận xóa sản phẩm",
+      "Bạn có chắc chắn muốn xóa sản phẩm này không?",
+      async () => {
+        try {
+          const response = await del(token, `/admin/products/${id}`);
+          if (response.data === true) {
+            setData((prevData) => prevData.filter((item) => item._id !== id));
+            setDelete(true);
+            showNotification(setOpenNotification, "Xóa sản phẩm thành công", "success");
+          } else {
+            showNotification(setOpenNotification, "Xóa sản phẩm thất bại", "error");
+          }
+        } catch (err) {
+          showNotification(setOpenNotification, err.message || "Xóa sản phẩm thất bại", "error");
+        }
+      },
+      () => {
+        showNotification(setOpenNotification, "Hủy xóa sản phẩm", "info");
+      }
+    );
+  };
+
+  // Hàm thay đổi trạng thái sản phẩm với xác nhận
+  const toggleStatus = (id) => {
+    const currentStatus = data.find((item) => item._id === id).status;
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
+    showConfirmDialog(
+      setDialogOpen,
+      "Xác nhận thay đổi trạng thái",
+      `Bạn có muốn thay đổi trạng thái sản phẩm thành "${newStatus === "active" ? "Đang hoạt động" : "Dừng hoạt động"}" không?`,
+      async () => {
+        setData((prev) =>
+          prev.map((item) =>
+            item._id === id ? { ...item, status: newStatus } : item
+          )
+        );
+        try {
+          const response = await fetch(
+            `http://localhost:3001/admin/products/${id}`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ status: newStatus }),
+            }
+          );
+          if (!response.ok) {
+            throw new Error("Không thể cập nhật trạng thái!");
+          }
+          showNotification(setOpenNotification, "Cập nhật trạng thái thành công", "success");
+        } catch (error) {
+          setData((prev) =>
+            prev.map((item) =>
+              item._id === id ? { ...item, status: currentStatus } : item
+            )
+          );
+          showNotification(setOpenNotification, error.message || "Cập nhật trạng thái thất bại", "error");
+        }
+      },
+      () => {
+        showNotification(setOpenNotification, "Hủy thay đổi trạng thái", "info");
+      }
+    );
+  };
+
+  // Hàm sắp xếp dữ liệu
+  const sortData = (data, sortTerm) => {
+    switch (sortTerm) {
+      case "Số lượng giảm dần":
+        return [...data].sort((a, b) => b.stock - a.stock);
+      case "Số lượng tăng dần":
+        return [...data].sort((a, b) => a.stock - b.stock);
+      case "Mới nhất":
+        return [...data].sort(
+          (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+        );
+      case "Cũ nhất":
+        return [...data].sort(
+          (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt)
+        );
+      default:
+        return data;
+    }
+  };
+
+  // Hàm xử lý cập nhật trạng thái hàng loạt với xác nhận
+  const handleBulkStatusUpdate = async () => {
+    if (!selectedProductIds.length) {
+      showNotification(setOpenNotification, "Vui lòng chọn ít nhất một sản phẩm", "warning");
+      return;
+    }
+
+    const newStatus =
+      selectedAction === "Đang hoạt động" ? "active" : "inactive";
+    showConfirmDialog(
+      setDialogOpen,
+      "Xác nhận cập nhật trạng thái hàng loạt",
+      `Bạn có muốn cập nhật trạng thái của ${selectedProductIds.length} sản phẩm thành "${selectedAction}" không?`,
+      async () => {
+        setData((prev) =>
+          prev.map((item) =>
+            selectedProductIds.includes(item._id)
+              ? { ...item, status: newStatus }
+              : item
+          )
+        );
+        try {
+          const response = await fetch(`http://localhost:3001/admin/products/`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              ids: selectedProductIds,
+              updates: { status: newStatus },
+            }),
+          });
+          if (!response.ok) {
+            throw new Error("Không thể cập nhật trạng thái hàng loạt!");
+          }
+          showNotification(
+            setOpenNotification,
+            "Cập nhật trạng thái hàng loạt thành công",
+            "success"
+          );
+        } catch (error) {
+          showNotification(
+            setOpenNotification,
+            error.message || "Cập nhật trạng thái hàng loạt thất bại",
+            "error"
+          );
+        }
+      },
+      () => {
+        showNotification(
+          setOpenNotification,
+          "Hủy cập nhật trạng thái hàng loạt",
+          "info"
+        );
+      }
+    );
+  };
+
+  // Xử lý khi có hành động cập nhật trạng thái hàng loạt
+  useEffect(() => {
+    if (selectedAction && selectedProductIds.length > 0) {
+      handleBulkStatusUpdate();
+    }
+  }, [selectedAction, selectedProductIds, token]);
+
+  // Lấy dữ liệu từ API
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true); // Đặt loading thành true khi bắt đầu gọi API
+      setLoading(true);
       try {
-        let url = `/admin/products?search=${encodeURIComponent(searchTerm)}`;
-        if (statusTerm !== "ALL") {
-          url += `&status=${statusTerm}`; // Chỉ thêm nếu không phải "Tất cả"
-        }
+        let url = `/admin/products?search=${encodeURIComponent(
+          searchTerm
+        )}&status=${statusTerm}&sort=${encodeURIComponent(sortTerm)}`;
         const result = await get(token, url);
         if (result.data?.length) {
-          const formattedData = result.data.map((row, index) => ({
+          let formattedData = result.data.map((row, index) => ({
             ...row,
             id: row._id,
             stt: index + 1,
             price: `${row.price.toLocaleString()} VND`,
           }));
+          formattedData = sortData(formattedData, sortTerm);
           setData(formattedData);
         } else {
-          setData([]); // Nếu không có dữ liệu, đặt danh sách về rỗng
+          setData([]);
         }
       } catch (err) {
+        showNotification(
+          setOpenNotification,
+          err.message || "Lấy dữ liệu thất bại",
+          "error"
+        );
         setError(err.message);
       } finally {
-        setLoading(false); // Đảm bảo loading luôn được tắt sau khi gọi API
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, [token, searchTerm,isActive, statusTerm]); // Gọi lại khi token, searchTerm hoặc statusTerm thay đổi
+  }, [token, searchTerm, isActive, statusTerm, sortTerm]);
 
   return (
     <Paper className="ProductListPage" sx={{ height: "100%", width: "100%" }}>
       {error && (
         <div style={{ color: "red", padding: "10px" }}>Error: {error}</div>
       )}
-      <FilterBar
-        setFilterStatus={setFilterStatus}
-        setFilterSort={setFilterSort}
-      />
+      <FilterBar setFilterStatus={setFilterStatus} setFilterSort={setFilterSort} />
       <DataGrid
         rowHeight={90}
         rows={data}
@@ -416,11 +551,14 @@ export default function ProductListPage() {
         paginationModel={paginationModel}
         pageSizeOptions={[5, 10, 20]}
         checkboxSelection
-        paginationMode="server"
+        onRowSelectionModelChange={(ids) => {
+          setSelectedProductIds(ids);
+        }}
+        paginationMode="client"
         onPaginationModelChange={(newPaginationModel) =>
           setPaginationModel(newPaginationModel)
         }
-        loading={loading} // Hiển thị loading overlay khi loading là true
+        loading={loading}
         slots={{
           loadingOverlay: () => (
             <div>
@@ -441,6 +579,24 @@ export default function ProductListPage() {
           },
           userSelect: "none",
         }}
+      />
+
+      {/* Component thông báo và dialog */}
+      <NotificationAndDialog
+        openNotification={openNotification.open}
+        setOpenNotification={(value) =>
+          setOpenNotification((prev) => ({ ...prev, open: value.open }))
+        }
+        notificationMessage={openNotification.message}
+        notificationSeverity={openNotification.severity}
+        dialogOpen={dialogOpen.open}
+        setDialogOpen={(value) =>
+          setDialogOpen((prev) => ({ ...prev, open: value.open }))
+        }
+        dialogTitle={dialogOpen.title}
+        dialogMessage={dialogOpen.message}
+        onConfirm={dialogOpen.onConfirm}
+        onCancel={dialogOpen.onCancel}
       />
     </Paper>
   );
