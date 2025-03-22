@@ -1,0 +1,377 @@
+.main-content {
+  background-color: #fff !important;
+  padding-top: 40px !important;
+}
+
+.this-month-label {
+  display: inline-block;
+  background-color: #f5f0e1;
+  color: #8b5a2b;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 5px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.trendy-collection-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2b2b2b;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+/* Filter Links Styling */
+.filter-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.filter-link {
+  text-decoration: none;
+  color: #555;
+  font-size: 15px;
+  font-weight: 500;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.filter-link:hover {
+  color: #8b5a2b;
+}
+
+.filter-link::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  background-color: #8b5a2b;
+  bottom: -4px;
+  left: 0;
+  transition: width 0.3s ease;
+}
+
+.filter-link:hover::after {
+  width: 100%;
+}
+
+.filter-link.active {
+  color: #8b5a2b;
+}
+
+.filter-link.active::after {
+  width: 100%;
+}
+
+/* Bouquet Card Styling */
+.bouquet-card {
+  border: none !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.bouquet-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.bouquet-image-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* Ensures a 1:1 aspect ratio (square frame) */
+  overflow: hidden; /* Prevents the zoomed image from overflowing */
+}
+
+.bouquet-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  background-color: #f9f9f9;
+}
+
+.bouquet-image-wrapper:hover .bouquet-image {
+  transform: scale(1.1); /* Zoom in without changing container size */
+}
+
+/* Overlay buttons styling */
+.bouquet-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.bouquet-image-wrapper:hover .bouquet-overlay {
+  opacity: 1;
+}
+
+.overlay-button {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.overlay-button:hover {
+  background-color: #f5f0e1;
+  border-color: #8b5a2b;
+  transform: scale(1.1);
+}
+
+.overlay-button svg {
+  color: #333;
+  font-size: 18px;
+}
+
+.bouquet-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.bouquet-price {
+  font-size: 14px;
+  font-weight: 500;
+  color: #8b5a2b;
+  text-align: center;
+}
+
+/* Service Section Styling */
+.service-section {
+  /* background-color: #f9f9f9; */
+  padding: 40px 0 !important;
+  border-radius: 10px !important;
+}
+
+.service-icon {
+  margin-right: 20px;
+  color: #8b5a2b;
+}
+
+.service-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2b2b2b;
+  margin-bottom: 10px;
+}
+
+.service-text {
+  font-size: 0.95rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* Deals Section Styling */
+.deals-section {
+  background-color: #fff !important;
+  padding: 40px 0 !important;
+}
+
+.top-sale-label {
+  display: inline-block;
+  background-color: #f5f0e1;
+  color: #8b5a2b;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 5px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.sale-collection-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2b2b2b;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+/* Deal Card Styling */
+.deal-card {
+  border: none !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.deal-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.deal-image-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* Ensures a 1:1 aspect ratio (square frame) */
+  overflow: hidden; /* Prevents the zoomed image from overflowing */
+}
+
+.deal-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  background-color: #f9f9f9;
+}
+
+.deal-image-wrapper:hover .deal-image {
+  transform: scale(1.1); /* Zoom in without changing container size */
+}
+
+/* Overlay buttons for deals */
+.deal-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.deal-image-wrapper:hover .deal-overlay {
+  opacity: 1;
+}
+
+/* Discount Badge */
+.discount-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #f5f0e1;
+  color: #8b5a2b;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 15px;
+}
+
+.deal-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.deal-price {
+  font-size: 14px;
+  text-align: center;
+}
+
+.original-price {
+  color: #999;
+  text-decoration: line-through;
+  margin-right: 8px;
+}
+
+.discounted-price {
+  color: #8b5a2b;
+  font-weight: 600;
+}
+
+/* Explore Button */
+.explore-button {
+  background-color: #f5f0e1;
+  border: none;
+  color: #8b5a2b;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 30px;
+  border-radius: 25px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.explore-button:hover {
+  background-color: #8b5a2b;
+  color: #fff;
+}
+
+/* Adjust grid for deals section to show 5 products in a row */
+@media (min-width: 1200px) {
+  .col-xl-2 {
+    flex: 0 0 20%; /* 100% / 5 = 20% for 5 columns */
+    max-width: 20%;
+  }
+}
+
+/* Modal Styling */
+.product-modal-image {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.quantity-selector {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.quantity-selector button {
+  border: none;
+  background: none;
+  color: #8b5a2b;
+}
+
+.quantity-selector span {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.add-to-cart-button {
+  background-color: #f5f0e1;
+  border: none;
+  color: #8b5a2b;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 25px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  width: 100%;
+}
+
+.add-to-cart-button:hover {
+  background-color: #8b5a2b;
+  color: #fff;
+}
+
+.wishlist-button {
+  color: #8b5a2b;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.wishlist-button svg {
+  font-size: 16px;
+}

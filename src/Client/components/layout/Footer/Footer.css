@@ -1,0 +1,15 @@
+/* Footer.css */
+.footer {
+  background-color: #2b2727;
+  color: #333; 
+}
+
+.fixed-footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #f5f0e1;
+  z-index: 1000;
+  padding: 10px 0;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+}

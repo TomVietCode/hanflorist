@@ -1,0 +1,31 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+}
+
+.login-card {
+  max-width: 400px;
+  width: 100%;
+  border: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary {
+  background-color: #8b5a2b;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #6b4a1b;
+}
+
+.btn-link {
+  color: #8b5a2b;
+}
+
+.btn-link:hover {
+  color: #6b4a1b;
+}

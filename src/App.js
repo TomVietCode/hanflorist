@@ -1,11 +1,9 @@
-import { useRoutes } from "react-router-dom"
-import  routes  from "./admin/router"
+import { useRoutes } from "react-router-dom";
+import combinedRoutes from "./router"; // Import routes tổng hợp
 
 function App() {
-  const elements = useRoutes(routes)
-  return (
-    [elements]
-  )
+  const elements = useRoutes(combinedRoutes);
+  return <>{elements}</>; // Trả về elements trong một fragment
 }
 
-export default App
+export default App;

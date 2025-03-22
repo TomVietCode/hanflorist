@@ -1,0 +1,123 @@
+.fixed-navbar {
+  top: 40px; /* Keep your original top value */
+  width: 100%;
+  z-index: 100;
+  background-color: white;
+  position: fixed !important;
+}
+
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+  color: #8b5a2b !important; /* Updated to match the theme */
+}
+
+/* .nav-link {
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  color: #333 !important; Ensure default color
+} */
+
+.nav-link:hover {
+  color: #8b5a2b !important; /* Keep the updated hover color */
+}
+
+.custom-dropdown-menu {
+  border: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  color: #333; /* Ensure default color */
+}
+
+.dropdown-item:hover {
+  background-color: #f5f0e1;
+  color: #8b5a2b;
+}
+
+.nav-icon {
+  position: relative;
+  margin-left: 20px; /* Keep your original margin-left */
+  cursor: pointer;
+}
+
+.nav-icon .icon {
+  font-size: 24px; /* Keep your original font size */
+  color: #333; /* Keep your original color */
+  transition: color 0.3s ease-in-out; /* Keep your original transition */
+}
+
+/* Note: There is no heart-icon in the current NavBar.js, but I'll keep the style in case you add it later */
+.nav-icon .heart-icon:hover {
+  color: #ff4081; /* Keep your original hover color */
+}
+
+.nav-icon .cart-icon:hover {
+  color: #8b5a2b; /* Updated hover color to match the theme */
+}
+
+.nav-icon .user-icon:hover {
+  color: #8b5a2b; /* Add hover color for user icon to match the theme */
+}
+
+.nav-icon .cart-badge {
+  position: absolute;
+  top: -8px; /* Keep your original positioning */
+  right: -8px; /* Keep your original positioning */
+  background-color: #8b5a2b; /* Updated to match the theme */
+  color: white; /* Keep your original text color */
+  font-size: 10px; /* Keep your original font size */
+  font-weight: bold; /* Keep your original font weight */
+  padding: 3px 5px; /* Keep your original padding */
+  border-radius: 50%; /* Keep your original border-radius */
+}
+
+.search-form {
+  width: 250px; /* Keep your original width */
+  margin-right: 15px; /* Keep your original margin-right */
+}
+
+.search-form .input-group {
+  border-radius: 25px; /* Keep your original border-radius */
+  overflow: hidden; /* Keep your original overflow */
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Keep your original box-shadow */
+}
+
+.search-form .form-control {
+  border: none; /* Keep your original border */
+  padding: 10px 15px; /* Keep your original padding */
+}
+
+.search-form .btn {
+  border: none; /* Keep your original border */
+  background-color: #333; /* Keep your original background color */
+  color: white; /* Keep your original text color */
+}
+
+.search-form .btn:hover {
+  background-color: #8b5a2b; /* Updated hover color to match the theme */
+}
+
+/* Cart Offcanvas Styling */
+.cart-item {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.cart-item-image {
+  border-radius: 5px;
+}
+
+.cart-item-details p {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.cart-item-details p:first-child {
+  font-weight: 500;
+}

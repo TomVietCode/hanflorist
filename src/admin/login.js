@@ -142,7 +142,7 @@ export default function SignUp(props) {
       if (response.status === 200) {
         const result = await response.json();
         localStorage.setItem("token", result.data);
-        navigate("/admin"); // Chuyển hướng sau khi đăng nhập thành công
+        navigate("/admin/dashboard"); // Chuyển hướng sau khi đăng nhập thành công
       } else {
         const errorData = await response.json();
         setSubmitError(errorData.message || "Đăng nhập thất bại!");
