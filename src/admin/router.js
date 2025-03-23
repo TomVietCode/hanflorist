@@ -24,7 +24,7 @@ const routes = [
   },
   {
     element: <PrivateRoute />,
-    children: [
+    children: [ 
       {
         path: "/admin", // Route cha cho các trang admin
         element: <DashboardLayout />,

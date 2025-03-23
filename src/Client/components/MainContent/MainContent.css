@@ -297,6 +297,33 @@
   font-weight: 600;
 }
 
+.deal-col {
+  flex: 0 0 20%; /* Mỗi cột chiếm 20% chiều rộng (100% / 5 = 20%) */
+  max-width: 20%; /* Đảm bảo chiều rộng tối đa là 20% */
+}
+
+/* Điều chỉnh cho các kích thước màn hình nhỏ hơn nếu cần */
+@media (max-width: 991px) {
+  .deal-col {
+    flex: 0 0 33.333%; /* 3 sản phẩm/hàng trên màn hình trung bình */
+    max-width: 33.333%;
+  }
+}
+
+@media (max-width: 767px) {
+  .deal-col {
+    flex: 0 0 50%; /* 2 sản phẩm/hàng trên màn hình nhỏ */
+    max-width: 50%;
+  }
+}
+
+@media (max-width: 575px) {
+  .deal-col {
+    flex: 0 0 100%; /* 1 sản phẩm/hàng trên màn hình rất nhỏ */
+    max-width: 100%;
+  }
+}
+
 /* Explore Button */
 .explore-button {
   background-color: #f5f0e1;
@@ -374,4 +401,41 @@
 
 .wishlist-button svg {
   font-size: 16px;
+}
+
+/* Đảm bảo tất cả card có cùng chiều cao */
+.deal-card,
+.bouquet-card {
+  height: 100%; /* Đảm bảo card chiếm toàn bộ chiều cao của cột */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Giới hạn chiều cao tiêu đề và thêm dấu ba chấm */
+.deal-title,
+.bouquet-title {
+  min-height: 48px; /* Đảm bảo tiêu đề chiếm ít nhất 2 dòng */
+  max-height: 48px; /* Giới hạn tối đa 2 dòng */
+  line-height: 24px; /* Chiều cao mỗi dòng */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Giới hạn 2 dòng */
+  -webkit-box-orient: vertical;
+}
+
+/* Đảm bảo phần body của card có cùng chiều cao */
+.deal-card .card-body,
+.bouquet-card .card-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Đảm bảo ảnh có cùng tỷ lệ */
+.deal-image,
+.  {
+  height: 200px; /* Chiều cao cố định cho ảnh */
+  object-fit: cover; /* Đảm bảo ảnh không bị méo */
 }

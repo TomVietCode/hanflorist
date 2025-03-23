@@ -10,8 +10,6 @@ function MainPage() {
       <div>
         <CarouselMain />
         <MainContent/>
-        <div className="main-content">      
-        </div>
       </div>
     </>
   );

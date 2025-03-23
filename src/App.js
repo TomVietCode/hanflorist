@@ -1,9 +1,10 @@
 import { useRoutes } from "react-router-dom";
-import combinedRoutes from "./router"; // Import routes tổng hợp
+import combinedRoutes from "./router"; // File routes đã cập nhật
+import { CartProvider } from "./Client/context/CartContext";
 
 function App() {
   const elements = useRoutes(combinedRoutes);
-  return <>{elements}</>; // Trả về elements trong một fragment
+  return <CartProvider>{elements}</CartProvider>;
 }
 
 export default App;

@@ -9,15 +9,17 @@ import { FaHeart } from "react-icons/fa";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import "./MainContent.css";
 import { useCart } from "../../context/CartContext";
+import { get } from "../../../share/utils/http";
 
 function MainContent() {
-  const [categories, setCategories] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [deals, setDeals] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState("8.3 Collection");
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useCart();
+  const { addToCart, getCartItemQuantity } = useCart();
 
   const filters = [
     "8.3 Collection",
@@ -28,105 +30,92 @@ function MainContent() {
     "Combo Cưới",
   ];
 
+  const formatPrice = (price) => {
+    return `${price.toLocaleString("vi-VN")} đ`;
+  };
+
   const calculateDiscountedPrice = (price, discount) => {
-    const priceValue = parseFloat(price.replace(/[^0-9]/g, ""));
+    const priceValue = parseFloat(price);
     const discountPercentage = parseFloat(discount) || 0;
     const discountedValue = priceValue * (1 - discountPercentage / 100);
-    return `${Math.round(discountedValue).toLocaleString("vi-VN")} đ`;
+    return formatPrice(Math.round(discountedValue));
   };
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("https://api.example.com/products");
-        const data = await response.json();
+        const response = await get("", "/v1/products");
+        console.log("API Response:", response);
 
-        const products = data.products.map((product) => ({
-          id: product.id,
-          image: product.image,
+        // Kiểm tra nếu response không phải là mảng và truy cập response.data nếu cần
+        const productData = Array.isArray(response)
+          ? response
+          : response?.data || [];
+
+        if (!Array.isArray(productData)) {
+          throw new Error("API response is not an array");
+        }
+
+        const products = productData.map((product) => ({
+          id: product._id,
+          image: product.thumbnail,
           title: product.title,
-          price: product.price,
-          category: product.category,
-          isDeal: product.isDeal,
-          discount: product.discount || 0,
-          sku: product.sku,
-          categories: product.categories,
+          price: formatPrice(product.price),
+          priceValue: product.price,
+          discount: product.discountPercentage || 0,
+          stock: product.stock || 0,
         }));
+
+        setAllProducts(products);
+
+        const dealProducts = products
+          .filter((product) => product.discount > 0)
+          .slice(0, 5)
+          .map((product) => ({
+            ...product,
+            discount: `${product.discount}% OFF`,
+            originalPrice: product.price,
+            discountedPrice: calculateDiscountedPrice(
+              product.priceValue,
+              product.discount
+            ),
+          }));
 
         const groupedCategories = filters.map((filter) => ({
           name: filter,
           products: products
-            .filter((product) => product.category === filter && !product.isDeal)
+            .filter((product) => {
+              if (filter === "8.3 Collection") return product.discount > 0;
+              if (filter === "Giỏ hoa Size S")
+                return product.priceValue < 500000;
+              if (filter === "Bó hoa Size M")
+                return (
+                  product.priceValue >= 500000 && product.priceValue <= 1000000
+                );
+              if (filter === "Hoa Cưới")
+                return (
+                  product.priceValue > 1000000 && product.priceValue <= 1500000
+                );
+              if (filter === "Bó hoa Mini") return product.priceValue < 300000;
+              if (filter === "Combo Cưới") return product.priceValue > 1500000;
+              return false;
+            })
             .slice(0, 8)
             .map((product) => ({
               ...product,
               discountedPrice: product.discount
-                ? calculateDiscountedPrice(product.price, product.discount)
+                ? calculateDiscountedPrice(product.priceValue, product.discount)
                 : null,
             })),
         }));
 
-        const dealProducts = products
-          .filter((product) => product.isDeal)
-          .slice(0, 5)
-          .map((product) => ({
-            ...product,
-            discount: `${product.discount}% OFF`,
-            originalPrice: product.price,
-            discountedPrice: calculateDiscountedPrice(product.price, product.discount),
-          }));
-
-        setCategories(groupedCategories);
         setDeals(dealProducts);
+        setCategories(groupedCategories);
       } catch (error) {
         console.error("Error fetching products:", error);
-        const mockProducts = [
-          { id: 1, image: "/img/hoa.png", title: "BÓ TULIP TRẮNG 20 BÔNG", price: "1.200.000 đ", category: "8.3 Collection", isDeal: false, discount: 5, sku: "BO.L01", categories: ["Bó hoa", "Size L", "Hoa Tulip"] },
-          { id: 2, image: "https://via.placeholder.com/300x300", title: "URBAN GARDEN - Bó hoa mix...", price: "550.000 đ", category: "8.3 Collection", isDeal: false, discount: 0, sku: "BO.L02", categories: ["Bó hoa", "Size M"] },
-          { id: 3, image: "https://via.placeholder.com/300x300", title: "BÓ TULIP XANH THAN MIX TRẮNG", price: "550.000 đ", category: "8.3 Collection", isDeal: false, discount: 0, sku: "BO.L03", categories: ["Bó hoa", "Size S"] },
-          { id: 4, image: "https://via.placeholder.com/300x300", title: "BÓ CẨM TÚ CẦU XANH BLUE MIX", price: "750.000 đ", category: "8.3 Collection", isDeal: false, discount: 0, sku: "BO.L04", categories: ["Bó hoa", "Size L"] },
-          { id: 5, image: "https://via.placeholder.com/300x300", title: "BÓ HOA TONE ĐỎ HỒNG MIX TULIP", price: "1.200.000 đ", category: "8.3 Collection", isDeal: false, discount: 0, sku: "BO.L05", categories: ["Bó hoa", "Hoa Hồng"] },
-          { id: 6, image: "https://via.placeholder.com/300x300", title: "GIỎ HOA MÂY - TONE NÂU CAFE", price: "950.000 đ", category: "8.3 Collection", isDeal: false, discount: 0, sku: "BO.L06", categories: ["Bó hoa", "Hoa Lily"] },
-          { id: 7, image: "https://via.placeholder.com/300x300", title: "PINK BLOSSOM BASKET - Giỏ hoa...", price: "1.200.000 đ", category: "8.3 Collection", isDeal: false, discount: 0, sku: "BO.L07", categories: ["Bó hoa", "Hoa Lan"] },
-          { id: 8, image: "https://via.placeholder.com/300x300", title: "BÓ JULIET MIX TONE CAM - SIZE", price: "320.000 đ", category: "8.3 Collection", isDeal: false, discount: 0, sku: "BO.L08", categories: ["Bó hoa", "Hướng Dương"] },
-          { id: 9, image: "https://via.placeholder.com/300x300", title: "GIỎ HOA NHỎ 1", price: "400.000 đ", category: "Giỏ hoa Size S", isDeal: false, discount: 0, sku: "GI.S01", categories: ["Giỏ hoa", "Size S"] },
-          { id: 10, image: "https://via.placeholder.com/300x300", title: "GIỎ HOA NHỎ 2", price: "450.000 đ", category: "Giỏ hoa Size S", isDeal: false, discount: 0, sku: "GI.S02", categories: ["Giỏ hoa", "Size S"] },
-          { id: 11, image: "https://via.placeholder.com/300x300", title: "BÓ HOA TRUNG 1", price: "600.000 đ", category: "Bó hoa Size M", isDeal: false, discount: 0, sku: "BO.M01", categories: ["Bó hoa", "Size M"] },
-          { id: 12, image: "https://via.placeholder.com/300x300", title: "HOA CƯỚI 1", price: "800.000 đ", category: "Hoa Cưới", isDeal: false, discount: 0, sku: "HC.01", categories: ["Hoa Cưới"] },
-          { id: 13, image: "https://via.placeholder.com/300x300", title: "BÓ MINI 1", price: "300.000 đ", category: "Bó hoa Mini", isDeal: false, discount: 0, sku: "BO.MI01", categories: ["Bó hoa", "Size Mini"] },
-          { id: 14, image: "/img/hoa.png", title: "COMBO CƯỚI 1", price: "1.000.000 đ", category: "Combo Cưới", isDeal: false, discount: 0, sku: "CC.01", categories: ["Combo Cưới"] },
-          { id: 15, image: "/img/hoa.png", title: "VIOLET DREAMS BOUQUET", price: "750.000 đ", category: "Bó hoa", isDeal: true, discount: 50, sku: "BO.D01", categories: ["Bó hoa", "Size L"] },
-          { id: 16, image: "https://via.placeholder.com/300x300", title: "GIỎ HOA TONE ĐỎ ĐẬM SIZE", price: "1.490.000 đ", category: "Giỏ hoa", isDeal: true, discount: 5, sku: "GI.D01", categories: ["Giỏ hoa", "Size M"] },
-          { id: 17, image: "https://via.placeholder.com/300x300", title: "BÓ HOA TONE HỒNG PAST", price: "350.000 đ", category: "Bó hoa", isDeal: true, discount: 5, sku: "BO.D02", categories: ["Bó hoa", "Size S"] },
-          { id: 18, image: "https://via.placeholder.com/300x300", title: "BÓ HỒNG BUTTER CUP VÀ", price: "450.000 đ", category: "Bó hoa", isDeal: true, discount: 5, sku: "BO.D03", categories: ["Bó hoa", "Hoa Hồng"] },
-          { id: 19, image: "https://via.placeholder.com/300x300", title: "HƯỚNG DƯƠNG MIX BAB", price: "130.000 đ", category: "Bó hoa", isDeal: true, discount: 10, sku: "BO.D04", categories: ["Bó hoa", "Hướng Dương"] },
-        ];
-
-        const groupedCategories = filters.map((filter) => ({
-          name: filter,
-          products: mockProducts
-            .filter((product) => product.category === filter && !product.isDeal)
-            .slice(0, 8)
-            .map((product) => ({
-              ...product,
-              discountedPrice: product.discount
-                ? calculateDiscountedPrice(product.price, product.discount)
-                : null,
-            })),
-        }));
-
-        const dealProducts = mockProducts
-          .filter((product) => product.isDeal)
-          .slice(0, 5)
-          .map((product) => ({
-            ...product,
-            discount: `${product.discount}% OFF`,
-            originalPrice: product.price,
-            discountedPrice: calculateDiscountedPrice(product.price, product.discount),
-          }));
-
-        setCategories(groupedCategories);
-        setDeals(dealProducts);
+        setAllProducts([]);
+        setDeals([]);
+        setCategories([]);
       }
     };
 
@@ -138,13 +127,26 @@ function MainContent() {
   };
 
   const handleAddToCart = (product) => {
+    const currentInCart = getCartItemQuantity(product.id) || 0;
+    const totalQuantity = currentInCart + quantity;
+
+    if (totalQuantity > product.stock) {
+      alert(
+        `Không thể thêm vào giỏ hàng! Tổng số lượng (${totalQuantity}) vượt quá số lượng còn lại (${product.stock}).`
+      );
+      return;
+    }
+
     addToCart(product, quantity);
+    setShowModal(false);
   };
 
   const handleViewDetails = (product) => {
     setSelectedProduct(product);
     setShowModal(true);
-    setQuantity(1);
+    const currentInCart = getCartItemQuantity(product.id) || 0;
+    const maxQuantity = product.stock - currentInCart;
+    setQuantity(maxQuantity > 0 ? 1 : 0);
   };
 
   const handleCloseModal = () => {
@@ -153,10 +155,24 @@ function MainContent() {
   };
 
   const handleQuantityChange = (change) => {
-    setQuantity((prev) => Math.max(1, prev + change));
+    setQuantity((prev) => {
+      const currentInCart = getCartItemQuantity(selectedProduct?.id) || 0;
+      const maxQuantity = selectedProduct?.stock - currentInCart;
+
+      const newQuantity = prev + change;
+      if (newQuantity > maxQuantity) {
+        alert(`Bạn chỉ có thể thêm tối đa ${maxQuantity} sản phẩm nữa!`);
+        return prev;
+      }
+      if (newQuantity < 1) {
+        return 1;
+      }
+      return newQuantity;
+    });
   };
 
-  const activeProducts = categories.find((cat) => cat.name === activeCategory)?.products || [];
+  const activeProducts =
+    categories.find((cat) => cat.name === activeCategory)?.products || [];
 
   return (
     <>
@@ -171,7 +187,8 @@ function MainContent() {
                 <strong>DELIVERY IN HANOI</strong>
               </h5>
               <p className="service-text">
-                Shop giao hàng khu vực nội thành và ngoại thành Hà Nội với mức ưu đãi đặc biệt
+                Shop giao hàng khu vực nội thành và ngoại thành Hà Nội với mức
+                ưu đãi đặc biệt
               </p>
             </div>
           </Col>
@@ -184,7 +201,8 @@ function MainContent() {
                 <strong>ĐỔI TRẢ VÀ HOÀN TIỀN</strong>
               </h5>
               <p className="service-text">
-                Nếu khách hàng không hài lòng với sản phẩm shop sẽ thu xếp để đổi trả hoặc hoàn lại tiền theo mong muốn của khách hàng
+                Nếu khách hàng không hài lòng với sản phẩm shop sẽ thu xếp để
+                đổi trả hoặc hoàn lại tiền theo mong muốn của khách hàng
               </p>
             </div>
           </Col>
@@ -197,7 +215,8 @@ function MainContent() {
                 <strong>UY TÍN & CHẤT LƯỢNG</strong>
               </h5>
               <p className="service-text">
-                Han Florist luôn nỗ lực để mang lại những sản phẩm hoàn thiện nhất và tươi mới nhất đến tay khách hàng
+                Han Florist luôn nỗ lực để mang lại những sản phẩm hoàn thiện
+                nhất và tươi mới nhất đến tay khách hàng
               </p>
             </div>
           </Col>
@@ -211,7 +230,15 @@ function MainContent() {
         </div>
         <Row>
           {deals.map((deal) => (
-            <Col key={deal.id} xs={12} sm={6} md={4} lg={3} xl={2} className="mb-4">
+            <Col
+              key={deal.id}
+              xs={12}
+              sm={6}
+              md={4}
+              lg={3}
+              xl={2}
+              className="deal-col mb-4"
+            >
               <Card className="deal-card">
                 <div className="deal-image-wrapper">
                   <Card.Img
@@ -240,7 +267,9 @@ function MainContent() {
                   <Card.Title className="deal-title">{deal.title}</Card.Title>
                   <Card.Text className="deal-price">
                     <span className="original-price">{deal.originalPrice}</span>
-                    <span className="discounted-price">{deal.discountedPrice}</span>
+                    <span className="discounted-price">
+                      {deal.discountedPrice}
+                    </span>
                   </Card.Text>
                 </Card.Body>
               </Card>
@@ -305,12 +334,16 @@ function MainContent() {
                   </div>
                 </div>
                 <Card.Body>
-                  <Card.Title className="bouquet-title">{bouquet.title}</Card.Title>
+                  <Card.Title className="bouquet-title">
+                    {bouquet.title}
+                  </Card.Title>
                   <Card.Text className="bouquet-price">
                     {bouquet.discount > 0 ? (
                       <>
                         <span className="original-price">{bouquet.price}</span>
-                        <span className="discounted-price">{bouquet.discountedPrice}</span>
+                        <span className="discounted-price">
+                          {bouquet.discountedPrice}
+                        </span>
                       </>
                     ) : (
                       bouquet.price
@@ -340,11 +373,24 @@ function MainContent() {
               <h4>
                 {selectedProduct?.discountedPrice || selectedProduct?.price}
               </h4>
+              <p>
+                <strong>Số lượng còn lại:</strong> {selectedProduct?.stock}
+              </p>
+              <p>
+                <strong>Số lượng trong giỏ hàng:</strong>{" "}
+                {getCartItemQuantity(selectedProduct?.id) || 0}
+              </p>
+              <p>
+                <strong>Số lượng tối đa có thể thêm:</strong>{" "}
+                {selectedProduct?.stock -
+                  (getCartItemQuantity(selectedProduct?.id) || 0)}
+              </p>
               <div className="quantity-selector d-flex align-items-center my-3">
                 <Button
                   variant="outline-secondary"
                   size="sm"
                   onClick={() => handleQuantityChange(-1)}
+                  disabled={quantity <= 1}
                 >
                   <FaMinus />
                 </Button>
@@ -353,6 +399,11 @@ function MainContent() {
                   variant="outline-secondary"
                   size="sm"
                   onClick={() => handleQuantityChange(1)}
+                  disabled={
+                    quantity >=
+                    selectedProduct?.stock -
+                      (getCartItemQuantity(selectedProduct?.id) || 0)
+                  }
                 >
                   <FaPlus />
                 </Button>
@@ -360,17 +411,14 @@ function MainContent() {
               <Button
                 className="add-to-cart-button"
                 onClick={() => handleAddToCart(selectedProduct)}
+                disabled={
+                  quantity === 0 ||
+                  selectedProduct?.stock -
+                    (getCartItemQuantity(selectedProduct?.id) || 0) <=
+                    0
+                }
               >
                 ADD TO CART
-              </Button>
-              <p className="mt-3">
-                <strong>SKU:</strong> {selectedProduct?.sku}
-              </p>
-              <p>
-                <strong>Categories:</strong> {selectedProduct?.categories?.join(", ")}
-              </p>
-              <Button variant="link" className="wishlist-button">
-                <FaHeart /> Add to Wishlist
               </Button>
             </Col>
           </Row>

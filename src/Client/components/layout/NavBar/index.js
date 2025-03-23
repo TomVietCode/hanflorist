@@ -59,13 +59,6 @@ export const menuItems = [
       { label: "Hoa Hướng Dương", path: "hoa-huong-duong" },
     ],
   },
-  {
-    name: "BLOG",
-    links: [
-      { label: "Cách Chăm Hoa", path: "cham-hoa" },
-      { label: "Ý Nghĩa Hoa", path: "y-nghia-hoa" },
-    ],
-  },
 ];
 
 function NavBar() {

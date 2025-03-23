@@ -1,5 +1,6 @@
 .categories-page-wrapper {
   background-color: #fff;
+  padding-top: 80px;
 }
 
 .category-banner {
@@ -37,7 +38,7 @@
 
 .category-breadcrumb {
   margin-bottom: 20px;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .category-breadcrumb .breadcrumb-item a {
@@ -155,4 +156,10 @@
   background-color: #8b5a2b;
   color: white;
   border-color: #8b5a2b;
+}
+
+.empty-product-slot {
+  height: 300px; /* Điều chỉnh theo chiều cao của ProductCard */
+  background-color: #f8f9fa;
+  border: 1px dashed #ddd;
 }

@@ -1,30 +1,33 @@
 import {Carousel} from 'react-bootstrap';
+import imgCarousel1 from "../../assets/carousel_1.png";
+import imgCarousel2 from "../../assets/carousel_2.png";
+import imgCarousel3 from "../../assets/carousel_3.png";
 
 function CarouselMain() {
   return (
     <>
-      <div className="container" >
+      <div className="container" style={{paddingTop: 80}}>
         <div className="">
           <div className="">
             <Carousel>
               <Carousel.Item interval={5000}>
                 <img
                   className="d-block w-100 h-auto" 
-                  src="/img/carousel_1.png"
+                  src={imgCarousel1}
                   alt="First slide"
                 />
               </Carousel.Item>
               <Carousel.Item interval={5000}>
                 <img
                   className="d-block w-100 h-auto" 
-                  src="/img/carousel_2.png"
+                  src={imgCarousel2}
                   alt="Second slide"
                 />
               </Carousel.Item>
               <Carousel.Item interval={5000}>
                 <img
                   className="d-block w-100 h-auto" 
-                  src="/img/carousel_3.png"
+                  src={imgCarousel3}
                   alt="Third slide"
                 />
               </Carousel.Item>

@@ -23,8 +23,14 @@ export const CartProvider = ({ children }) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
   };
 
+  // Thêm hàm để lấy số lượng của một sản phẩm trong giỏ hàng
+  const getCartItemQuantity = (productId) => {
+    const item = cart.find((item) => item.id === productId);
+    return item ? item.quantity : 0;
+  };
+
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart }}>
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, getCartItemQuantity }}>
       {children}
     </CartContext.Provider>
   );
