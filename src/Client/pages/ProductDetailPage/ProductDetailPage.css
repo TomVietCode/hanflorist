@@ -1,25 +1,17 @@
-.product-modal-image-col {
-  display: flex;
-  justify-content: center; /* Căn giữa hình ảnh */
-  padding: 20px;
+.product-detail-page {
+  padding: 40px 0;
+  margin-top:100px;     
+  background-color: #f9f9f9;
 }
 
-.product-modal-info-col {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start; /* Căn trên cùng */
-}
-
-.product-modal-image-container {
+.product-detail-image-container {
   position: relative;
   width: 100%;
-  max-width: 200px; /* Thu nhỏ hình ảnh */
   padding-top: 100%; /* Tạo tỷ lệ 1:1 */
   overflow: hidden;
 }
 
-.product-modal-image {
+.product-detail-image {
   position: absolute;
   top: 0;
   left: 0;
@@ -30,11 +22,38 @@
   border-radius: 10px;
 }
 
-.product-modal-price {
+.product-detail-info {
+  padding: 20px;
+}
+
+.product-detail-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.product-detail-price {
   font-size: 1.5rem;
   font-weight: 700;
   color: #8b5a2b;
   margin-bottom: 15px;
+}
+
+.product-detail-info p {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.product-detail-info p strong {
+  color: #333;
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
 }
 
 .quantity-selector button {
@@ -56,6 +75,7 @@
 .quantity-selector span {
   font-size: 16px;
   font-weight: 500;
+  margin: 0 15px;
 }
 
 .add-to-cart-button {
@@ -67,6 +87,7 @@
   padding: 10px 20px;
   border-radius: 25px;
   transition: background-color 0.3s ease, color 0.3s ease;
+  width: 100%;
 }
 
 .add-to-cart-button:hover {
@@ -74,24 +95,23 @@
   color: #fff;
 }
 
-/* Đảm bảo modal body có chiều cao cố định để hai cột đồng đều */
-.modal-body {
-  padding: 20px;
-}
-
-/* Responsive: Điều chỉnh cho màn hình nhỏ */
+/* Responsive */
 @media (max-width: 767px) {
-  .product-modal-image-col,
-  .product-modal-info-col {
-    padding: 10px;
+  .product-detail-image-container {
+    max-width: 300px;
+    margin: 0 auto;
   }
 
-  .product-modal-image-container {
-    max-width: 150px; /* Thu nhỏ hơn trên màn hình nhỏ */
+  .product-detail-title {
+    font-size: 1.5rem;
   }
 
-  .product-modal-price {
+  .product-detail-price {
     font-size: 1.2rem;
+  }
+
+  .product-detail-info {
+    padding: 10px;
   }
 
   .add-to-cart-button {

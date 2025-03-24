@@ -11,7 +11,7 @@ function Footer() {
           <Row>
             <Col md={3} className="mb-4">
               <a href="/" style={{color: 'white'}} className="text-decoration-none"><h5 className="fw-bold mb-3 ">HAN FLORIST</h5></a>
-              <p className="mb-3">
+              <p className="mb-3" style={{color: 'white'}}>
                 Tất cả hình ảnh sản phẩm sử dụng trên Website đều do team Han
                 thực hiện và chụp hình, vậy nên quý khách có thể yên tâm về chất
                 lượng sản phẩm và kỹ năng của Han Florist.
@@ -39,16 +39,16 @@ function Footer() {
               </ul>
             </Col>
 
-            <Col md={3} className="mb-4">
+            <Col md={3} className="mb-4" >
               <h5 className="fw-bold mb-3">Contact</h5>
               <p className="mb-2">
-              <FaLocationDot size={30} style={{marginRight: '14px'}}/><strong>Đại học Phenikaa</strong>
+              <FaLocationDot size={30} style={{marginRight: '14px',color:'white'}}/><strong style={{color: 'white'}}    >Đại học Phenikaa</strong>
               </p>
               <div className="d-flex align-items-center">
                 <div style={{marginRight: '14px'}}><FaPhoneSquareAlt size={30}/></div>
-                <div>
-                <p className="mb-0"><strong>012.3456.789</strong></p>
-                <p className="mb-0"><strong>Mon - Sun: 00:00 AM - 23:59 PM   </strong></p>
+                <div >
+                <p className="mb-0" style={{color: 'white'}}><strong>012.3456.789</strong></p>
+                <p className="mb-0" style={{color: 'white'}}><strong>Mon - Sun: 00:00 AM - 23:59 PM   </strong></p>
                 </div>
               </div>
             </Col>

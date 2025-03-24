@@ -5,7 +5,7 @@ import { FaRegHandshake } from "react-icons/fa6";
 import { CiCreditCard1 } from "react-icons/ci";
 import { FaEye } from "react-icons/fa";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
-import { useNavigate } from "react-router-dom"; // Thêm useNavigate để điều hướng
+import { useNavigate } from "react-router-dom";
 import "./MainContent.css";
 import { useCart } from "../../context/CartContext";
 import { get } from "../../../share/utils/http";
@@ -15,21 +15,13 @@ function MainContent() {
   const [allProducts, setAllProducts] = useState([]);
   const [deals, setDeals] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [activeCategory, setActiveCategory] = useState("8.3 Collection");
+  const [parentCategories, setParentCategories] = useState([]); // Danh sách danh mục cha
+  const [activeCategory, setActiveCategory] = useState(null); // Danh mục cha đang active
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const { addToCart, getCartItemQuantity } = useCart();
-  const navigate = useNavigate(); // Khởi tạo useNavigate
-
-  const filters = [
-    "8.3 Collection",
-    "Giỏ hoa Size S",
-    "Bó hoa Size M",
-    "Hoa Cưới",
-    "Bó hoa Mini",
-    "Combo Cưới",
-  ];
+  const navigate = useNavigate();
 
   const formatPrice = (price) => {
     return `${price.toLocaleString("vi-VN")} đ`;
@@ -39,32 +31,65 @@ function MainContent() {
     const priceValue = parseFloat(price);
     const discountPercentage = parseFloat(discount) || 0;
     const discountedValue = priceValue * (1 - discountPercentage / 100);
-    return formatPrice(Math.round(discountedValue));
+    return Math.round(discountedValue); // Trả về số
   };
 
+  // Lấy danh sách danh mục cha từ API /v1/categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await get("", "/v1/categories");
+        console.log("Categories Response:", response);
+
+        const categoryData = Array.isArray(response)
+          ? response
+          : response?.data || [];
+
+        if (!Array.isArray(categoryData)) {
+          throw new Error("API response for categories is not an array");
+        }
+
+        // Lọc danh mục cha (các danh mục không có parentId)
+        const parentCats = categoryData.filter((cat) => !cat.parentId);
+        setParentCategories(parentCats);
+
+        // Đặt danh mục cha đầu tiên làm active (nếu có)
+        if (parentCats.length > 0) {
+          setActiveCategory(parentCats[0].slug);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        setParentCategories([]);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Lấy sản phẩm cho từng danh mục cha
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await get("", "/v1/products");
-        console.log("API Response:", response);
+        console.log("Products Response:", response);
 
         const productData = Array.isArray(response)
           ? response
           : response?.data || [];
 
         if (!Array.isArray(productData)) {
-          throw new Error("API response is not an array");
+          throw new Error("API response for products is not an array");
         }
 
         const products = productData.map((product) => ({
           id: product._id,
           image: product.thumbnail,
           title: product.title,
-          price: formatPrice(product.price),
+          price: product.price, // Lưu price dưới dạng số
           priceValue: product.price,
           discount: product.discountPercentage || 0,
           stock: product.stock || 0,
-          slug: product.slug, // Thêm slug để điều hướng
+          slug: product.slug,
         }));
 
         setAllProducts(products);
@@ -75,56 +100,87 @@ function MainContent() {
           .map((product) => ({
             ...product,
             discount: `${product.discount}% OFF`,
-            originalPrice: product.price,
+            originalPrice: formatPrice(product.price),
             discountedPrice: calculateDiscountedPrice(
-              product.priceValue,
+              product.price,
               product.discount
             ),
           }));
 
-        const groupedCategories = filters.map((filter) => ({
-          name: filter,
-          products: products
-            .filter((product) => {
-              if (filter === "8.3 Collection") return product.discount > 0;
-              if (filter === "Giỏ hoa Size S")
-                return product.priceValue < 500000;
-              if (filter === "Bó hoa Size M")
-                return (
-                  product.priceValue >= 500000 && product.priceValue <= 1000000
-                );
-              if (filter === "Hoa Cưới")
-                return (
-                  product.priceValue > 1000000 && product.priceValue <= 1500000
-                );
-              if (filter === "Bó hoa Mini") return product.priceValue < 300000;
-              if (filter === "Combo Cưới") return product.priceValue > 1500000;
-              return false;
-            })
-            .slice(0, 8)
-            .map((product) => ({
-              ...product,
-              discountedPrice: product.discount
-                ? calculateDiscountedPrice(product.priceValue, product.discount)
-                : null,
-            })),
-        }));
-
         setDeals(dealProducts);
-        setCategories(groupedCategories);
       } catch (error) {
         console.error("Error fetching products:", error);
         setAllProducts([]);
         setDeals([]);
-        setCategories([]);
       }
     };
 
     fetchProducts();
   }, []);
 
-  const handleFilterClick = (categoryName) => {
-    setActiveCategory(categoryName);
+  // Lấy sản phẩm theo danh mục cha
+  useEffect(() => {
+    const fetchProductsByCategory = async () => {
+      if (!parentCategories.length) return;
+
+      try {
+        const categoryProducts = await Promise.all(
+          parentCategories.map(async (category) => {
+            const response = await get(
+              "",
+              `/v1/products/category/${category.slug}`
+            );
+            console.log(`Products for category ${category.slug}:`, response);
+
+            const productData = Array.isArray(response)
+              ? response
+              : response?.data || [];
+
+            if (!Array.isArray(productData)) {
+              throw new Error(
+                `API response for category ${category.slug} is not an array`
+              );
+            }
+
+            const products = productData
+              .slice(0, 4) // Giới hạn tối đa 4 sản phẩm
+              .map((product) => ({
+                id: product._id,
+                image: product.thumbnail,
+                title: product.title,
+                price: product.price, // Lưu price dưới dạng số
+                priceValue: product.price,
+                discount: product.discountPercentage || 0,
+                stock: product.stock || 0,
+                slug: product.slug,
+                discountedPrice: product.discountPercentage
+                  ? calculateDiscountedPrice(
+                      product.price,
+                      product.discountPercentage
+                    )
+                  : null,
+              }));
+
+            return {
+              name: category.title,
+              slug: category.slug,
+              products,
+            };
+          })
+        );
+
+        setCategories(categoryProducts);
+      } catch (error) {
+        console.error("Error fetching products by category:", error);
+        setCategories([]);
+      }
+    };
+
+    fetchProductsByCategory();
+  }, [parentCategories]);
+
+  const handleFilterClick = (categorySlug) => {
+    setActiveCategory(categorySlug);
   };
 
   const handleAddToCart = (product) => {
@@ -138,7 +194,17 @@ function MainContent() {
       return;
     }
 
-    addToCart(product, quantity);
+    addToCart(
+      {
+        id: product.id,
+        title: product.title,
+        price: product.price, // Đảm bảo price là số
+        discountedPrice: product.discountedPrice || null,
+        image: product.image,
+        stock: product.stock,
+      },
+      quantity
+    );
     setShowModal(false);
   };
 
@@ -173,11 +239,11 @@ function MainContent() {
   };
 
   const handleProductClick = (slug) => {
-    navigate(`/product/${slug}`); // Điều hướng đến trang chi tiết sản phẩm
+    navigate(`/product/${slug}`);
   };
 
   const activeProducts =
-    categories.find((cat) => cat.name === activeCategory)?.products || [];
+    categories.find((cat) => cat.slug === activeCategory)?.products || [];
 
   return (
     <>
@@ -251,7 +317,7 @@ function MainContent() {
                     src={deal.image}
                     alt={deal.title}
                     className="categories-bouquet-image"
-                    onClick={() => handleProductClick(deal.slug)} // Thêm sự kiện click
+                    onClick={() => handleProductClick(deal.slug)}
                     style={{ cursor: "pointer" }}
                   />
                   {deal.discount && (
@@ -275,7 +341,7 @@ function MainContent() {
                 <Card.Body>
                   <Card.Title
                     className="categories-bouquet-title"
-                    onClick={() => handleProductClick(deal.slug)} // Thêm sự kiện click
+                    onClick={() => handleProductClick(deal.slug)}
                     style={{ cursor: "pointer" }}
                   >
                     {deal.title}
@@ -284,10 +350,12 @@ function MainContent() {
                     {deal.discount ? (
                       <>
                         <span className="categories-original-price">{deal.originalPrice}</span>
-                        <span className="categories-discounted-price">{deal.discountedPrice}</span>
+                        <span className="categories-discounted-price">
+                          {formatPrice(deal.discountedPrice)}
+                        </span>
                       </>
                     ) : (
-                      deal.price
+                      formatPrice(deal.price)
                     )}
                   </Card.Text>
                 </Card.Body>
@@ -304,17 +372,17 @@ function MainContent() {
             <h1 className="trendy-collection-title">TRENDY COLLECTION</h1>
           </div>
           <div className="filter-links">
-            {filters.map((filter) => (
+            {parentCategories.map((category) => (
               <a
-                key={filter}
+                key={category._id}
                 href="#"
-                className={`filter-link me-3 ${activeCategory === filter ? "active" : ""}`}
+                className={`filter-link me-3 ${activeCategory === category.slug ? "active" : ""}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  handleFilterClick(filter);
+                  handleFilterClick(category.slug);
                 }}
               >
-                {filter}
+                {category.title}
               </a>
             ))}
           </div>
@@ -330,7 +398,7 @@ function MainContent() {
                     src={bouquet.image}
                     alt={bouquet.title}
                     className="categories-bouquet-image"
-                    onClick={() => handleProductClick(bouquet.slug)} // Thêm sự kiện click
+                    onClick={() => handleProductClick(bouquet.slug)}
                     style={{ cursor: "pointer" }}
                   />
                   {bouquet.discount > 0 && (
@@ -354,7 +422,7 @@ function MainContent() {
                 <Card.Body>
                   <Card.Title
                     className="categories-bouquet-title"
-                    onClick={() => handleProductClick(bouquet.slug)} // Thêm sự kiện click
+                    onClick={() => handleProductClick(bouquet.slug)}
                     style={{ cursor: "pointer" }}
                   >
                     {bouquet.title}
@@ -362,11 +430,11 @@ function MainContent() {
                   <Card.Text className="categories-bouquet-price">
                     {bouquet.discount > 0 ? (
                       <>
-                        <span className="categories-original-price">{bouquet.price}</span>
-                        <span className="categories-discounted-price">{bouquet.discountedPrice}</span>
+                        <span className="categories-original-price">{formatPrice(bouquet.price)}</span>
+                        <span className="categories-discounted-price">{formatPrice(bouquet.discountedPrice)}</span>
                       </>
                     ) : (
-                      bouquet.price
+                      formatPrice(bouquet.price)
                     )}
                   </Card.Text>
                 </Card.Body>

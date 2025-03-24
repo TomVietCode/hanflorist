@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Breadcrumb, Card, Button } from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Form,
+  Breadcrumb,
+  Card,
+  Button,
+} from "react-bootstrap";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Sidebar from "../../components/SideBar";
 import "./CategoriesPages.css";
@@ -7,6 +15,7 @@ import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { FaEye } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
 import ProductModal from "../../components/ProductModal";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
 function CategoriesPages() {
   const { category } = useParams();
@@ -29,7 +38,7 @@ function CategoriesPages() {
   const [showModal, setShowModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const productsPerPage = 10;
+  const productsPerPage = 12;
   const { addToCart, getCartItemQuantity } = useCart();
   const navigate = useNavigate();
 
@@ -103,18 +112,18 @@ function CategoriesPages() {
           const minPrice = filters.priceRanges.includes("Dưới 500.000 đ")
             ? 0
             : filters.priceRanges.includes("500.000 đ - 1.000.000 đ")
-            ? 500000
-            : filters.priceRanges.includes("1.000.000 đ - 2.000.000 đ")
-            ? 1000001
-            : 2000001;
+              ? 500000
+              : filters.priceRanges.includes("1.000.000 đ - 2.000.000 đ")
+                ? 1000001
+                : 2000001;
 
           const maxPrice = filters.priceRanges.includes("Dưới 500.000 đ")
             ? 500000
             : filters.priceRanges.includes("500.000 đ - 1.000.000 đ")
-            ? 1000000
-            : filters.priceRanges.includes("1.000.000 đ - 2.000.000 đ")
-            ? 2000000
-            : undefined;
+              ? 1000000
+              : filters.priceRanges.includes("1.000.000 đ - 2.000.000 đ")
+                ? 2000000
+                : undefined;
 
           if (minPrice) queryParams.append("minPrice", minPrice);
           if (maxPrice) queryParams.append("maxPrice", maxPrice);
@@ -179,9 +188,12 @@ function CategoriesPages() {
           subCategory: product.subCategory || "",
           priceRange: determinePriceRange(product.price),
           discountedPrice: product.discountPercentage
-            ? calculateDiscountedPrice(product.price, product.discountPercentage)
+            ? calculateDiscountedPrice(
+                product.price,
+                product.discountPercentage
+              )
             : null,
-          slug: product.slug, // Thêm slug để điều hướng
+          slug: product.slug,
         }));
 
         setProducts(formattedProducts);
@@ -337,7 +349,14 @@ function CategoriesPages() {
             {loading ? (
               <Row>
                 {[...Array(8)].map((_, index) => (
-                  <Col key={index} xs={12} sm={6} md={4} lg={3} className="mb-4">
+                  <Col
+                    key={index}
+                    xs={12}
+                    sm={6}
+                    md={4}
+                    lg={3}
+                    className="mb-4"
+                  >
                     <Card className="categories-bouquet-card skeleton">
                       <div className="categories-bouquet-image-wrapper">
                         <div className="skeleton-image" />
@@ -353,11 +372,20 @@ function CategoriesPages() {
             ) : error ? (
               <div className="text-center text-danger">{error}</div>
             ) : filteredProducts.length === 0 ? (
-              <div className="text-center">Không có sản phẩm nào trong danh mục này.</div>
+              <div className="text-center">
+                Không có sản phẩm nào trong danh mục này.
+              </div>
             ) : (
               <Row>
                 {filteredProducts.map((product) => (
-                  <Col key={product.id} xs={12} sm={6} md={4} lg={3} className="mb-4">
+                  <Col
+                    key={product.id}
+                    xs={12}
+                    sm={6}
+                    md={4}
+                    lg={3}
+                    className="mb-4"
+                  >
                     <Card className="categories-bouquet-card">
                       <div className="categories-bouquet-image-wrapper">
                         <Card.Img
@@ -365,7 +393,7 @@ function CategoriesPages() {
                           src={product.image}
                           alt={product.title}
                           className="categories-bouquet-image"
-                          onClick={() => handleProductClick(product.slug)}
+                          onClick={() => handleProductClick(product.slug)} // Điều hướng khi click vào hình ảnh
                           style={{ cursor: "pointer" }}
                         />
                         {product.discount > 0 && (
@@ -397,8 +425,12 @@ function CategoriesPages() {
                         <Card.Text className="categories-bouquet-price">
                           {product.discount > 0 ? (
                             <>
-                              <span className="categories-original-price">{product.price}</span>
-                              <span className="categories-discounted-price">{product.discountedPrice}</span>
+                              <span className="categories-original-price">
+                                {product.price}
+                              </span>
+                              <span className="categories-discounted-price">
+                                {product.discountedPrice}
+                              </span>
                             </>
                           ) : (
                             product.price
@@ -417,18 +449,40 @@ function CategoriesPages() {
                   variant="outline-primary"
                   onClick={handlePreviousPage}
                   disabled={currentPage === 1}
-                  className="me-3"
+                  className="pagination-btn me-3"
                 >
-                  Trước
+                  <FaArrowLeft />
                 </Button>
-                <span>Trang {currentPage} / {Math.ceil(totalProducts / productsPerPage)}</span>
+
+                {/* Thêm các số trang */}
+                <div className="pagination-numbers">
+                  {Array.from(
+                    { length: Math.ceil(totalProducts / productsPerPage) },
+                    (_, index) => {
+                      const page = index + 1;
+                      return (
+                        <Button
+                          key={page}
+                          variant="outline-primary"
+                          onClick={() => setCurrentPage(page)}
+                          className={`pagination-number ${currentPage === page ? "active" : ""}`}
+                        >
+                          {page}
+                        </Button>
+                      );
+                    }
+                  )}
+                </div>
+
                 <Button
                   variant="outline-primary"
                   onClick={handleNextPage}
-                  disabled={currentPage === Math.ceil(totalProducts / productsPerPage)}
-                  className="ms-3"
+                  disabled={
+                    currentPage === Math.ceil(totalProducts / productsPerPage)
+                  }
+                  className="pagination-btn ms-3"
                 >
-                  Sau
+                  <FaArrowRight />
                 </Button>
               </div>
             )}
