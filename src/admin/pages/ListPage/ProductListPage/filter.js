@@ -21,7 +21,7 @@ import {
   useDeleteStore,
 } from "../../../components/store";
 import { getLocalStorage } from "../../../../share/hepler/localStorage";
-import { get } from "../../../../share/utils/http"; // Thêm hàm remove
+import { get } from "../../../../share/utils/http";
 import "./style.css";
 
 // Define filter options constants
@@ -46,91 +46,97 @@ const SORT_OPTIONS = {
   OLDEST: "Cũ nhất",
 };
 
-const FilterBar = () => {
+const FilterBar = ({ setFilterStatus, setFilterSort, setSelectedProductIds }) => {
   const token = getLocalStorage("token");
-  // Local state to manage filter values
   const [filterSort, setFilterSortLocal] = useState(SORT_OPTIONS.ALL);
   const [searchTermLocal, setSearchTermLocal] = useState("");
-
   const navigate = useNavigate();
 
   // search
-  const { setSearchTerm } = useSearchStore(); // Lấy setter từ Zustand
+  const { setSearchTerm } = useSearchStore();
   const handleSearch = (e) => {
     const value = e.target.value;
-    setSearchTermLocal(value); // Cập nhật UI
-    setSearchTerm(value); // Cập nhật Zustand store
+    setSearchTermLocal(value);
+    setSearchTerm(value);
   };
 
   // lọc trạng thái
-  const { statusTerm, setStatusTerm } = useStatusStore(); // Zustand store
-  const [filterStatus, setFilterStatus] = useState(""); // useState để cập nhật UI
-
-  // Đồng bộ filterStatus với statusTerm khi trạng thái thay đổi
+  const { statusTerm, setStatusTerm } = useStatusStore();
+  const [filterStatus, setFilterStatusLocal] = useState("");
   useEffect(() => {
     if (statusTerm === "active") {
-      setFilterStatus("Đang hoạt động");
+      setFilterStatusLocal("Đang hoạt động");
     } else if (statusTerm === "inactive") {
-      setFilterStatus("Dừng hoạt động");
+      setFilterStatusLocal("Dừng hoạt động");
     } else {
-      setFilterStatus("Tất cả");
+      setFilterStatusLocal("Tất cả");
     }
   }, [statusTerm]);
 
   const handleStatusChange = (event) => {
     const value = event.target.value;
     let apiStatus = "";
-
     if (value === "Đang hoạt động") {
       apiStatus = "active";
     } else if (value === "Dừng hoạt động") {
       apiStatus = "inactive";
     } else {
-      apiStatus = ""; // Trường hợp "Tất cả"
+      apiStatus = "";
     }
-
-    setFilterStatus(value); // Cập nhật UI
-    setStatusTerm(apiStatus); // Cập nhật Zustand để gửi API
+    setFilterStatusLocal(value);
+    setStatusTerm(apiStatus);
+    setFilterStatus(value); // Cập nhật prop nếu cần
   };
 
-  //sort
+  // sort
   const { sortTerm, setSortTerm } = useSortStore();
-
   const handleSortChange = (event) => {
     const value = event.target.value;
-
-    setFilterSortLocal(value); // Cập nhật UI
-    setSortTerm(value); // Cập nhật Zustand để gửi API
+    setFilterSortLocal(value);
+    setSortTerm(value);
+    setFilterSort(value); // Cập nhật prop nếu cần
   };
-  //action
-  const [filterAction, setFilterAction] = useState(FILTER_OPTIONS.ALL); // Đặt giá trị mặc định
-  const { selectedAction, setSelectedAction } = useActionStore();
 
+  // action
+  const [filterAction, setFilterAction] = useState(FILTER_OPTIONS.ALL);
+  const { selectedAction, setSelectedAction } = useActionStore();
   const handleActionChange = (event) => {
     setFilterAction(event.target.value);
     setSelectedAction(event.target.value);
   };
 
   // reset
-  const { isActive, toggleActive } = useResetStore(); // Truy cập Zustand
-
+  const { isActive, toggleActive } = useResetStore();
   const handleReset = useCallback(() => {
-    //reset status
+    // reset status
     setStatusTerm("");
+    setFilterStatusLocal("Tất cả");
     setFilterStatus("Tất cả");
-    //reset sort
+    // reset sort
     setFilterSortLocal("default");
     setSortTerm("");
-    setSearchTermLocal(""); // Cập nhật UI
+    setFilterSort("default");
+    // reset search
+    setSearchTermLocal("");
     setSearchTerm("");
+    // reset action
     setSelectedAction("default");
     setFilterAction("default");
+    // reset selected products
+    setSelectedProductIds([]); // Reset các ô tích chọn sản phẩm
     toggleActive(false); // Đặt lại trạng thái tránh vòng lặp vô hạn
-  }, [setStatusTerm, setSearchTerm, toggleActive, setSelectedAction]);
+  }, [
+    setStatusTerm,
+    setSearchTerm,
+    toggleActive,
+    setSelectedAction,
+    setFilterStatus,
+    setFilterSort,
+    setSelectedProductIds,
+  ]);
 
   useEffect(() => {
     if (isActive) {
-      // Chỉ reset khi `isActive` thật sự thay đổi
       handleReset();
     }
   }, [isActive, handleReset]);
@@ -138,31 +144,27 @@ const FilterBar = () => {
   // State cho số lượng sản phẩm đã xóa
   const [deletedCount, setDeletedCount] = useState(0);
   const { isDeleted, setDelete } = useDeleteStore();
-
-  // Hàm đếm số lượng sản phẩm có status là "deleted"
   useEffect(() => {
     const fetchDeletedCount = async () => {
       try {
         const result = await get(token, "/admin/products?status=deleted");
-        const deletedProducts = result.data || []; // Nếu không có dữ liệu, trả về mảng rỗng
-        setDeletedCount(deletedProducts.length); // Đếm số lượng sản phẩm
+        const deletedProducts = result.data || [];
+        setDeletedCount(deletedProducts.length);
       } catch (err) {
         console.error("Failed to fetch deleted products:", err);
-        setDeletedCount(0); // Đặt về 0 nếu lỗi
+        setDeletedCount(0);
       }
     };
-
-    fetchDeletedCount(); // Gọi hàm ngay lập tức khi mount hoặc khi dependency thay đổi
-
+    fetchDeletedCount();
     if (isDeleted) {
-      fetchDeletedCount(); // Gọi lại khi isDeleted là true
-      setDelete(false); // Đặt lại trạng thái về false sau khi fetch
+      fetchDeletedCount();
+      setDelete(false);
     }
-  }, [token, isDeleted, setDelete]); // Thêm isDeleted vào dependency
+  }, [token, isDeleted, setDelete]);
+
   return (
     <Box sx={{ flexGrow: 1, p: 2 }}>
       <Grid container spacing={1} alignItems="center">
-        {/* Button to add a new item */}
         <Grid item>
           <Button
             variant="contained"
@@ -173,19 +175,19 @@ const FilterBar = () => {
               height: "2.6rem",
               px: 2,
               fontSize: "18px",
-              backgroundColor: "#1976d2", // Xanh dương
+              backgroundColor: "#1976d2",
               borderRadius: "8px",
               textTransform: "none",
               fontWeight: "bold",
               boxShadow: "0 3px 5px rgba(0, 0, 0, 0.2)",
               "&:hover": {
-                backgroundColor: "#1565c0", // Tối hơn khi hover
+                backgroundColor: "#1565c0",
                 boxShadow: "0 5px 10px rgba(0, 0, 0, 0.3)",
                 transform: "translateY(-2px)",
                 transition: "all 0.3s ease",
               },
               "&:active": {
-                backgroundColor: "#0d47a1", // Đậm hơn khi nhấn
+                backgroundColor: "#0d47a1",
                 transform: "translateY(1px)",
                 boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
               },
@@ -195,8 +197,6 @@ const FilterBar = () => {
             Thêm mới
           </Button>
         </Grid>
-
-        {/* Search Input */}
         <Grid item xs>
           <TextField
             placeholder="Nhập từ khóa"
@@ -212,8 +212,6 @@ const FilterBar = () => {
             }}
           />
         </Grid>
-
-        {/* Filter for Status */}
         <Grid item>
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <Select
@@ -224,8 +222,8 @@ const FilterBar = () => {
                 filterStatus === STATUS_OPTIONS.ACTIVE
                   ? "active"
                   : filterStatus === STATUS_OPTIONS.INACTIVE
-                    ? "inactive"
-                    : ""
+                  ? "inactive"
+                  : ""
               }
               sx={{
                 borderRadius: 1,
@@ -234,15 +232,9 @@ const FilterBar = () => {
                 "&:hover .MuiOutlinedInput-notchedOutline": {
                   borderColor: "#1976d2",
                 },
-                // "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                //   border: "none",
-                // },
               }}
             >
-              <MenuItem
-                className="status-indicator-add"
-                value={STATUS_OPTIONS.ALL}
-              >
+              <MenuItem className="status-indicator-add" value={STATUS_OPTIONS.ALL}>
                 Tất cả
               </MenuItem>
               <MenuItem
@@ -260,8 +252,6 @@ const FilterBar = () => {
             </Select>
           </FormControl>
         </Grid>
-
-        {/* Filter for Sorting */}
         <Grid item>
           <FormControl size="small">
             <Select
@@ -282,23 +272,18 @@ const FilterBar = () => {
               <MenuItem value={SORT_OPTIONS.ALL} disabled>
                 Sắp xếp
               </MenuItem>
-              <MenuItem value={SORT_OPTIONS.DESC_STOCK}>
-                Số lượng giảm dần
-              </MenuItem>
-              <MenuItem value={SORT_OPTIONS.ASC_STOCK}>
-                Số lượng tăng dần
-              </MenuItem>
+              <MenuItem value={SORT_OPTIONS.DESC_STOCK}>Số lượng giảm dần</MenuItem>
+              <MenuItem value={SORT_OPTIONS.ASC_STOCK}>Số lượng tăng dần</MenuItem>
               <MenuItem value={SORT_OPTIONS.NEWEST}>Mới nhất</MenuItem>
               <MenuItem value={SORT_OPTIONS.OLDEST}>Cũ nhất</MenuItem>
             </Select>
           </FormControl>
         </Grid>
-        {/* Filter for Action */}
         <Grid item>
           <FormControl size="small">
             <Select
               value={filterAction}
-              onChange={handleActionChange} // Handle action change
+              onChange={handleActionChange}
               displayEmpty
               sx={{
                 width: "12rem",
@@ -316,14 +301,10 @@ const FilterBar = () => {
               </MenuItem>
               <MenuItem value={FILTER_OPTIONS.DELETE_ALL}>Xóa tất cả</MenuItem>
               <MenuItem value={FILTER_OPTIONS.ACTIVE}>Đang hoạt động</MenuItem>
-              <MenuItem value={FILTER_OPTIONS.INACTIVE}>
-                Dừng hoạt động
-              </MenuItem>
+              <MenuItem value={FILTER_OPTIONS.INACTIVE}>Dừng hoạt động</MenuItem>
             </Select>
           </FormControl>
         </Grid>
-
-        {/* Reset Button */}
         <Grid item>
           <Button
             variant="outlined"
@@ -340,8 +321,6 @@ const FilterBar = () => {
             <CachedIcon />
           </Button>
         </Grid>
-
-        {/* Delete Button with Badge */}
         <Grid item>
           <Button
             variant="outlined"
@@ -374,7 +353,7 @@ const FilterBar = () => {
                 transform: "translate(50%, -50%)",
               }}
             >
-              {deletedCount} {/* Hiển thị số lượng động */}
+              {deletedCount}
             </Box>
           </Button>
         </Grid>

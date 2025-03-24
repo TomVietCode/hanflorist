@@ -1,15 +1,19 @@
-import { Navigate, Outlet } from "react-router-dom"
-import { getLocalStorage } from "../share/hepler/localStorage"
+// privateRouter.js
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
-function PrivateRoute() {
-  const isLogin = getLocalStorage("token")
-  console.log(isLogin)
-  return (
+const PrivateRoute = () => {
+  const { user, loading } = useAuth();
 
-    <>  
-      {isLogin.length > 0 ? (<Outlet/>) : (<Navigate to="/admin/auth/login"/>)}
-    </>
-  )
-}
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-export default PrivateRoute
+  if (!user) {
+    return <Navigate to="/admin/auth/login" replace />;
+  }
+
+  return <Outlet />;
+};
+
+export default PrivateRoute;

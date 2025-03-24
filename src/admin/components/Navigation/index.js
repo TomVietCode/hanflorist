@@ -60,12 +60,12 @@ export const NAVIGATION = [
     link: <Link to="/admin/permissions">Phân quyền</Link>, // Sử dụng Link thay vì a
   },
   {
-    segment: "admin/accounts",
+    segment: "admin/users",
     title: "Tài khoản",
     icon: <AccountCircleIcon />,
     path: "/admin/accounts", 
     component: AccountPage,
-    link: <Link to="/admin/accounts">Tài khoản</Link>, // Sử dụng Link thay vì a
+    link: <Link to="/admin/users">Tài khoản</Link>, // Sử dụng Link thay vì a
   },
   {
     segment: "admin/settings",

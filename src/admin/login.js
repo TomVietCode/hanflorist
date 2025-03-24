@@ -15,6 +15,7 @@ import AppTheme from "./shared-theme/AppTheme";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { useNavigate } from "react-router-dom";
 import logo from "./assets/logo.svg";
+import { useAuth } from "./AuthContext"; // Import useAuth
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -58,11 +59,11 @@ export default function SignUp(props) {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [submitError, setSubmitError] = React.useState("");
-  const [rememberMe, setRememberMe] = React.useState(false); // Trạng thái "Ghi nhớ tài khoản"
+  const [rememberMe, setRememberMe] = React.useState(false);
 
   const navigate = useNavigate();
+  const { login } = useAuth(); // Sử dụng useAuth để lấy hàm login
 
-  // Kiểm tra nếu có thông tin đăng nhập đã lưu trong localStorage
   React.useEffect(() => {
     const savedEmail = localStorage.getItem("savedEmail");
     const savedPassword = localStorage.getItem("savedPassword");
@@ -79,17 +80,6 @@ export default function SignUp(props) {
 
     let isValid = true;
 
-    // Kiểm tra email hợp lệ
-    // if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
-    //   setEmailError(true);
-    //   setEmailErrorMessage("Vui lòng nhập email hợp lệ.");
-    //   isValid = false;
-    // } else {
-    //   setEmailError(false);
-    //   setEmailErrorMessage("");
-    // }
-
-    // Kiểm tra mật khẩu hợp lệ
     if (!password.value || password.value.length < 6) {
       setPasswordError(true);
       setPasswordErrorMessage("Mật khẩu phải ít nhất 6 kí tự.");
@@ -102,12 +92,12 @@ export default function SignUp(props) {
     return isValid;
   };
 
-  const [loading, setLoading] = React.useState(false); // Trạng thái loading
+  const [loading, setLoading] = React.useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setSubmitError(""); // Reset lỗi khi submit
-    setLoading(true); // Bắt đầu hiệu ứng loading
+    setSubmitError("");
+    setLoading(true);
 
     if (!validateInputs()) {
       setLoading(false);
@@ -115,43 +105,25 @@ export default function SignUp(props) {
     }
 
     const data = new FormData(event.currentTarget);
-    const userData = {
-      username: data.get("email"),
-      password: data.get("password"),
-    };
+    const username = data.get("email");
+    const password = data.get("password");
 
     // Lưu thông tin người dùng vào localStorage nếu "Ghi nhớ tài khoản" được chọn
     if (rememberMe) {
-      localStorage.setItem("savedEmail", userData.username);
-      localStorage.setItem("savedPassword", userData.password);
+      localStorage.setItem("savedEmail", username);
+      localStorage.setItem("savedPassword", password);
     } else {
       localStorage.removeItem("savedEmail");
       localStorage.removeItem("savedPassword");
     }
 
     try {
-      const response = await fetch("http://localhost:3001/admin/auth/login", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
-
-      if (response.status === 200) {
-        const result = await response.json();
-        localStorage.setItem("token", result.data);
-        navigate("/admin/dashboard"); // Chuyển hướng sau khi đăng nhập thành công
-      } else {
-        const errorData = await response.json();
-        setSubmitError(errorData.message || "Đăng nhập thất bại!");
-      }
+      await login(username, password); // Gọi hàm login từ AuthContext
+      navigate("/admin/dashboard"); // Chuyển hướng sau khi đăng nhập
     } catch (error) {
-      setSubmitError("Đã có lỗi xảy ra, vui lòng thử lại sau.");
-      console.error("Error:", error);
+      setSubmitError(error.message || "Đăng nhập thất bại!");
     } finally {
-      setLoading(false); // Kết thúc loading
+      setLoading(false);
     }
   };
 
@@ -258,7 +230,7 @@ export default function SignUp(props) {
                 textTransform: "none",
                 transition: "0.3s",
                 backgroundColor: "#1565c0",
-                color: loading ? "white" : "white", // Thay đổi màu chữ khi loading
+                color: loading ? "white" : "white",
                 "&:hover": { backgroundColor: "#0d47a1" },
               }}
             >

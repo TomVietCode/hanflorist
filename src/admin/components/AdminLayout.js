@@ -3,53 +3,31 @@ import { AppProvider } from "@toolpad/core/AppProvider";
 import { DashboardLayout } from "@toolpad/core/DashboardLayout";
 import { PageContainer } from "@toolpad/core/PageContainer";
 import { NAVIGATION } from "./Navigation";
-import { Outlet, useLocation } from "react-router-dom"; // Import useLocation và Link
+import { Outlet, useLocation } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import flower from "../assets/flower.svg";
 import { createTheme } from "@mui/material/styles";
-import SidebarFooterAccount from "./SidebarFooterAccount"; // Thành phần Sidebar
-import BC from "../components/breadcrumb/index"; // Thành phần Breadcrum
+import SidebarFooterAccount from "./SidebarFooterAccount";
+import BC from "../components/breadcrumb/index";
 import "./style.css";
 
 export default function AdminLayout(props) {
   const theme = createTheme({
     palette: {
-      primary: {
-        main: "#1976d2", // Màu chính
-      },
-      secondary: {
-        main: "#dc004e", // Màu phụ
-      },
-      background: {
-        default: "#f4f6f8", // Màu nền
-        paper: "#ffffff",
-      },
-      text: {
-        primary: "#333",
-        secondary: "#666",
-      },
+      primary: { main: "#1976d2" },
+      secondary: { main: "#dc004e" },
+      background: { default: "#f4f6f8", paper: "#ffffff" },
+      text: { primary: "#333", secondary: "#666" },
     },
-    typography: {
-      fontFamily: "Roboto, sans-serif", // Cấu hình font chữ
-    },
-    shape: {
-      borderRadius: 8, // Cấu hình độ bo góc
-    },
+    typography: { fontFamily: "Roboto, sans-serif" },
+    shape: { borderRadius: 8 },
     components: {
       MuiButton: {
-        styleOverrides: {
-          root: {
-            borderRadius: 12,
-            textTransform: "none", // Tùy chỉnh button
-          },
-        },
+        styleOverrides: { root: { borderRadius: 12, textTransform: "none" } },
       },
       MuiCard: {
         styleOverrides: {
-          root: {
-            borderRadius: 8,
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Tùy chỉnh card
-          },
+          root: { borderRadius: 8, boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)" },
         },
       },
     },
@@ -57,20 +35,14 @@ export default function AdminLayout(props) {
 
   const { window } = props;
   const demoWindow = window?.() || undefined;
-
-  const location = useLocation(); // Lấy đường dẫn hiện tại từ location
+  const location = useLocation();
 
   return (
     <AppProvider
-      navigation={NAVIGATION.filter(item => !item.hidden)}
+      navigation={NAVIGATION.filter((item) => !item.hidden)}
       branding={{
         logo: (
-          <img
-            src={logo}
-            alt="Logo"
-            style={{ width: "100%" }}
-            className="Logo"
-          />
+          <img src={logo} alt="Logo" style={{ width: "100%" }} className="Logo" />
         ),
         title: (
           <span
@@ -104,14 +76,29 @@ export default function AdminLayout(props) {
             </span>
           </span>
         ),
-        homeUrl: "/admin/dashboard", // URL chính
+        homeUrl: "/admin/dashboard",
       }}
       theme={theme}
       window={demoWindow}
     >
       <DashboardLayout
         sidebarExpandedWidth={240}
-        
+        slots={{
+          sidebarFooter: (props) => {
+            console.log("Rendering SidebarFooterAccount with props:", props);
+            return <SidebarFooterAccount mini={props.mini} />;
+          },
+        }}
+        slotProps={{
+          sidebar: {
+            sx: {
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              height: "100vh",
+            },
+          },
+        }}
       >
         <PageContainer
           style={{
