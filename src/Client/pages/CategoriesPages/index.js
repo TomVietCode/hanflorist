@@ -171,8 +171,7 @@ function CategoriesPages() {
           priceValue: product.price,
           discount: product.discountPercentage || 0,
           stock: product.stock || 0,
-          category: product.category || "",
-          subCategory: product.subCategory || "",
+          categoryId: product.categoryId || "",
           priceRange: determinePriceRange(product.price),
           discountedPrice: product.discountPercentage
             ? calculateDiscountedPrice(product.price, product.discountPercentage)
@@ -237,6 +236,7 @@ function CategoriesPages() {
   };
 
   const handleAddToCart = (product) => {
+    console.log(product)
     addToCart(product, 1);
   };
 

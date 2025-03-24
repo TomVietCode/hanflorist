@@ -79,17 +79,11 @@ function NavBar() {
     navigate("/");
   };
 
-  const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-
-  const totalPrice = cart.reduce((total, item) => {
-    const price = item.discountedPrice
-      ? parseFloat(item.discountedPrice.replace(/[^0-9]/g, ""))
-      : parseFloat(item.price.replace(/[^0-9]/g, ""));
-    return total + price * item.quantity;
-  }, 0);
+  const totalItems = cart.products?.reduce((total, item) => total + item.quantity, 0) || 0
+  const totalPrice = cart.totalAmount;
 
   const formatPrice = (price) => {
-    return `${price.toLocaleString("vi-VN")} đ`;
+    return `${price?.toLocaleString("vi-VN")} đ`;
   };
 
   return (
@@ -207,29 +201,29 @@ function NavBar() {
         </Offcanvas.Header>
         <Offcanvas.Body className="cart-offcanvas-body">
           <div className="cart-items-list">
-            {cart.length === 0 ? (
+            {cart.products?.length === 0 ? (
               <p>Giỏ hàng của bạn đang trống.</p>
             ) : (
-              cart.map((item) => (
+              cart.products?.map((item) => (
                 <div
-                  key={item.id}
+                  key={item.productId._id}
                   className="cart-item d-flex align-items-center mb-3"
                 >
                   <img
-                    src={item.image}
-                    alt={item.title}
+                    src={item.productId.thumbnail}
+                    alt={item.productId.title}
                     className="cart-item-image"
                   />
                   <div className="cart-item-details">
-                    <p className="cart-item-title">{item.title}</p>
+                    <p className="cart-item-title">{item.productId.title}</p>
                     <p className="cart-item-price">
-                      {item.quantity} x {item.discountedPrice || item.price}
+                      {item.quantity} x {item.productId.price}
                     </p>
                   </div>
                   <Button
                     variant="link"
                     className="cart-item-remove"
-                    onClick={() => removeFromCart(item.id)}
+                    onClick={() => removeFromCart(item.productId._id)}
                   >
                     <span>×</span>
                   </Button>
@@ -237,7 +231,7 @@ function NavBar() {
               ))
             )}
           </div>
-          {cart.length > 0 && (
+          {cart.products?.length > 0 && (
             <div className="cart-footer">
               <div className="cart-total">
                 <span>Tổng tiền:</span>

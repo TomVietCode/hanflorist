@@ -1,230 +1,174 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
-import { getLocalStorage, setLocalStorage, deleteLocalStorage } from "../../share/hepler/localStorage";
-import { get, post, patch, del } from "../../share/utils/http";
+// src/contexts/CartContext.js
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { get, patch } from '../../share/utils/http';
+import { getLocalStorage, setLocalStorage } from '../../share/hepler/localStorage';
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);
-  const [isLoggedIn, setIsLoggedIn] = useState(!!getLocalStorage("jwt_token"));
-  const [isLoading, setIsLoading] = useState(true);
-  const [avatar, setAvatar] = useState(getLocalStorage("user_avatar") || null);
+  const [cart, setCart] = useState({
+    products: [],
+    totalAmount: 0,
+  });
 
-  useEffect(() => {
-    const initializeCart = async () => {
-      setIsLoading(true);
-      const token = getLocalStorage("jwt_token");
-      if (token) {
-        setIsLoggedIn(true);
-        await fetchCartFromDatabase(token);
-      } else {
-        setIsLoggedIn(false);
-        let localCart = [];
-        const cartData = getLocalStorage("cart");
-        if (cartData) {
-          try {
-            localCart = JSON.parse(cartData) || [];
-          } catch (error) {
-            console.error("Error parsing local cart:", error);
-            localCart = [];
-            setLocalStorage("cart", JSON.stringify([]));
-          }
-        }
-        setCart(localCart);
-      }
-      setIsLoading(false);
-    };
-    console.log("isLoggedIn:", isLoggedIn, "Token:", getLocalStorage("jwt_token"));
-    initializeCart();
-
-    const handleStorageChange = () => {
-      const token = getLocalStorage("jwt_token");
-      setIsLoggedIn(!!token);
-      setAvatar(getLocalStorage("user_avatar") || null);
-      if (token && !isLoggedIn) {
-        setIsLoggedIn(true);
-        let localCart = [];
-        const cartData = getLocalStorage("cart");
-        if (cartData) {
-          try {
-            localCart = JSON.parse(cartData) || [];
-          } catch (error) {
-            console.error("Error parsing local cart on storage change:", error);
-            localCart = [];
-            setLocalStorage("cart", JSON.stringify([]));
-          }
-        }
-        if (localCart.length > 0) {
-          syncLocalCartToDatabase(localCart, token);
-        } else {
-          fetchCartFromDatabase(token);
-        }
-      } else if (!token && isLoggedIn) {
-        setIsLoggedIn(false);
-        setCart([]);
-        deleteLocalStorage("cart");
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [isLoggedIn]);
-
-  const login = (token) => {
-    setLocalStorage("jwt_token", token);
-    setIsLoggedIn(true);
-    const localCart = getLocalStorage("cart") ? JSON.parse(getLocalStorage("cart")) || [] : [];
-    if (localCart.length > 0) {
-      syncLocalCartToDatabase(localCart, token);
-    } else {
-      fetchCartFromDatabase(token);
-    }
+  // Kiểm tra trạng thái đăng nhập
+  const isLoggedIn = () => {
+    return !!getLocalStorage('jwt_token');
   };
 
-  const syncLocalCartToDatabase = async (localCart, token) => {
-    try {
-      for (const item of localCart) {
-        await post(token, "/api/cart", {
-          productId: item.id,
-          quantity: item.quantity,
-        });
-      }
-      deleteLocalStorage("cart");
-      await fetchCartFromDatabase(token);
-    } catch (error) {
-      console.error("Lỗi khi đồng bộ giỏ hàng:", error);
+  // Lấy giỏ hàng từ localStorage
+  const loadCartFromLocalStorage = () => {
+    const savedCart = getLocalStorage('cart');
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+      return true; // Trả về true nếu có giỏ hàng trong localStorage
     }
+    return false; // Trả về false nếu không có
   };
 
-  const fetchCartFromDatabase = async (token) => {
-    try {
-      const cartData = await get(token, "/api/cart");
-      if (cartData && cartData.products) {
-        setCart(
-          cartData.products.map((item) => ({
-            id: item.productId._id,
-            title: item.productId.title,
-            price: item.productId.price.toString(),
-            discountedPrice: item.productId.discountedPrice?.toString(),
-            image: item.productId.image,
-            quantity: item.quantity,
-            subTotal: item.subTotal,
-          }))
-        );
-      } else {
-        setCart([]);
-      }
-    } catch (error) {
-      console.error("Lỗi khi lấy giỏ hàng từ database:", error);
-      setCart([]);
-    }
-  };
-
+  // Lưu giỏ hàng vào localStorage
   const saveCartToLocalStorage = (newCart) => {
-    setLocalStorage("cart", JSON.stringify(newCart));
+    setLocalStorage('cart', JSON.stringify(newCart));
+    setCart(newCart);
   };
 
-  const saveCartToDatabase = async (product, quantity) => {
-    const token = getLocalStorage("jwt_token");
+  // Lấy giỏ hàng từ backend
+  const fetchCartFromBackend = async () => {
     try {
-      await post(token, "/api/cart", { productId: product.id, quantity });
-      await fetchCartFromDatabase(token);
-    } catch (error) {
-      console.error("Lỗi khi lưu giỏ hàng vào database:", error);
-    }
-  };
-
-  const updateQuantityInDatabase = async (productId, newQuantity) => {
-    const token = getLocalStorage("jwt_token");
-    try {
-      await patch(token, "/api/cart", { productId, quantity: newQuantity });
-      await fetchCartFromDatabase(token);
-    } catch (error) {
-      console.error("Lỗi khi cập nhật số lượng trong database:", error);
-    }
-  };
-
-  const removeFromDatabase = async (productId) => {
-    const token = getLocalStorage("jwt_token");
-    try {
-      await patch(token, "/api/cart", { productId, quantity: 0 });
-      await fetchCartFromDatabase(token);
-    } catch (error) {
-      console.error("Lỗi khi xóa sản phẩm khỏi database:", error);
-    }
-  };
-
-  const clearCartInDatabase = async () => {
-    const token = getLocalStorage("jwt_token");
-    try {
-      await del(token, "/api/cart");
-      setCart([]);
-    } catch (error) {
-      console.error("Lỗi khi xóa giỏ hàng trong database:", error);
-    }
-  };
-
-  const addToCart = (product, quantity = 1) => {
-    if (isLoggedIn) {
-      saveCartToDatabase(product, quantity);
-    } else {
-      setCart((prevCart) => {
-        const existingItem = prevCart.find((item) => item.id === product.id);
-        let newCart;
-        if (existingItem) {
-          newCart = prevCart.map((item) =>
-            item.id === product.id
-              ? { ...item, quantity: item.quantity + quantity }
-              : item
-          );
-        } else {
-          newCart = [...prevCart, { ...product, quantity }];
-        }
-        saveCartToLocalStorage(newCart);
-        return newCart;
+      const token = getLocalStorage('jwt_token');
+      const response = await get(token, '/v1/carts');
+      const cartData = response.data;
+      console.log(cartData)
+      setCart({
+        products: cartData.products || [],
+        totalAmount: cartData.totalAmount || 0,
       });
-    }
-  };
-
-  const removeFromCart = (productId) => {
-    if (isLoggedIn) {
-      removeFromDatabase(productId);
-    } else {
-      setCart((prevCart) => {
-        const newCart = prevCart.filter((item) => item.id !== productId);
-        saveCartToLocalStorage(newCart);
-        return newCart;
-      });
-    }
-  };
-
-  const updateQuantity = (productId, newQuantity) => {
-    if (isLoggedIn) {
-      updateQuantityInDatabase(productId, newQuantity);
-    } else {
-      setCart((prevCart) => {
-        const newCart = prevCart.map((item) =>
-          item.id === productId ? { ...item, quantity: newQuantity } : item
-        );
-        saveCartToLocalStorage(newCart);
-        return newCart;
-      });
-    }
-  };
-
-  const clearCart = () => {
-    if (isLoggedIn) {
-      clearCartInDatabase();
-    } else {
-      setCart([]);
-      saveCartToLocalStorage([]);
+    } catch (error) {
+      console.error('Error fetching cart from backend:', error);
+      setCart({ products: [], totalAmount: 0 });
     }
   };
 
   const getCartItemQuantity = (productId) => {
-    const item = cart.find((item) => item.id === productId);
-    return item ? item.quantity : 0;
+    const cartItem = cart.products.find((item) => item.productId._id === productId);
+    return cartItem ? cartItem.quantity : 0;
   };
+
+  // Thêm sản phẩm vào giỏ hàng
+  const addToCart = (product, quantity = 1) => {
+    const newCart = { ...cart };
+    const { id: _id, stock, image: thumbnail, priceValue: price, title, discount: discountPercentage } = product;
+    const existingProductIndex = newCart.products?.findIndex(
+      (item) => item.productId._id === _id
+    );
+
+    if (existingProductIndex >= 0) {
+      newCart.products[existingProductIndex].quantity += quantity;
+      newCart.products[existingProductIndex].subTotal =
+        newCart.products[existingProductIndex].quantity *
+        (newCart.products[existingProductIndex].productId.price *
+         (1 - newCart.products[existingProductIndex].productId.discountPercentage / 100));
+    } else {
+      const subTotal = quantity * (price * (1 - discountPercentage / 100));
+      newCart.products?.push({
+        productId: {
+          _id: _id,
+          title,
+          price,
+          stock,
+          thumbnail,
+          discountPercentage,
+        },
+        quantity,
+        subTotal,
+      });
+    }
+
+    newCart.totalAmount = newCart.products?.reduce(
+      (sum, item) => sum + item.subTotal,
+      0
+    );
+
+    if (isLoggedIn()) {
+      updateCartOnBackend(newCart);
+    } else {
+      saveCartToLocalStorage(newCart);
+    }
+  };
+
+  // Xóa sản phẩm khỏi giỏ hàng
+  const removeFromCart = (productId) => {
+    const newCart = { ...cart };
+    newCart.products = newCart.products?.filter(
+      (item) => item.productId._id !== productId
+    );
+    newCart.totalAmount = newCart.products?.reduce(
+      (sum, item) => sum + item.subTotal,
+      0
+    );
+
+    if (isLoggedIn()) {
+      updateCartOnBackend(newCart);
+    } else {
+      saveCartToLocalStorage(newCart);
+    }
+  };
+
+  const clearCart = async () => {
+    const emptyCart = { products: [], totalAmount: 0 };
+    if (isLoggedIn()) {
+      try {
+        const token = getLocalStorage('jwt_token');
+        await patch(token, '/v1/cart', []); // Gửi mảng rỗng lên backend
+        setCart(emptyCart);
+      } catch (error) {
+        console.error('Error clearing cart on backend:', error);
+      }
+    } else {
+      saveCartToLocalStorage(emptyCart);
+    }
+  };
+
+  // Cập nhật giỏ hàng lên backend
+  const updateCartOnBackend = async (newCart) => {
+    try {
+      const token = getLocalStorage('jwt_token');
+      const payload = {
+        products: newCart.products,
+        totalAmount: newCart.totalAmount,
+      };
+      await patch(token, '/v1/carts', payload);
+      setCart(newCart);
+    } catch (error) {
+      console.error('Error updating cart on backend:', error);
+    }
+  };
+
+  // Đồng bộ giỏ hàng từ localStorage lên backend khi đăng nhập
+  const syncCartOnLogin = () => {
+    const localCart = getLocalStorage('cart');
+    if (localCart && isLoggedIn()) {
+      const parsedLocalCart = JSON.parse(localCart);
+      updateCartOnBackend(parsedLocalCart);
+    }
+  };
+
+  // Khởi tạo giỏ hàng khi component mount
+  useEffect(() => {
+    const hasLocalCart = loadCartFromLocalStorage(); 
+
+    if (!hasLocalCart && isLoggedIn()) {
+      fetchCartFromBackend(); // Nếu không có localStorage và đã đăng nhập, lấy từ backend
+    }
+
+    if(hasLocalCart && isLoggedIn()) {
+      fetchCartFromBackend();
+    }
+
+    if (hasLocalCart && isLoggedIn()) {
+      syncCartOnLogin(); // Nếu có localStorage và đã đăng nhập, đồng bộ lên backend
+    }
+  }, []);
 
   return (
     <CartContext.Provider
@@ -232,13 +176,8 @@ export const CartProvider = ({ children }) => {
         cart,
         addToCart,
         removeFromCart,
-        updateQuantity,
         clearCart,
         getCartItemQuantity,
-        isLoggedIn,
-        isLoading,
-        avatar,
-        login,
       }}
     >
       {children}
@@ -246,4 +185,6 @@ export const CartProvider = ({ children }) => {
   );
 };
 
-export const useCart = () => useContext(CartContext);
+export const useCart = () => {
+  return useContext(CartContext);
+};

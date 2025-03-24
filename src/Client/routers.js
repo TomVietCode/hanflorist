@@ -9,6 +9,7 @@ import ProfilePage from "./pages/ProfilePage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute"; // Import ProtectedRoute
 import LoginSuccess from "./pages/LoginPage/loginSuccess";
+import OrderSuccess from "./pages/CheckoutPage/OrderSuccess";
 
 const routes = [
   {
@@ -58,12 +59,18 @@ const routes = [
   {
     path: "/checkout",
     element: (
-      <ProtectedRoute>
         <Layout>
           <CheckoutPage />
         </Layout>
-      </ProtectedRoute>
     ),
+  },
+  {
+    path: "/order-success",
+    element: (
+      <Layout>
+        <OrderSuccess />
+      </Layout>
+  ),
   },
   {
     path: "/change-password",
