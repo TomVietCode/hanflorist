@@ -2,19 +2,28 @@ import { Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import MainPage from "./pages/MainPage";
 import CategoriesPages from "./pages/CategoriesPages";
+import Layout from "./components/Layout"; // Import Layout
 
 const routes = [
   {
     path: "/",
-    element: <MainPage />,
+    element: (
+      <Layout>
+        <MainPage />
+      </Layout>
+    ), 
   },
   {
     path: "/user",
-    element: <LoginPage />,
+    element: <LoginPage />, 
   },
   {
     path: "/products/:category",
-    element: <CategoriesPages />,
+    element: (
+      <Layout>
+        <CategoriesPages />
+      </Layout>
+    )
   },
   {
     path: "",

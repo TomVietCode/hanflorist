@@ -1,16 +1,17 @@
 .categories-page-wrapper {
   background-color: #fff;
+  padding-top: 80px;
 }
 
 .category-banner {
   position: relative;
-  height: 300px; /* Adjust based on your design */
-  background-color: #d3d3d3; /* Light gray background as in the image */
+  height: 300px;
+  background-color: #d3d3d3;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
-  background-image: url("https://via.placeholder.com/1920x300"); /* Replace with your banner image */
+  background-image: url("https://via.placeholder.com/1920x300");
   background-size: cover;
   background-position: center;
 }
@@ -27,17 +28,17 @@
   color: white;
   text-decoration: none;
   transition: color 0.3s ease;
-  cursor: text; 
+  cursor: text;
 }
 
 .categories-page {
   background-color: #fff;
-  padding-top: 20px; /* Ensure content starts below the NavBar */
+  padding-top: 20px;
 }
 
 .category-breadcrumb {
   margin-bottom: 20px;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
 .category-breadcrumb .breadcrumb-item a {
@@ -81,51 +82,6 @@
   padding: 5px;
 }
 
-/* Skeleton Loading */
-.product-card-skeleton {
-  width: 100%;
-  height: 300px;
-  background-color: #f5f5f5;
-  border-radius: 10px;
-  overflow: hidden;
-  position: relative;
-}
-
-.product-image-skeleton {
-  width: 100%;
-  height: 200px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-}
-
-.product-title-skeleton {
-  width: 80%;
-  height: 20px;
-  margin: 10px auto;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-}
-
-.product-price-skeleton {
-  width: 50%;
-  height: 15px;
-  margin: 10px auto;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-}
-
-@keyframes skeleton-loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
 /* Pagination */
 .pagination {
   display: flex;
@@ -155,4 +111,135 @@
   background-color: #8b5a2b;
   color: white;
   border-color: #8b5a2b;
+}
+
+/* Card sản phẩm với tiền tố categories- */
+.categories-bouquet-card {
+  border: none !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05) !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+  height: 100%; /* Đảm bảo card chiếm toàn bộ chiều cao của cột */
+  display: flex;
+  flex-direction: column;
+}
+
+.categories-bouquet-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.categories-bouquet-image-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* Ensures a 1:1 aspect ratio (square frame) */
+  overflow: hidden; /* Prevents the zoomed image from overflowing */
+}
+
+.categories-bouquet-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  background-color: #f9f9f9;
+}
+
+.categories-bouquet-image-wrapper:hover .categories-bouquet-image {
+  transform: scale(1.1); /* Zoom in without changing container size */
+}
+
+.categories-bouquet-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.categories-bouquet-image-wrapper:hover .categories-bouquet-overlay {
+  opacity: 1;
+}
+
+.categories-overlay-button {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.categories-overlay-button:hover {
+  background-color: #f5f0e1;
+  border-color: #8b5a2b;
+  transform: scale(1.1);
+}
+
+.categories-overlay-button svg {
+  color: #333;
+  font-size: 18px;
+}
+
+.categories-discount-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #f5f0e1;
+  color: #8b5a2b;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 15px;
+}
+
+.categories-bouquet-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  text-align: center;
+  line-height: 1.4;
+  min-height: 48px; /* Đảm bảo tiêu đề chiếm ít nhất 2 dòng */
+  max-height: 48px; /* Giới hạn tối đa 2 dòng */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Giới hạn 2 dòng */
+  -webkit-box-orient: vertical;
+}
+
+.categories-bouquet-price {
+  font-size: 14px;
+  font-weight: 500;
+  color: #8b5a2b;
+  text-align: center;
+}
+
+.categories-original-price {
+  color: #999;
+  text-decoration: line-through;
+  margin-right: 8px;
+}
+
+.categories-discounted-price {
+  color: #8b5a2b;
+  font-weight: 600;
+}
+
+/* Đảm bảo phần body của card có cùng chiều cao */
+.categories-bouquet-card .card-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
