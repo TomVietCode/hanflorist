@@ -23,14 +23,34 @@ export const CartProvider = ({ children }) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
   };
 
-  // Thêm hàm để lấy số lượng của một sản phẩm trong giỏ hàng
+  const updateQuantity = (productId, newQuantity) => {
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.id === productId ? { ...item, quantity: newQuantity } : item
+      )
+    );
+  };
+
+  const clearCart = () => {
+    setCart([]);
+  };
+
   const getCartItemQuantity = (productId) => {
     const item = cart.find((item) => item.id === productId);
     return item ? item.quantity : 0;
   };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, getCartItemQuantity }}>
+    <CartContext.Provider
+      value={{
+        cart,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        getCartItemQuantity,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

@@ -14,7 +14,7 @@ function Footer() {
               <p className="mb-3">
                 Tất cả hình ảnh sản phẩm sử dụng trên Website đều do team Han
                 thực hiện và chụp hình, vậy nên quý khách có thể yên tâm về chất
-                lượng sản phẩm và kỹ năng của Florist.
+                lượng sản phẩm và kỹ năng của Han Florist.
               </p>
               <a href="https://www.facebook.com/" className="p-2 mt-2"><FaFacebook size={30} color="#1877F2"/></a>
               <a href="https://www.instagram.com/" className="p-2 mt-2"><FaInstagram size={30} color="#E4405F"/></a>
@@ -23,7 +23,7 @@ function Footer() {
             <Col md={3} className="mb-4">
               <h5 className="fw-bold mb-3">Services</h5>
               <ul className="list-unstyled mb-0">
-                <li className="mb-2">Wishlist</li>
+                <li className="mb-2">Deals</li>
                 <li className="mb-2">
                   Hướng dẫn đặt hàng và phương thức thanh toán
                 </li>
@@ -36,7 +36,6 @@ function Footer() {
               <ul className="list-unstyled mb-0">
                 <li className="mb-2">Home</li>
                 <li className="mb-2">About us</li>
-                <li className="mb-2">Blog</li>
               </ul>
             </Col>
 

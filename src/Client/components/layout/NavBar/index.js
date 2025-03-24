@@ -84,6 +84,18 @@ function NavBar() {
 
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
+  // Tính tổng giá tiền
+  const totalPrice = cart.reduce((total, item) => {
+    const price = item.discountedPrice
+      ? parseFloat(item.discountedPrice.replace(/[^0-9]/g, ""))
+      : parseFloat(item.price.replace(/[^0-9]/g, ""));
+    return total + price * item.quantity;
+  }, 0);
+
+  const formatPrice = (price) => {
+    return `${price.toLocaleString("vi-VN")} đ`;
+  };
+
   return (
     <>
       <Navbar bg="light" expand="lg" className="fixed-navbar">
@@ -123,8 +135,8 @@ function NavBar() {
               <InputGroup>
                 <FormControl
                   type="search"
-                  placeholder="Search..."
-                  aria-label="Search"
+                  placeholder="Tìm kiếm..."
+                  aria-label="Tìm kiếm"
                 />
                 <Button variant="outline-secondary">
                   <FaSearch size={20} />
@@ -151,16 +163,17 @@ function NavBar() {
         show={showCart}
         onHide={() => setShowCart(false)}
         placement="end"
+        className="cart-offcanvas"
       >
         <Offcanvas.Header closeButton>
-          <Offcanvas.Title>Shopping cart</Offcanvas.Title>
+          <Offcanvas.Title>Giỏ hàng</Offcanvas.Title>
         </Offcanvas.Header>
-        <Offcanvas.Body>
-          {cart.length === 0 ? (
-            <p>Your cart is empty.</p>
-          ) : (
-            <>
-              {cart.map((item) => (
+        <Offcanvas.Body className="cart-offcanvas-body">
+          <div className="cart-items-list">
+            {cart.length === 0 ? (
+              <p>Giỏ hàng của bạn đang trống.</p>
+            ) : (
+              cart.map((item) => (
                 <div
                   key={item.id}
                   className="cart-item d-flex align-items-center mb-3"
@@ -169,32 +182,51 @@ function NavBar() {
                     src={item.image}
                     alt={item.title}
                     className="cart-item-image"
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      objectFit: "contain",
-                    }}
                   />
-                  <div className="cart-item-details flex-grow-1 mx-3">
-                    <p className="mb-1">{item.title}</p>
-                    <p className="mb-0">
+                  <div className="cart-item-details">
+                    <p className="cart-item-title">{item.title}</p>
+                    <p className="cart-item-price">
                       {item.quantity} x {item.discountedPrice || item.price}
                     </p>
                   </div>
                   <Button
                     variant="link"
-                    className="p-0"
+                    className="cart-item-remove"
                     onClick={() => removeFromCart(item.id)}
                   >
                     <span>×</span>
                   </Button>
                 </div>
-              ))}
-              <hr />
-              <p className="text-end">
-                HAN FLORIST xin chào, chúc bạn có một ngày mới vui vẻ
-              </p>
-            </>
+              ))
+            )}
+          </div>
+          {cart.length > 0 && (
+            <div className="cart-footer">
+              <div className="cart-total">
+                <span>Tổng tiền:</span>
+                <span className="cart-total-price">{formatPrice(totalPrice)}</span>
+              </div>
+              <div className="cart-actions">
+                <Button
+                  className="cart-button"
+                  onClick={() => {
+                    setShowCart(false);
+                    navigate("/cart");
+                  }}
+                >
+                  XEM GIỎ HÀNG
+                </Button>
+                <Button
+                  className="checkout-button"
+                  onClick={() => {
+                    setShowCart(false);
+                    navigate("/checkout");
+                  }}
+                >
+                  THANH TOÁN
+                </Button>
+              </div>
+            </div>
           )}
         </Offcanvas.Body>
       </Offcanvas>
