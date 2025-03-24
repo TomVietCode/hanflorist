@@ -8,6 +8,7 @@ import CartPage from "./pages/CartPage";
 import ProfilePage from "./pages/ProfilePage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute"; // Import ProtectedRoute
+import LoginSuccess from "./pages/LoginPage/loginSuccess";
 
 const routes = [
   {
@@ -21,6 +22,10 @@ const routes = [
   {
     path: "/login",
     element: <LoginPage />,
+  },
+  {
+    path: "/login-success",
+    element: <LoginSuccess />
   },
   {
     path: "/profile",
