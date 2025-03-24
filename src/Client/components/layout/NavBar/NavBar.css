@@ -1,5 +1,5 @@
 .fixed-navbar {
-  top: 40px; /* Keep your original top value */
+  top: 40px;
   width: 100%;
   z-index: 100;
   background-color: white;
@@ -9,7 +9,7 @@
 .navbar-brand {
   font-weight: bold;
   font-size: 1.5rem;
-  color: #8b5a2b !important; /* Updated to match the theme */
+  color: #8b5a2b !important;
 }
 
 /* .nav-link {
@@ -17,11 +17,11 @@
   font-weight: 500;
   display: flex;
   align-items: center;
-  color: #333 !important; Ensure default color
+  color: #333 !important;
 } */
 
 .nav-link:hover {
-  color: #8b5a2b !important; /* Keep the updated hover color */
+  color: #8b5a2b !important;
 }
 
 .custom-dropdown-menu {
@@ -32,7 +32,7 @@
 .dropdown-item {
   padding: 10px 20px;
   font-size: 0.95rem;
-  color: #333; /* Ensure default color */
+  color: #333;
 }
 
 .dropdown-item:hover {
@@ -42,82 +42,201 @@
 
 .nav-icon {
   position: relative;
-  margin-left: 20px; /* Keep your original margin-left */
+  margin-left: 20px;
   cursor: pointer;
 }
 
 .nav-icon .icon {
-  font-size: 24px; /* Keep your original font size */
-  color: #333; /* Keep your original color */
-  transition: color 0.3s ease-in-out; /* Keep your original transition */
+  font-size: 24px;
+  color: #333;
+  transition: color 0.3s ease-in-out;
 }
 
 /* Note: There is no heart-icon in the current NavBar.js, but I'll keep the style in case you add it later */
 .nav-icon .heart-icon:hover {
-  color: #ff4081; /* Keep your original hover color */
+  color: #ff4081;
 }
 
 .nav-icon .cart-icon:hover {
-  color: #8b5a2b; /* Updated hover color to match the theme */
+  color: #8b5a2b;
 }
 
 .nav-icon .user-icon:hover {
-  color: #8b5a2b; /* Add hover color for user icon to match the theme */
+  color: #8b5a2b;
 }
 
 .nav-icon .cart-badge {
   position: absolute;
-  top: -8px; /* Keep your original positioning */
-  right: -8px; /* Keep your original positioning */
-  background-color: #8b5a2b; /* Updated to match the theme */
-  color: white; /* Keep your original text color */
-  font-size: 10px; /* Keep your original font size */
-  font-weight: bold; /* Keep your original font weight */
-  padding: 3px 5px; /* Keep your original padding */
-  border-radius: 50%; /* Keep your original border-radius */
+  top: -8px;
+  right: -8px;
+  background-color: #8b5a2b;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 3px 5px;
+  border-radius: 50%;
 }
 
 .search-form {
-  width: 250px; /* Keep your original width */
-  margin-right: 15px; /* Keep your original margin-right */
+  width: 250px;
+  margin-right: 15px;
 }
 
 .search-form .input-group {
-  border-radius: 25px; /* Keep your original border-radius */
-  overflow: hidden; /* Keep your original overflow */
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2); /* Keep your original box-shadow */
+  border-radius: 25px;
+  overflow: hidden;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .search-form .form-control {
-  border: none; /* Keep your original border */
-  padding: 10px 15px; /* Keep your original padding */
+  border: none;
+  padding: 10px 15px;
 }
 
 .search-form .btn {
-  border: none; /* Keep your original border */
-  background-color: #333; /* Keep your original background color */
-  color: white; /* Keep your original text color */
+  border: none;
+  background-color: #333;
+  color: white;
 }
 
 .search-form .btn:hover {
-  background-color: #8b5a2b; /* Updated hover color to match the theme */
+  background-color: #8b5a2b;
 }
 
 /* Cart Offcanvas Styling */
+.cart-offcanvas .offcanvas-header {
+  background-color: #f5f0e1;
+  border-bottom: 1px solid #ddd;
+}
+
+.cart-offcanvas .offcanvas-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  text-transform: uppercase;
+}
+
+.cart-offcanvas .offcanvas-body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-offcanvas-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.cart-items-list {
+  flex-grow: 1;
+  padding: 20px;
+}
+
 .cart-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
   border-bottom: 1px solid #eee;
   padding-bottom: 10px;
 }
 
 .cart-item-image {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  margin-right: 15px;
   border-radius: 5px;
 }
 
-.cart-item-details p {
-  font-size: 0.9rem;
+.cart-item-details {
+  flex-grow: 1;
+  max-width: 70%;
+}
+
+.cart-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cart-item-price {
+  font-size: 14px;
+  color: #8b5a2b;
+  font-weight: 500;
   margin: 0;
 }
 
-.cart-item-details p:first-child {
-  font-weight: 500;
+.cart-item-remove {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 18px;
+  padding: 0;
+  margin-left: auto;
+}
+
+.cart-item-remove:hover {
+  color: #ff4d4f;
+}
+
+.cart-footer {
+  position: sticky;
+  bottom: 0;
+  background-color: #fff;
+  padding: 20px;
+  border-top: 1px solid #ddd;
+}
+
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.cart-total-price {
+  color: #8b5a2b;
+}
+
+.cart-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cart-actions .cart-button,
+.cart-actions .checkout-button {
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 5px;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.cart-actions .cart-button {
+  background-color: #333;
+  color: #fff;
+}
+
+.cart-actions .cart-button:hover {
+  background-color: #555;
+}
+
+.cart-actions .checkout-button {
+  background-color: #8b5a2b;
+  color: #fff;
+}
+
+.cart-actions .checkout-button:hover {
+  background-color: #a16a3a;
 }
