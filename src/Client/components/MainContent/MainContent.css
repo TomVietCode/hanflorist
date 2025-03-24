@@ -224,8 +224,8 @@
 .deal-image-wrapper {
   position: relative;
   width: 100%;
-  padding-top: 100%; /* Ensures a 1:1 aspect ratio (square frame) */
-  overflow: hidden; /* Prevents the zoomed image from overflowing */
+  padding-top: 100%; 
+  overflow: hidden;
 }
 
 .deal-image {
@@ -259,6 +259,11 @@
   opacity: 1;
 }
 
+.deal-image-wrapper:hover .deal-overlay,
+.bouquet-image-wrapper:hover .bouquet-overlay {
+  opacity: 1;
+}
+
 /* Discount Badge */
 .discount-badge {
   position: absolute;
@@ -270,6 +275,17 @@
   font-weight: 600;
   padding: 5px 10px;
   border-radius: 15px;
+}
+
+/* Đảm bảo ảnh lấp đầy wrapper và giữ tỷ lệ */
+.uniform-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ảnh sẽ lấp đầy và cắt bớt phần thừa */
+  object-position: center; /* Căn giữa ảnh */
 }
 
 .deal-title {
@@ -358,7 +374,7 @@
 }
 
 .quantity-selector {
-  border: 1px solid #ddd;
+  /* border: 1px solid #ddd; */
   border-radius: 5px;
   padding: 5px;
 }
@@ -367,6 +383,11 @@
   border: none;
   background: none;
   color: #8b5a2b;
+}
+
+.quantity-selector button:hover {
+  background-color: #8b5a2b;
+  color: #fff;
 }
 
 .quantity-selector span {

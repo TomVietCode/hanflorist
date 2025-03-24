@@ -5,7 +5,6 @@ import { FaRegHandshake } from "react-icons/fa6";
 import { CiCreditCard1 } from "react-icons/ci";
 import { FaEye } from "react-icons/fa";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
-import { FaHeart } from "react-icons/fa";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import "./MainContent.css";
 import { useCart } from "../../context/CartContext";
@@ -245,7 +244,7 @@ function MainContent() {
                     variant="top"
                     src={deal.image}
                     alt={deal.title}
-                    className="deal-image"
+                    className="deal-image uniform-image" // Thêm class để áp dụng kiểu dáng
                   />
                   <div className="discount-badge">{deal.discount}</div>
                   <div className="deal-overlay">
@@ -313,7 +312,7 @@ function MainContent() {
                     variant="top"
                     src={bouquet.image}
                     alt={bouquet.title}
-                    className="bouquet-image"
+                    className="bouquet-image uniform-image" // Thêm class để áp dụng kiểu dáng
                   />
                   {bouquet.discount > 0 && (
                     <div className="discount-badge">{`${bouquet.discount}% OFF`}</div>

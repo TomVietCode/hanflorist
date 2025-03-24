@@ -1,4 +1,5 @@
-.login-page {
+.profile-page {
+  margin-top: 80px;
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -6,7 +7,7 @@
   background-color: #f9f9f9;
 }
 
-.login-card {
+.profile-card {
   max-width: 400px;
   width: 100%;
   border: none;
@@ -14,26 +15,10 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.login-card h2 {
+.profile-card h2 {
   font-size: 24px;
   font-weight: 600;
   color: #333;
-}
-
-.alert-danger {
-  background-color: #ffe6e6;
-  color: #d32f2f;
-  border: none;
-  border-radius: 5px;
-  font-size: 14px;
-}
-
-.alert-success {
-  background-color: #e6ffe6;
-  color: #2e7d32;
-  border: none;
-  border-radius: 5px;
-  font-size: 14px;
 }
 
 .form-label {
@@ -65,28 +50,4 @@
 
 .btn-primary:hover {
   background-color: #6b4a1b;
-}
-
-.btn-outline-danger {
-  border-color: #d32f2f;
-  color: #d32f2f;
-  border-radius: 5px;
-  padding: 10px;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.btn-outline-danger:hover {
-  background-color: #d32f2f;
-  color: #fff;
-}
-
-.btn-link {
-  color: #8b5a2b;
-  font-size: 14px;
-}
-
-.btn-link:hover {
-  color: #6b4a1b;
-  text-decoration: underline;
 }

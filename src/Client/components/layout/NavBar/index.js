@@ -12,61 +12,52 @@ import {
   Dropdown,
   InputGroup,
   Offcanvas,
+  Image,
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./NavBar.css";
+import { deleteLocalStorage, getLocalStorage } from "../../../../share/hepler/localStorage";
 import { useCart } from "../../../context/CartContext";
-
-// Define menuItems outside the component and export it
-export const menuItems = [
-  {
-    name: "BÓ HOA",
-    links: [
-      { label: "Hoa Hồng", path: "hoa-hong" },
-      { label: "Hoa Ly", path: "hoa-ly" },
-      { label: "Bó hoa Size S", path: "bo-hoa-size-s" },
-      { label: "Bó hoa Size M", path: "bo-hoa-size-m" },
-      { label: "Bó hoa Size L", path: "bo-hoa-size-l" },
-    ],
-  },
-  {
-    name: "GIỎ HOA",
-    links: [
-      { label: "Giỏ Hoa Tươi", path: "gio-hoa-tuoi" },
-      { label: "Giỏ Hoa Đẹp", path: "gio-hoa-dep" },
-    ],
-  },
-  {
-    name: "WEDDING",
-    links: [
-      { label: "Hoa Cưới", path: "hoa-cuoi" },
-      { label: "Hoa Cầm Tay", path: "hoa-cam-tay" },
-      { label: "Combo Cưới", path: "combo-cuoi" },
-    ],
-  },
-  {
-    name: "BST CÁC SP KHÁC",
-    links: [
-      { label: "Hộp Hoa", path: "hop-hoa" },
-      { label: "Lẵng Hoa", path: "lang-hoa" },
-    ],
-  },
-  {
-    name: "BST LOÀI HOA",
-    links: [
-      { label: "Hoa Lan", path: "hoa-lan" },
-      { label: "Hoa Hướng Dương", path: "hoa-huong-duong" },
-    ],
-  },
-];
 
 function NavBar() {
   const navigate = useNavigate();
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [showCart, setShowCart] = useState(false);
-  const { cart, removeFromCart } = useCart();
+  const { cart, removeFromCart, isLoggedIn, avatar } = useCart();
+  const [categories, setCategories] = useState([]);
+  const [error, setError] = useState("");
   let timeoutId = null;
+
+  // Lấy danh sách danh mục từ API mà không cần token
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/v1/categories", {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("categories: ", data);
+        if (Array.isArray(data)) {
+          setCategories(data);
+        } else {
+          throw new Error("Dữ liệu danh mục không phải là mảng");
+        }
+      } catch (err) {
+        setError(err.message || "Không thể lấy danh sách danh mục");
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleMouseEnter = (index) => {
     if (timeoutId) clearTimeout(timeoutId);
@@ -77,14 +68,19 @@ function NavBar() {
     timeoutId = setTimeout(() => setActiveDropdown(null), 200);
   };
 
-  const handleNavigation = (category) => {
+  const handleNavigation = (slug) => {
     setActiveDropdown(null);
-    navigate(`/products/${category}`);
+    navigate(`/categories/${slug}`);
+  };
+
+  const handleLogout = () => {
+    deleteLocalStorage("jwt_token");
+    deleteLocalStorage("user_avatar");
+    navigate("/");
   };
 
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
-  // Tính tổng giá tiền
   const totalPrice = cart.reduce((total, item) => {
     const price = item.discountedPrice
       ? parseFloat(item.discountedPrice.replace(/[^0-9]/g, ""))
@@ -104,31 +100,43 @@ function NavBar() {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
-              {menuItems.map((menu, index) => (
-                <Dropdown
-                  key={index}
-                  show={activeDropdown === index}
-                  onMouseEnter={() => handleMouseEnter(index)}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  <Dropdown.Toggle
-                    as={Nav.Link}
-                    onClick={() => handleNavigation(menu.links[0].path)}
+              {categories.length > 0 ? (
+                categories.map((menu, index) => (
+                  <Dropdown
+                    key={menu._id}
+                    show={activeDropdown === index}
+                    onMouseEnter={() => handleMouseEnter(index)}
+                    onMouseLeave={handleMouseLeave}
                   >
-                    {menu.name} <IoIosArrowDown />
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu className="custom-dropdown-menu">
-                    {menu.links.map((item, i) => (
-                      <Dropdown.Item
-                        key={i}
-                        onClick={() => handleNavigation(item.path)}
-                      >
-                        {item.label}
-                      </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </Dropdown>
-              ))}
+                    <Dropdown.Toggle
+                      as={Nav.Link}
+                      onClick={() =>
+                        handleNavigation(
+                          menu.children[0]?.slug || menu.slug
+                        )
+                      }
+                    >
+                      {menu.title} <IoIosArrowDown />
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu className="custom-dropdown-menu">
+                      {menu.children && menu.children.length > 0 ? (
+                        menu.children.map((child) => (
+                          <Dropdown.Item className="dropdown-item-fixx"
+                            key={child._id}
+                            onClick={() => handleNavigation(child.slug)}
+                          >
+                            {child.title}
+                          </Dropdown.Item>
+                        ))
+                      ) : (
+                        <Dropdown.Item disabled>Không có danh mục con</Dropdown.Item>
+                      )}
+                    </Dropdown.Menu>
+                  </Dropdown>
+                ))
+              ) : (
+                <Nav.Link disabled>Đang tải danh mục...</Nav.Link>
+              )}
             </Nav>
 
             <Form className="search-form">
@@ -151,14 +159,43 @@ function NavBar() {
               )}
             </div>
 
-            <div className="nav-icon" onClick={() => navigate("/user")}>
-              <SlUser className="user-icon icon" />
-            </div>
+            <Dropdown className="nav-icon">
+              <Dropdown.Toggle as="div" className="user-icon">
+                {isLoggedIn && avatar ? (
+                  <Image
+                    src={avatar}
+                    roundedCircle
+                    width={24}
+                    height={24}
+                    alt="User Avatar"
+                    className="user-avatar"
+                  />
+                ) : (
+                  <SlUser className="user-icon icon" />
+                )}
+              </Dropdown.Toggle>
+              <Dropdown.Menu align="end" className="custom-dropdown-menu">
+                {isLoggedIn ? (
+                  <>
+                    <Dropdown.Item onClick={() => navigate("/profile")}>
+                      Chỉnh Sửa Thông Tin
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={() => navigate("/change-password")}>
+                      Đổi Mật Khẩu
+                    </Dropdown.Item>
+                    <Dropdown.Item onClick={handleLogout}>Đăng Xuất</Dropdown.Item>
+                  </>
+                ) : (
+                  <Dropdown.Item onClick={() => navigate("/login")}>
+                    Đăng Nhập
+                  </Dropdown.Item>
+                )}
+              </Dropdown.Menu>
+            </Dropdown>
           </Navbar.Collapse>
         </Container>
       </Navbar>
 
-      {/* Cart Offcanvas */}
       <Offcanvas
         show={showCart}
         onHide={() => setShowCart(false)}

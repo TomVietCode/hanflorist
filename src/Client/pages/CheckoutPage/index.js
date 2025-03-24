@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
-import { useCart } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import "./CheckoutPage.css";
 import vietnamLocations from "../../../share/vietnamLocations";
+import { useCart } from "../../context/CartContext";
 
 function CheckoutPage() {
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, isLoading } = useCart();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: "",
@@ -14,7 +14,7 @@ function CheckoutPage() {
     phone: "",
     receiverName: "",
     receiverPhone: "",
-    receiverType: "self", // "self" hoặc "other"
+    receiverType: "self",
     receiveAtStore: false,
     deliveryDate: "",
     district: "",
@@ -28,11 +28,10 @@ function CheckoutPage() {
     setFormData((prevData) => ({
       ...prevData,
       [name]: type === "checkbox" ? checked : value,
-      ...(name === "city" ? { district: "" } : {}), // Reset district when city changes
+      ...(name === "city" ? { district: "" } : {}),
     }));
   };
 
-  // Tính tổng tiền trước phí vận chuyển
   const calculateSubtotal = () => {
     return cart.reduce((total, item) => {
       const price = item.discountedPrice
@@ -42,14 +41,13 @@ function CheckoutPage() {
     }, 0);
   };
 
-  // Tính phí vận chuyển
   const calculateShippingFee = () => {
     if (formData.receiveAtStore) return 0;
     if (!formData.city) return 0;
     if (formData.city === "Hà Nội" || formData.city === "TP Hồ Chí Minh") {
-      return 30000; // 30.000 đ cho Hà Nội và TP.HCM
+      return 30000;
     }
-    return 50000; // 50.000 đ cho các tỉnh khác
+    return 50000;
   };
 
   const subtotal = calculateSubtotal();
@@ -59,10 +57,19 @@ function CheckoutPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    clearCart(); // Xóa giỏ hàng (localStorage hoặc database)
     alert("Đơn hàng đã được đặt thành công!");
-    clearCart(); // Xóa giỏ hàng
-    navigate("/"); // Chuyển hướng về trang chủ
+    navigate("/");
   };
+
+  if (isLoading) {
+    return (
+      <Container className="checkout-page py-5">
+        <h1 className="checkout-title">Thông tin đặt hàng</h1>
+        <p>Đang tải giỏ hàng...</p>
+      </Container>
+    );
+  }
 
   return (
     <Container className="checkout-page py-5">
@@ -265,27 +272,37 @@ function CheckoutPage() {
           <h1 className="order-title">Đơn hàng của bạn</h1>
           <div className="order-summary">
             <div className="order-items">
-              {cart.map((item) => (
-                <div key={item.id} className="order-item d-flex mb-3">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="order-item-image"
-                  />
-                  <div className="order-item-details flex-grow-1">
-                    <p>{item.title}</p>
-                    <p className="order-item-code">xrkvk35</p>
+              {cart.length === 0 ? (
+                <p>Đơn hàng của bạn đang trống.</p>
+              ) : (
+                cart.map((item) => (
+                  <div key={item.id} className="order-item d-flex mb-3">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="order-item-image"
+                    />
+                    <div className="order-item-details flex-grow-1">
+                      <p>{item.title}</p>
+                      <p className="order-item-code">Mã sản phẩm: {item.id}</p>
+                      <p>
+                        Số lượng: {item.quantity} x{" "}
+                        {item.discountedPrice || item.price}
+                      </p>
+                    </div>
+                    <div className="order-item-total">
+                      {formatPrice(
+                        (item.discountedPrice
+                          ? parseFloat(
+                              item.discountedPrice.replace(/[^0-9]/g, "")
+                            )
+                          : parseFloat(item.price.replace(/[^0-9]/g, ""))) *
+                          item.quantity
+                      )}
+                    </div>
                   </div>
-                  <div className="order-item-total">
-                    {formatPrice(
-                      (item.discountedPrice
-                        ? parseFloat(item.discountedPrice.replace(/[^0-9]/g, ""))
-                        : parseFloat(item.price.replace(/[^0-9]/g, ""))) *
-                        item.quantity
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
             <div className="order-totals">
               <div className="totals-row">
@@ -294,7 +311,9 @@ function CheckoutPage() {
               </div>
               <div className="totals-row">
                 <span>Phí vận chuyển</span>
-                <span>{shippingFee === 0 ? "Miễn phí" : formatPrice(shippingFee)}</span>
+                <span>
+                  {shippingFee === 0 ? "Miễn phí" : formatPrice(shippingFee)}
+                </span>
               </div>
               <div className="totals-row total">
                 <span>Tổng thanh toán</span>

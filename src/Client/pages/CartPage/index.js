@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Container, Row, Col, Form, Button, Table } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import { FaMinus, FaPlus } from "react-icons/fa";
 import './CartPage.css';
 
 function CartPage() {
@@ -83,7 +84,7 @@ function CartPage() {
                           handleQuantityChange(item.id, item.quantity - 1)
                         }
                       >
-                        -
+                        <FaMinus />
                       </Button>
                       <span className="quantity">{item.quantity}</span>
                       <Button
@@ -93,7 +94,7 @@ function CartPage() {
                           handleQuantityChange(item.id, item.quantity + 1)
                         }
                       >
-                        +
+                        <FaPlus />
                       </Button>
                     </div>
                   </td>

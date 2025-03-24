@@ -1,40 +1,37 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Breadcrumb, Card, Button } from "react-bootstrap";
+import { Container, Row, Col, Form, Breadcrumb, Card, Button, Spinner } from "react-bootstrap";
 import { useParams, Link } from "react-router-dom";
 import ReactPaginate from "react-paginate";
 import Sidebar from "../../components/SideBar";
 import "./CategoriesPages.css";
-import { get } from "../../../share/utils/http";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
 import { FaEye } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
-
-function removeDiacritics(str) {
-  return str
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-}
 
 function CategoriesPages() {
   const { category } = useParams();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [categories, setCategories] = useState([]);
+  const [mainLabel, setMainLabel] = useState("Danh mục");
+  const [subLabel, setSubLabel] = useState("");
+  const [subPath, setSubPath] = useState(`/categories/${category}`);
   const [filters, setFilters] = useState({
     categories: [],
     priceRanges: [],
   });
   const [sortOption, setSortOption] = useState("default");
   const [currentPage, setCurrentPage] = useState(0);
-  const productsPerPage = 16; // 4x4 grid
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const productsPerPage = 16;
   const { addToCart } = useCart();
 
-  // Hàm định dạng giá
   const formatPrice = (price) => {
     return `${price.toLocaleString("vi-VN")} đ`;
   };
 
-  // Hàm tính giá giảm
   const calculateDiscountedPrice = (price, discount) => {
     const priceValue = parseFloat(price);
     const discountPercentage = parseFloat(discount) || 0;
@@ -42,7 +39,6 @@ function CategoriesPages() {
     return formatPrice(Math.round(discountedValue));
   };
 
-  // Hàm xác định khoảng giá
   const determinePriceRange = (price) => {
     if (price < 500000) return "Dưới 500.000 đ";
     if (price >= 500000 && price <= 1000000) return "500.000 đ - 1.000.000 đ";
@@ -50,27 +46,124 @@ function CategoriesPages() {
     return "Trên 2.000.000 đ";
   };
 
-  // Tạm thời hardcode vì menuItems chưa khả dụng
-  const mainLabel = "Danh mục";
-  const subLabel = category.replace(/-/g, " ");
-  const subPath = `/products/${category}`;
+  // Gọi API /v1/categories để lấy danh sách danh mục
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/v1/categories/", {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+        });
 
-  // Gọi API để lấy sản phẩm
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setCategories(data);
+        } else {
+          throw new Error("Không thể lấy danh sách danh mục");
+        }
+      } catch (err) {
+        setError(err.message || "Không thể lấy danh sách danh mục");
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Gọi API để lấy sản phẩm theo danh mục và cập nhật subLabel
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await get("", "/v1/products");
-        console.log("API Response:", response);
+        setLoading(true);
+        setError(null);
 
-        const productData = Array.isArray(response)
-          ? response
-          : response?.data || [];
+        const page = currentPage + 1;
+        const queryParams = new URLSearchParams({
+          page,
+          limit: productsPerPage,
+        });
+
+        if (sortOption !== "default") {
+          const [sortBy, order] = sortOption.split("-");
+          queryParams.append("sortBy", sortBy);
+          queryParams.append("order", order);
+        }
+
+        if (filters.priceRanges.length > 0) {
+          const minPrice = filters.priceRanges.includes("Dưới 500.000 đ")
+            ? 0
+            : filters.priceRanges.includes("500.000 đ - 1.000.000 đ")
+            ? 500000
+            : filters.priceRanges.includes("1.000.000 đ - 2.000.000 đ")
+            ? 1000001
+            : 2000001;
+
+          const maxPrice = filters.priceRanges.includes("Dưới 500.000 đ")
+            ? 500000
+            : filters.priceRanges.includes("500.000 đ - 1.000.000 đ")
+            ? 1000000
+            : filters.priceRanges.includes("1.000.000 đ - 2.000.000 đ")
+            ? 2000000
+            : undefined;
+
+          if (minPrice) queryParams.append("minPrice", minPrice);
+          if (maxPrice) queryParams.append("maxPrice", maxPrice);
+        }
+
+        const response = await fetch(
+          `http://localhost:3001/v1/products/category/${category}?${queryParams.toString()}`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("API Response:", data);
+
+        const productData = data.data || [];
+        const total = data.paging?.total || productData.length;
 
         if (!Array.isArray(productData)) {
           throw new Error("API response không phải là mảng");
         }
 
-        const products = productData.map((product) => ({
+        // Tìm subLabel từ categories dựa trên categoryId của sản phẩm
+        let foundSubLabel = category
+          .split("-")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+
+        if (productData.length > 0 && categories.length > 0) {
+          const categoryId = productData[0].categoryId;
+          categories.forEach((mainCategory) => {
+            if (mainCategory.children) {
+              const subCategory = mainCategory.children.find(
+                (sub) => sub._id === categoryId
+              );
+              if (subCategory) {
+                foundSubLabel = subCategory.title;
+                setMainLabel(mainCategory.title);
+              }
+            }
+          });
+        }
+
+        setSubLabel(foundSubLabel);
+        setSubPath(`/categories/${category}`);
+
+        const formattedProducts = productData.map((product) => ({
           id: product._id,
           image: product.thumbnail,
           title: product.title,
@@ -86,51 +179,22 @@ function CategoriesPages() {
             : null,
         }));
 
-        // Lọc sản phẩm theo danh mục
-        const filteredByCategory = products.filter((product) => {
-          const categoryNoDiacritics = removeDiacritics(category.replace(/[-]/g, " "));
-          const subCategoryNoDiacritics = removeDiacritics(product.subCategory);
-          return subCategoryNoDiacritics.includes(categoryNoDiacritics);
-        });
-
-        setProducts(filteredByCategory);
-        setFilteredProducts(filteredByCategory);
+        setProducts(formattedProducts);
+        setFilteredProducts(formattedProducts);
+        setTotalProducts(total);
       } catch (error) {
         console.error("Lỗi khi lấy sản phẩm:", error);
+        setError("Không thể tải sản phẩm. Vui lòng thử lại sau.");
         setProducts([]);
         setFilteredProducts([]);
+        setTotalProducts(0);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProducts();
-  }, [category]);
-
-  // Lọc sản phẩm dựa trên bộ lọc (giá, danh mục)
-  useEffect(() => {
-    let filtered = [...products];
-
-    if (filters.priceRanges.length > 0) {
-      filtered = filtered.filter((product) =>
-        filters.priceRanges.some((range) => {
-          if (range === "Dưới 500.000 đ") return product.priceValue < 500000;
-          if (range === "500.000 đ - 1.000.000 đ")
-            return product.priceValue >= 500000 && product.priceValue <= 1000000;
-          if (range === "1.000.000 đ - 2.000.000 đ")
-            return product.priceValue > 1000000 && product.priceValue <= 2000000;
-          if (range === "Trên 2.000.000 đ") return product.priceValue > 2000000;
-          return false;
-        })
-      );
-    }
-
-    if (filters.categories.length > 0) {
-      filtered = filtered.filter((product) =>
-        filters.categories.includes(product.subCategory)
-      );
-    }
-
-    setFilteredProducts(filtered);
-  }, [products, filters]);
+  }, [category, currentPage, sortOption, filters, categories]);
 
   const handleFilterChange = (filterType, value) => {
     setFilters((prevFilters) => {
@@ -160,44 +224,22 @@ function CategoriesPages() {
     setCurrentPage(0);
   };
 
-  // Sắp xếp sản phẩm
   const handleSortChange = (e) => {
-    const option = e.target.value;
-    setSortOption(option);
-
-    let sortedProducts = [...filteredProducts];
-    if (option === "price-asc") {
-      sortedProducts.sort((a, b) => a.priceValue - b.priceValue);
-    } else if (option === "price-desc") {
-      sortedProducts.sort((a, b) => b.priceValue - a.priceValue);
-    } else if (option === "name-asc") {
-      sortedProducts.sort((a, b) => a.title.localeCompare(b.title));
-    } else if (option === "name-desc") {
-      sortedProducts.sort((a, b) => b.title.localeCompare(a.title));
-    }
-    setFilteredProducts(sortedProducts);
+    setSortOption(e.target.value);
     setCurrentPage(0);
   };
 
-  // Phân trang
-  const pageCount = Math.ceil(filteredProducts.length / productsPerPage);
-  const offset = currentPage * productsPerPage;
-  const currentProducts = filteredProducts.slice(
-    offset,
-    offset + productsPerPage
-  );
+  const pageCount = Math.ceil(totalProducts / productsPerPage);
 
   const handlePageChange = ({ selected }) => {
     setCurrentPage(selected);
     window.scrollTo(0, 0);
   };
 
-  // Hàm xử lý thêm vào giỏ hàng
   const handleAddToCart = (product) => {
     addToCart(product, 1);
   };
 
-  // Hàm xử lý xem chi tiết (tạm thời để trống vì chưa có modal)
   const handleViewDetails = (product) => {
     console.log("Xem chi tiết sản phẩm:", product);
   };
@@ -230,7 +272,7 @@ function CategoriesPages() {
 
             <div className="products-header d-flex justify-content-end align-items-center mb-4">
               <div className="products-meta">
-                <span>{filteredProducts.length} Sản Phẩm</span>
+                <span>{totalProducts} Sản Phẩm</span>
                 <Form.Select
                   className="sort-select ms-3"
                   value={sortOption}
@@ -245,13 +287,29 @@ function CategoriesPages() {
               </div>
             </div>
 
-            <Row>
-              {currentProducts.length === 0 ? (
-                <Col>
-                  <p>Không có sản phẩm nào trong danh mục này.</p>
-                </Col>
-              ) : (
-                currentProducts.map((product) => (
+            {loading ? (
+              <Row>
+                {[...Array(8)].map((_, index) => (
+                  <Col key={index} xs={12} sm={6} md={4} lg={3} className="mb-4">
+                    <Card className="categories-bouquet-card skeleton">
+                      <div className="categories-bouquet-image-wrapper">
+                        <div className="skeleton-image" />
+                      </div>
+                      <Card.Body>
+                        <div className="skeleton-title" />
+                        <div className="skeleton-price" />
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            ) : error ? (
+              <div className="text-center text-danger">{error}</div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center">Không có sản phẩm nào trong danh mục này.</div>
+            ) : (
+              <Row>
+                {filteredProducts.map((product) => (
                   <Col key={product.id} xs={12} sm={6} md={4} lg={3} className="mb-4">
                     <Card className="categories-bouquet-card">
                       <div className="categories-bouquet-image-wrapper">
@@ -294,9 +352,9 @@ function CategoriesPages() {
                       </Card.Body>
                     </Card>
                   </Col>
-                ))
-              )}
-            </Row>
+                ))}
+              </Row>
+            )}
 
             {pageCount > 1 && (
               <ReactPaginate
