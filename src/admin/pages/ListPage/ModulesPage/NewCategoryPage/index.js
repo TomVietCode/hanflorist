@@ -18,17 +18,17 @@ import { useNavigate } from "react-router-dom";
 import NotificationAndDialog, {
   showNotification,
 } from "../../../../components/NotificationAndDialog/index.js";
-import { useCategoryStore } from "../../../../components/store.js";
+import { get } from "../../../../../share/utils/http.js";
 import "./style.css"; // Đảm bảo import file CSS nếu cần
 
 const AddCategoryPage = () => {
   const navigate = useNavigate();
-  const { selectedCategory, setSelectedCategory } = useCategoryStore();
   const [category, setCategory] = useState({
     title: "",
     status: "active",
   });
   const [categories, setCategories] = useState([]);
+  const [selectedParentCategory, setSelectedParentCategory] = useState(null);
   const [openSelect, setOpenSelect] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({
@@ -38,16 +38,14 @@ const AddCategoryPage = () => {
   });
 
   const token = localStorage.getItem("token");
+  // Lấy thông tin người dùng hiện tại từ localStorage
 
+  // Lấy danh sách danh mục từ API
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://localhost:3001/admin/categories", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const result = await response.json();
+        const url = `/admin/categories`;
+        const result = await get(token, url);
         setCategories(result.data || []);
       } catch (err) {
         console.error("Lỗi khi lấy danh mục:", err);
@@ -59,23 +57,45 @@ const AddCategoryPage = () => {
     }
   }, [token]);
 
+  // Hàm kiểm tra form hợp lệ
+  const isFormValid = () => {
+    return (
+      category.title.trim() !== "" && // Tiêu đề không rỗng
+      category.status !== ""
+    );
+  };
+
+  // Xử lý thay đổi input
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCategory({ ...category, [name]: value });
   };
 
+  // Xử lý gửi form tạo danh mục
   const handleSubmit = async () => {
+    // Kiểm tra dữ liệu trước khi gửi
+    if (!category.title) {
+      showNotification(setNotification, "Tiêu đề danh mục không được để trống", "error");
+      return;
+    }
+
+    if (!category.status) {
+      showNotification(setNotification, "Trạng thái không được để trống", "error");
+      return;
+    }
+
     setLoading(true);
     try {
       const requestBody = {
         title: category.title,
         status: category.status,
-        createdBy: "admin",
-        updatedBy: "admin",
       };
-      if (selectedCategory?._id) {
-        requestBody.parentId = selectedCategory._id;
+
+      // Nếu có danh mục cha được chọn, thêm parentId vào request body
+      if (selectedParentCategory?._id) {
+        requestBody.parentId = selectedParentCategory._id;
       }
+      
 
       const response = await fetch("http://localhost:3001/admin/categories", {
         method: "POST",
@@ -104,6 +124,7 @@ const AddCategoryPage = () => {
     }
   };
 
+  // Hàm làm phẳng danh mục để hiển thị phân cấp
   const flattenCategories = (cats, depth = 0) => {
     let flat = [];
     cats.forEach((cat) => {
@@ -115,27 +136,54 @@ const AddCategoryPage = () => {
     return flat;
   };
 
+  // Hàm render danh mục cha trong Select
   const renderCategories = () => {
     const flatCategories = flattenCategories(categories);
-    return flatCategories.map((category) => (
-      <MenuItem
-        key={category._id}
-        value={category._id}
-        sx={{
-          pl: 2 + category.depth * 2,
-          fontWeight: category.isParent ? "bold" : "normal",
-          backgroundColor: selectedCategory?._id === category._id ? "#e3f2fd" : "inherit",
-          "&:hover": { backgroundColor: "#f5f5f5" },
-        }}
-        onClick={(e) => {
-          e.stopPropagation();
-          setSelectedCategory(category);
-          setOpenSelect(false);
-        }}
-      >
-        {category.title}
-      </MenuItem>
-    ));
+    if (flatCategories.length === 0) {
+      return (
+        <MenuItem disabled>
+          <Typography variant="body2">Không có danh mục nào</Typography>
+        </MenuItem>
+      );
+    }
+
+    return flatCategories.map((category) => {
+      const isSelected = selectedParentCategory?._id === category._id;
+      const isParent = category.isParent;
+
+      return (
+        <MenuItem
+          key={category._id}
+          value={category._id}
+          sx={{
+            pl: 2 + category.depth * 2,
+            fontWeight: isParent ? "bold" : "normal",
+            backgroundColor: isSelected
+              ? "#e3f2fd"
+              : isParent
+              ? "#f0f4f8"
+              : "#fafafa",
+            "&:hover": {
+              backgroundColor: isParent ? "#e8eef4" : "#e0f7fa",
+            },
+            borderBottom: "1px solid #e0e0e0",
+            transition: "background-color 0.2s ease",
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedParentCategory(category);
+            setOpenSelect(false);
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{ flexGrow: 1, whiteSpace: "normal", wordBreak: "break-word" }}
+          >
+            {category.title}
+          </Typography>
+        </MenuItem>
+      );
+    });
   };
 
   if (loading) {
@@ -150,7 +198,6 @@ const AddCategoryPage = () => {
     <Container sx={{ py: 4 }}>
       <Card sx={{ boxShadow: 3, borderRadius: 2 }}>
         <CardContent>
-          {/* Form nhập liệu */}
           <Grid container spacing={2}>
             {/* Tiêu đề danh mục */}
             <Grid item xs={12}>
@@ -179,21 +226,49 @@ const AddCategoryPage = () => {
                   open={openSelect}
                   onOpen={() => setOpenSelect(true)}
                   onClose={() => setOpenSelect(false)}
-                  value={selectedCategory ? selectedCategory._id : ""}
+                  value={selectedParentCategory?._id || ""}
                   displayEmpty
                   renderValue={() =>
-                    selectedCategory
-                      ? selectedCategory.title
+                    categories.length === 0
+                      ? "Không có danh mục"
+                      : selectedParentCategory
+                      ? selectedParentCategory.title
                       : "Không chọn (Danh mục gốc)"
                   }
                   variant="outlined"
                   size="small"
-                  sx={{ bgcolor: "#fafafa" }}
+                  sx={{
+                    bgcolor: "#fafafa",
+                    borderRadius: 1,
+                    height: "2.5rem",
+                    "&:hover": {
+                      backgroundColor: "#e0e0e0",
+                    },
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#e0e0e0",
+                    },
+                  }}
+                  MenuProps={{
+                    autoFocus: false,
+                    PaperProps: {
+                      sx: {
+                        maxHeight: "300px",
+                        overflowY: "auto",
+                        width: "300px",
+                        border: "1px solid #e0e0e0",
+                        borderRadius: 1,
+                        backgroundColor: "#fff",
+                        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                      },
+                    },
+                    anchorOrigin: { vertical: "bottom", horizontal: "left" },
+                    transformOrigin: { vertical: "top", horizontal: "left" },
+                  }}
                 >
                   <MenuItem
                     value=""
                     onClick={() => {
-                      setSelectedCategory(null);
+                      setSelectedParentCategory(null);
                       setOpenSelect(false);
                     }}
                   >
@@ -222,7 +297,7 @@ const AddCategoryPage = () => {
                       : "status-indicator inactive"
                   }
                   sx={{
-                    height:"2.5rem",
+                    height: "2.5rem",
                     bgcolor: "#fafafa",
                     "&:hover .MuiOutlinedInput-notchedOutline": {
                       borderColor: "#1976d2",
@@ -232,16 +307,10 @@ const AddCategoryPage = () => {
                     },
                   }}
                 >
-                  <MenuItem
-                    className="status-indicator active"
-                    value="active"
-                  >
+                  <MenuItem className="status-indicator active" value="active">
                     Đang hoạt động
                   </MenuItem>
-                  <MenuItem
-                    className="status-indicator inactive"
-                    value="inactive"
-                  >
+                  <MenuItem className="status-indicator inactive" value="inactive">
                     Dừng hoạt động
                   </MenuItem>
                 </Select>
@@ -256,7 +325,7 @@ const AddCategoryPage = () => {
                   color="primary"
                   startIcon={<AddIcon />}
                   onClick={handleSubmit}
-                  disabled={loading || !category.title}
+                  disabled={!isFormValid()} // Vô hiệu hóa nếu form không hợp lệ
                   sx={{ minWidth: 120 }}
                 >
                   {loading ? "Đang thêm..." : "Thêm"}

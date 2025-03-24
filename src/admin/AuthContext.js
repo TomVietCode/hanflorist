@@ -1,5 +1,5 @@
 // AuthContext.js
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 
 const AuthContext = createContext();
 
@@ -7,16 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      fetchUser(token);
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchUser = async (token) => {
+  const fetchUser = useCallback(async (token) => {
     try {
       const response = await fetch("http://localhost:3001/admin/users/profile", {
         headers: {
@@ -48,7 +39,16 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      fetchUser(token);
+    } else {
+      setLoading(false);
+    }
+  }, [fetchUser]); // Chỉ chạy khi fetchUser thay đổi (tức là chỉ chạy một lần)
 
   const login = async (username, password) => {
     try {

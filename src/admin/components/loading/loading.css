@@ -1,0 +1,28 @@
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Chiếm toàn bộ chiều cao màn hình */
+    background-color: #f5f5f5; /* Màu nền nhạt */
+  }
+  
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #ccc; /* Viền xám */
+    border-top: 4px solid #3498db; /* Viền trên màu xanh */
+    border-radius: 50%;
+    animation: spin 1s linear infinite; /* Hiệu ứng quay */
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  p {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #333;
+  }

@@ -26,7 +26,7 @@ import ChangePasswordPage from "./pages/ListPage/ProfilePage/ChangePasswordPage.
 const routes = [
   {
     element: <PrivateRoute />,
-    children: [ 
+    children: [
       {
         path: "/admin", // Route cha cho các trang admin
         element: <DashboardLayout />,
