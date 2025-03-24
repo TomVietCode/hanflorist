@@ -19,7 +19,7 @@ import {
 import NotificationAndDialog, {
   showNotification,
   showConfirmDialog,
-} from "../../../components/NotificationAndDialog/index.js"; // Import component thông báo và dialog
+} from "../../../components/NotificationAndDialog/index.js";
 import "./style.css";
 
 // Skeleton cho loading
@@ -223,7 +223,7 @@ const getColumns = (navigate, handleDelete, searchTerm, toggleStatus) => [
         >
           <span
             className="box_icon bi1"
-            style={{width:"2.5rem" , color: "#17a2b8", border: "solid 1px #17a2b8" }}
+            style={{ width: "2.5rem", color: "#17a2b8", border: "solid 1px #17a2b8" }}
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/admin/products/view-products/${params.row.id}`);
@@ -233,7 +233,7 @@ const getColumns = (navigate, handleDelete, searchTerm, toggleStatus) => [
           </span>
           <span
             className="box_icon bi2"
-            style={{width:"2.5rem" , color: "#ffc107", border: "solid 1px #ffc107" }}
+            style={{ width: "2.5rem", color: "#ffc107", border: "solid 1px #ffc107" }}
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/admin/products/edit-products/${params.row.id}`);
@@ -243,7 +243,7 @@ const getColumns = (navigate, handleDelete, searchTerm, toggleStatus) => [
           </span>
           <span
             className="box_icon bi3"
-            style={{ width:"2.5rem" , color: "#dc3545", border: "solid 1px #dc3545" }}
+            style={{ width: "2.5rem", color: "#dc3545", border: "solid 1px #dc3545" }}
             onClick={(e) => {
               e.stopPropagation();
               handleDelete(params.row.id);
@@ -297,6 +297,7 @@ const getColumns = (navigate, handleDelete, searchTerm, toggleStatus) => [
     align: "center",
     flex: 1.5,
     headerAlign: "center",
+    renderCell: (params) => params.row.createdBy?.name || "Không xác định",
   },
   {
     field: "updatedAt",
@@ -370,49 +371,37 @@ export default function ProductListPage() {
     );
   };
 
-  // Hàm thay đổi trạng thái sản phẩm với xác nhận
+  // Hàm thay đổi trạng thái sản phẩm
   const toggleStatus = (id) => {
     const currentStatus = data.find((item) => item._id === id).status;
     const newStatus = currentStatus === "active" ? "inactive" : "active";
-    showConfirmDialog(
-      setDialogOpen,
-      "Xác nhận thay đổi trạng thái",
-      `Bạn có muốn thay đổi trạng thái sản phẩm thành "${newStatus === "active" ? "Đang hoạt động" : "Dừng hoạt động"}" không?`,
-      async () => {
+    setData((prev) =>
+      prev.map((item) =>
+        item._id === id ? { ...item, status: newStatus } : item
+      )
+    );
+
+    fetch(`http://localhost:3001/admin/products/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status: newStatus }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error();
+        }
+        showNotification(setOpenNotification, "Cập nhật trạng thái thành công", "success");
+      })
+      .catch((error) => {
         setData((prev) =>
           prev.map((item) =>
-            item._id === id ? { ...item, status: newStatus } : item
+            item._id === id ? { ...item, status: currentStatus } : item
           )
         );
-        try {
-          const response = await fetch(
-            `http://localhost:3001/admin/products/${id}`,
-            {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({ status: newStatus }),
-            }
-          );
-          if (!response.ok) {
-            throw new Error("Không thể cập nhật trạng thái!");
-          }
-          showNotification(setOpenNotification, "Cập nhật trạng thái thành công", "success");
-        } catch (error) {
-          setData((prev) =>
-            prev.map((item) =>
-              item._id === id ? { ...item, status: currentStatus } : item
-            )
-          );
-          showNotification(setOpenNotification, error.message || "Cập nhật trạng thái thất bại", "error");
-        }
-      },
-      () => {
-        showNotification(setOpenNotification, "Hủy thay đổi trạng thái", "info");
-      }
-    );
+      });
   };
 
   // Hàm sắp xếp dữ liệu
@@ -435,71 +424,90 @@ export default function ProductListPage() {
     }
   };
 
-  // Hàm xử lý cập nhật trạng thái hàng loạt với xác nhận
-  const handleBulkStatusUpdate = async () => {
-    if (!selectedProductIds.length) {
-      showNotification(setOpenNotification, "Vui lòng chọn ít nhất một sản phẩm", "warning");
-      return;
+  // Hàm xử lý hành động hàng loạt dựa trên selectedAction
+  const handleBulkAction = async () => {
+    if (!selectedProductIds.length || selectedAction === "default") {
+      return; // Không làm gì nếu không có sản phẩm được chọn hoặc không chọn hành động
     }
 
-    const newStatus =
-      selectedAction === "Đang hoạt động" ? "active" : "inactive";
-    showConfirmDialog(
-      setDialogOpen,
-      "Xác nhận cập nhật trạng thái hàng loạt",
-      `Bạn có muốn cập nhật trạng thái của ${selectedProductIds.length} sản phẩm thành "${selectedAction}" không?`,
-      async () => {
+    if (selectedAction === "Xóa tất cả") {
+      // Hiển thị dialog xác nhận trước khi xóa hàng loạt
+      showConfirmDialog(
+        setDialogOpen,
+        "Xác nhận xóa sản phẩm",
+        `Bạn có chắc chắn muốn xóa ${selectedProductIds.length} sản phẩm đã chọn không?`,
+        async () => {
+          try {
+            const promises = selectedProductIds.map((id) =>
+              del(token, `/admin/products/${id}`)
+            );
+            const responses = await Promise.all(promises);
+            if (responses.every((res) => res.data === true)) {
+              setData((prevData) =>
+                prevData.filter((item) => !selectedProductIds.includes(item._id))
+              );
+              setDelete(true);
+              showNotification(setOpenNotification, "Xóa sản phẩm hàng loạt thành công", "success");
+            } else {
+              throw new Error();
+            }
+          } catch (error) {
+            showNotification(setOpenNotification, "Xóa sản phẩm hàng loạt thất bại", "error");
+          }
+        },
+        () => {
+          showNotification(setOpenNotification, "Hủy xóa sản phẩm hàng loạt", "info");
+        }
+      );
+    } else {
+      // Xử lý cập nhật trạng thái hàng loạt (không cần xác nhận)
+      const newStatus = selectedAction === "Đang hoạt động" ? "active" : "inactive";
+      setData((prev) =>
+        prev.map((item) =>
+          selectedProductIds.includes(item._id)
+            ? { ...item, status: newStatus }
+            : item
+        )
+      );
+
+      try {
+        const response = await fetch(`http://localhost:3001/admin/products/`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ids: selectedProductIds,
+            updates: { status: newStatus },
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error();
+        }
+
+        showNotification(
+          setOpenNotification,
+          "Cập nhật trạng thái hàng loạt thành công",
+          "success"
+        );
+      } catch (error) {
         setData((prev) =>
           prev.map((item) =>
             selectedProductIds.includes(item._id)
-              ? { ...item, status: newStatus }
+              ? { ...item, status: item.status } // Giữ nguyên trạng thái cũ
               : item
           )
         );
-        try {
-          const response = await fetch(`http://localhost:3001/admin/products/`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              ids: selectedProductIds,
-              updates: { status: newStatus },
-            }),
-          });
-          if (!response.ok) {
-            throw new Error("Không thể cập nhật trạng thái hàng loạt!");
-          }
-          showNotification(
-            setOpenNotification,
-            "Cập nhật trạng thái hàng loạt thành công",
-            "success"
-          );
-        } catch (error) {
-          showNotification(
-            setOpenNotification,
-            error.message || "Cập nhật trạng thái hàng loạt thất bại",
-            "error"
-          );
-        }
-      },
-      () => {
-        showNotification(
-          setOpenNotification,
-          "Hủy cập nhật trạng thái hàng loạt",
-          "info"
-        );
       }
-    );
+    }
   };
 
-  // Xử lý khi có hành động cập nhật trạng thái hàng loạt
+  // Theo dõi selectedAction và selectedProductIds để thực hiện hành động khi thay đổi
   useEffect(() => {
-    if (selectedAction && selectedProductIds.length > 0) {
-      handleBulkStatusUpdate();
-    }
-  }, [selectedAction, selectedProductIds, token]);
+    handleBulkAction();
+  }, [selectedAction, selectedProductIds]);
 
   // Lấy dữ liệu từ API
   useEffect(() => {
@@ -519,6 +527,7 @@ export default function ProductListPage() {
           }));
           formattedData = sortData(formattedData, sortTerm);
           setData(formattedData);
+          console.log(formattedData);
         } else {
           setData([]);
         }
@@ -542,7 +551,11 @@ export default function ProductListPage() {
       {error && (
         <div style={{ color: "red", padding: "10px" }}>Error: {error}</div>
       )}
-      <FilterBar setFilterStatus={setFilterStatus} setFilterSort={setFilterSort} />
+      <FilterBar
+        setFilterStatus={setFilterStatus}
+        setFilterSort={setFilterSort}
+        setSelectedProductIds={setSelectedProductIds} // Truyền setSelectedProductIds vào FilterBar
+      />
       <DataGrid
         rowHeight={90}
         rows={data}
@@ -552,7 +565,7 @@ export default function ProductListPage() {
         pageSizeOptions={[5, 10, 20]}
         checkboxSelection
         onRowSelectionModelChange={(ids) => {
-          setSelectedProductIds(ids);
+          setSelectedProductIds(ids); // Cập nhật danh sách sản phẩm được chọn
         }}
         paginationMode="client"
         onPaginationModelChange={(newPaginationModel) =>
@@ -580,8 +593,6 @@ export default function ProductListPage() {
           userSelect: "none",
         }}
       />
-
-      {/* Component thông báo và dialog */}
       <NotificationAndDialog
         openNotification={openNotification.open}
         setOpenNotification={(value) =>

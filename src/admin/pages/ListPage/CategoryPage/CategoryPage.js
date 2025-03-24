@@ -37,16 +37,15 @@ const SkeletonRow = () => (
       display: "flex",
       width: "100%",
       alignItems: "center",
-      gap: "10px",
       padding: "10px",
       borderBottom: "1px solid #e0e0e0",
       backgroundColor: "#f9f9f9",
     }}
   >
-    <div style={{ flex: "2", width: "300px" }}>
+    <div style={{ flex: "2", width: "100px" }}>
       <div
         style={{
-          width: "100%",
+          width: "90%",
           height: "25px",
           backgroundColor: "#e0e0e0",
           borderRadius: "4px",
@@ -54,7 +53,7 @@ const SkeletonRow = () => (
         }}
       />
     </div>
-    {[...Array(4)].map((_, i) => (
+    {[...Array(5)].map((_, i) => (
       <div
         key={i}
         style={{

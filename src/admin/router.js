@@ -1,3 +1,4 @@
+// router.js
 import { Navigate } from "react-router-dom";
 import DashboardLayout from "./components/AdminLayout.js";
 import Login from "./login";
@@ -10,6 +11,7 @@ import RoleManagementPage from "./pages/ListPage/RoleManagementPage/RoleManageme
 import AddNewRole from "./pages/ListPage/ModulesPage/NewRole/index.js";
 import PermissionPage from "./pages/ListPage/PermissionPage/PermissionPage.js";
 import AccountPage from "./pages/ListPage/AccountPage/AccountPage.js";
+import NewUser from "./pages/ListPage/AccountPage/NewUser.js";
 import SettingsPage from "./pages/ListPage/SettingsPage/SettingsPage.js";
 import ProductDetail from "./pages/ListPage/ModulesPage/ProductDetail/index.js";
 import EditProduct from "./pages/ListPage/ModulesPage/EditProduct/index.js";
@@ -17,11 +19,11 @@ import DeletePage from "./pages/ListPage/ModulesPage/deletePage/index.js";
 import NotFound from "./pages/ListPage/ModulesPage/404NotFound/index.js";
 import PrivateRoute from "./privateRouter.js";
 
+// Thêm các trang mới cho profile và change-password
+import ProfilePage from "./pages/ListPage/ProfilePage/ProfilePage.js"; // Trang thông tin tài khoản
+import ChangePasswordPage from "./pages/ListPage/ProfilePage/ChangePasswordPage.js"; // Trang đổi mật khẩu
+
 const routes = [
-  {
-    path: "/admin",
-    element: <Navigate to="/admin/auth/login" replace />,
-  },
   {
     element: <PrivateRoute />,
     children: [ 
@@ -29,6 +31,10 @@ const routes = [
         path: "/admin", // Route cha cho các trang admin
         element: <DashboardLayout />,
         children: [
+          {
+            path: "", // /admin
+            element: <Navigate to="/admin/dashboard" replace />, // Chuyển hướng mặc định về dashboard
+          },
           {
             path: "dashboard", // /admin/dashboard
             element: <DashboardPage />,
@@ -78,21 +84,40 @@ const routes = [
             element: <PermissionPage />,
           },
           {
-            path: "accounts", // /admin/accounts
+            path: "users", // /admin/users
             element: <AccountPage />,
+          },
+          {
+            path: "users/new-users", // /admin/users/new-users
+            element: <NewUser />,
+          },
+          {
+            path: "users/view-users", // /admin/users/view-users
+            element: <NewUser />,
+          },
+          {
+            path: "users/edit-users", // /admin/users/edit-users
+            element: <NewUser />,
           },
           {
             path: "settings", // /admin/settings
             element: <SettingsPage />,
           },
-          // Xóa path: "" để tránh chuyển hướng tự động khi vào /admin
+          {
+            path: "profile", // /admin/profile
+            element: <ProfilePage />,
+          },
+          {
+            path: "change-password", // /admin/change-password
+            element: <ChangePasswordPage />,
+          },
         ],
       },
     ],
   },
   {
     path: "/admin/auth/login",
-    element: <Login />, // Trang login riêng biệt
+    element: <Login />,
   },
   {
     path: "*",

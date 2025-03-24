@@ -12,7 +12,6 @@ import {
   FormControl,
   Select,
   MenuItem,
-  Divider,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +19,7 @@ import NotificationAndDialog, {
   showNotification,
 } from "../../../../components/NotificationAndDialog/index.js";
 import { useCategoryStore } from "../../../../components/store.js";
+import "./style.css"; // Đảm bảo import file CSS nếu cần
 
 const AddCategoryPage = () => {
   const navigate = useNavigate();
@@ -150,7 +150,6 @@ const AddCategoryPage = () => {
     <Container sx={{ py: 4 }}>
       <Card sx={{ boxShadow: 3, borderRadius: 2 }}>
         <CardContent>
-
           {/* Form nhập liệu */}
           <Grid container spacing={2}>
             {/* Tiêu đề danh mục */}
@@ -206,8 +205,7 @@ const AddCategoryPage = () => {
             </Grid>
 
             {/* Trạng thái */}
-           
-            <Grid item xs={12}>
+            <Grid item xs={3}>
               <Typography variant="subtitle1" gutterBottom>
                 Trạng thái <span style={{ color: "red" }}>*</span>
               </Typography>
@@ -218,10 +216,34 @@ const AddCategoryPage = () => {
                   onChange={handleChange}
                   variant="outlined"
                   size="small"
-                  sx={{ bgcolor: "#fafafa" }}
+                  className={
+                    category.status === "active"
+                      ? "status-indicator active"
+                      : "status-indicator inactive"
+                  }
+                  sx={{
+                    height:"2.5rem",
+                    bgcolor: "#fafafa",
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#1976d2",
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#1976d2",
+                    },
+                  }}
                 >
-                  <MenuItem className="status-indicator active" value="active">Hoạt động</MenuItem>
-                  <MenuItem className="status-indicator inactive" value="inactive">Dừng hoạt động</MenuItem>
+                  <MenuItem
+                    className="status-indicator active"
+                    value="active"
+                  >
+                    Đang hoạt động
+                  </MenuItem>
+                  <MenuItem
+                    className="status-indicator inactive"
+                    value="inactive"
+                  >
+                    Dừng hoạt động
+                  </MenuItem>
                 </Select>
               </FormControl>
             </Grid>
