@@ -1,0 +1,49 @@
+.product-modal-image-container {
+  position: relative;
+  width: 100%;
+  padding-top: 100%; /* Tạo tỷ lệ 1:1 */
+  overflow: hidden;
+}
+
+.product-modal-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Đảm bảo ảnh lấp đầy và cắt bớt phần thừa */
+  object-position: center; /* Căn giữa ảnh */
+  border-radius: 10px;
+}
+
+.quantity-selector button {
+  border: none;
+  background: none;
+  color: #8b5a2b;
+}
+
+.quantity-selector button:hover {
+  background-color: #8b5a2b;
+  color: #fff;
+}
+
+.quantity-selector span {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.add-to-cart-button {
+  background-color: #f5f0e1;
+  border: none;
+  color: #8b5a2b;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 25px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.add-to-cart-button:hover {
+  background-color: #8b5a2b;
+  color: #fff;
+}

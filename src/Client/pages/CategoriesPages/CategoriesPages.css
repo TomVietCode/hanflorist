@@ -1,6 +1,7 @@
 /* Tổng thể */
 .categories-page-wrapper {
   background-color: #f9f9f9;
+  margin-top: 100px;
 }
 
 /* Banner */
@@ -10,6 +11,10 @@
   text-align: center;
   margin-bottom: 30px;
   border-bottom: 2px solid #e5e5e5;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .banner-title {
@@ -29,6 +34,22 @@
 
 .banner-subcategory:hover {
   color: #a16a3a;
+}
+
+/* Skeleton Loading cho Banner */
+.banner-skeleton {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.skeleton-banner-title {
+  width: 70%;
+  height: 40px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  margin: 0 auto;
 }
 
 /* Breadcrumb */
@@ -62,10 +83,14 @@
   color: #666;
 }
 
+.form-select-cate {
+  font-weight: 600;
+}
+
 .sort-select {
   width: 200px;
   border-radius: 20px;
-  border: 1px solid #e5e5e5;
+  border: 2px solid #e5e5e5;
   padding: 8px 15px;
   font-size: 0.95rem;
   color: #333;
@@ -76,6 +101,12 @@
 .sort-select:focus {
   border-color: #8b5a2b;
   box-shadow: none;
+}
+
+.total-product {
+  font-size: 20px;
+  font-weight: 700;
+  color: #8b5a2b;
 }
 
 /* Card Sản Phẩm */
@@ -120,7 +151,6 @@
   font-weight: 600;
   padding: 5px 10px;
   border-radius: 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .categories-bouquet-overlay {
@@ -174,15 +204,14 @@
 
 .categories-bouquet-price {
   font-size: 1rem;
-  font-weight: 600;
-  color: #333;
+  font-weight: 700;
+  color: #8b5a2b;
 }
 
 .categories-original-price {
   text-decoration: line-through;
   color: #999;
   margin-right: 10px;
-  font-size: 0.9rem;
 }
 
 .categories-discounted-price {
@@ -226,40 +255,53 @@
 }
 
 /* Pagination */
-.pagination {
+.pagination-wrapper {
+  margin-top: 40px;
   display: flex;
   justify-content: center;
-  margin-top: 30px;
+  align-items: center;
+  gap: 20px;
 }
 
-.page-item {
-  margin: 0 5px;
-}
-
-.page-link {
-  border-radius: 5px;
-  border: 1px solid #e5e5e5;
+.pagination-btn {
+  padding: 8px 16px;
+  border: 2px solid #e5e5e5;
+  border-radius: 20px;
+  background-color: #fff;
   color: #8b5a2b;
-  font-weight: 500;
-  padding: 8px 12px;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-.page-link:hover {
+.pagination-btn:hover:not(.disabled) {
   background-color: #f5f0e1;
+  border-color: #8b5a2b;
   color: #8b5a2b;
 }
 
-.page-item.active .page-link {
-  background-color: #8b5a2b;
-  color: #fff;
-  border-color: #8b5a2b;
+.pagination-btn.disabled {
+  background-color: #f9f9f9;
+  color: #ccc;
+  border-color: #e5e5e5;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
 }
 
 /* Responsive Design */
 @media (max-width: 576px) {
   .banner-title {
     font-size: 1.8rem;
+  }
+
+  .skeleton-banner-title {
+    height: 30px;
+    width: 80%;
   }
 
   .categories-bouquet-image {
@@ -276,5 +318,19 @@
 
   .sort-select {
     width: 150px;
+  }
+
+  .pagination-wrapper {
+    margin-top: 20px;
+    gap: 10px;
+  }
+
+  .pagination-btn {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+
+  .pagination-info {
+    font-size: 0.9rem;
   }
 }

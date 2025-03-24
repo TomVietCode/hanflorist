@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Card, Button, Modal } from "react-bootstrap";
+import { Container, Row, Col, Card } from "react-bootstrap";
 import { FaShippingFast } from "react-icons/fa";
 import { FaRegHandshake } from "react-icons/fa6";
 import { CiCreditCard1 } from "react-icons/ci";
 import { FaEye } from "react-icons/fa";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
-import { FaMinus, FaPlus } from "react-icons/fa";
+import { useNavigate } from "react-router-dom"; // Thêm useNavigate để điều hướng
 import "./MainContent.css";
 import { useCart } from "../../context/CartContext";
 import { get } from "../../../share/utils/http";
+import ProductModal from "../ProductModal";
 
 function MainContent() {
   const [allProducts, setAllProducts] = useState([]);
@@ -19,6 +20,7 @@ function MainContent() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const { addToCart, getCartItemQuantity } = useCart();
+  const navigate = useNavigate(); // Khởi tạo useNavigate
 
   const filters = [
     "8.3 Collection",
@@ -46,7 +48,6 @@ function MainContent() {
         const response = await get("", "/v1/products");
         console.log("API Response:", response);
 
-        // Kiểm tra nếu response không phải là mảng và truy cập response.data nếu cần
         const productData = Array.isArray(response)
           ? response
           : response?.data || [];
@@ -63,6 +64,7 @@ function MainContent() {
           priceValue: product.price,
           discount: product.discountPercentage || 0,
           stock: product.stock || 0,
+          slug: product.slug, // Thêm slug để điều hướng
         }));
 
         setAllProducts(products);
@@ -170,6 +172,10 @@ function MainContent() {
     });
   };
 
+  const handleProductClick = (slug) => {
+    navigate(`/product/${slug}`); // Điều hướng đến trang chi tiết sản phẩm
+  };
+
   const activeProducts =
     categories.find((cat) => cat.name === activeCategory)?.products || [];
 
@@ -236,26 +242,30 @@ function MainContent() {
               md={4}
               lg={3}
               xl={2}
-              className="deal-col mb-4"
+              className="mb-4"
             >
-              <Card className="deal-card">
-                <div className="deal-image-wrapper">
+              <Card className="categories-bouquet-card">
+                <div className="categories-bouquet-image-wrapper">
                   <Card.Img
                     variant="top"
                     src={deal.image}
                     alt={deal.title}
-                    className="deal-image uniform-image" // Thêm class để áp dụng kiểu dáng
+                    className="categories-bouquet-image"
+                    onClick={() => handleProductClick(deal.slug)} // Thêm sự kiện click
+                    style={{ cursor: "pointer" }}
                   />
-                  <div className="discount-badge">{deal.discount}</div>
-                  <div className="deal-overlay">
+                  {deal.discount && (
+                    <div className="categories-discount-badge">{deal.discount}</div>
+                  )}
+                  <div className="categories-bouquet-overlay">
                     <button
-                      className="overlay-button"
+                      className="categories-overlay-button"
                       onClick={() => handleAddToCart(deal)}
                     >
                       <HiOutlineShoppingBag />
                     </button>
                     <button
-                      className="overlay-button"
+                      className="categories-overlay-button"
                       onClick={() => handleViewDetails(deal)}
                     >
                       <FaEye />
@@ -263,21 +273,28 @@ function MainContent() {
                   </div>
                 </div>
                 <Card.Body>
-                  <Card.Title className="deal-title">{deal.title}</Card.Title>
-                  <Card.Text className="deal-price">
-                    <span className="original-price">{deal.originalPrice}</span>
-                    <span className="discounted-price">
-                      {deal.discountedPrice}
-                    </span>
+                  <Card.Title
+                    className="categories-bouquet-title"
+                    onClick={() => handleProductClick(deal.slug)} // Thêm sự kiện click
+                    style={{ cursor: "pointer" }}
+                  >
+                    {deal.title}
+                  </Card.Title>
+                  <Card.Text className="categories-bouquet-price">
+                    {deal.discount ? (
+                      <>
+                        <span className="categories-original-price">{deal.originalPrice}</span>
+                        <span className="categories-discounted-price">{deal.discountedPrice}</span>
+                      </>
+                    ) : (
+                      deal.price
+                    )}
                   </Card.Text>
                 </Card.Body>
               </Card>
             </Col>
           ))}
         </Row>
-        <div className="text-center mt-4">
-          <Button className="explore-button">THAM KHẢO NGAY</Button>
-        </div>
       </Container>
 
       <Container className="main-content py-5">
@@ -306,26 +323,28 @@ function MainContent() {
         <Row>
           {activeProducts.map((bouquet) => (
             <Col key={bouquet.id} xs={12} sm={6} md={4} lg={3} className="mb-4">
-              <Card className="bouquet-card">
-                <div className="bouquet-image-wrapper">
+              <Card className="categories-bouquet-card">
+                <div className="categories-bouquet-image-wrapper">
                   <Card.Img
                     variant="top"
                     src={bouquet.image}
                     alt={bouquet.title}
-                    className="bouquet-image uniform-image" // Thêm class để áp dụng kiểu dáng
+                    className="categories-bouquet-image"
+                    onClick={() => handleProductClick(bouquet.slug)} // Thêm sự kiện click
+                    style={{ cursor: "pointer" }}
                   />
                   {bouquet.discount > 0 && (
-                    <div className="discount-badge">{`${bouquet.discount}% OFF`}</div>
+                    <div className="categories-discount-badge">{`${bouquet.discount}% OFF`}</div>
                   )}
-                  <div className="bouquet-overlay">
+                  <div className="categories-bouquet-overlay">
                     <button
-                      className="overlay-button"
+                      className="categories-overlay-button"
                       onClick={() => handleAddToCart(bouquet)}
                     >
                       <HiOutlineShoppingBag />
                     </button>
                     <button
-                      className="overlay-button"
+                      className="categories-overlay-button"
                       onClick={() => handleViewDetails(bouquet)}
                     >
                       <FaEye />
@@ -333,16 +352,18 @@ function MainContent() {
                   </div>
                 </div>
                 <Card.Body>
-                  <Card.Title className="bouquet-title">
+                  <Card.Title
+                    className="categories-bouquet-title"
+                    onClick={() => handleProductClick(bouquet.slug)} // Thêm sự kiện click
+                    style={{ cursor: "pointer" }}
+                  >
                     {bouquet.title}
                   </Card.Title>
-                  <Card.Text className="bouquet-price">
+                  <Card.Text className="categories-bouquet-price">
                     {bouquet.discount > 0 ? (
                       <>
-                        <span className="original-price">{bouquet.price}</span>
-                        <span className="discounted-price">
-                          {bouquet.discountedPrice}
-                        </span>
+                        <span className="categories-original-price">{bouquet.price}</span>
+                        <span className="categories-discounted-price">{bouquet.discountedPrice}</span>
                       </>
                     ) : (
                       bouquet.price
@@ -355,74 +376,15 @@ function MainContent() {
         </Row>
       </Container>
 
-      <Modal show={showModal} onHide={handleCloseModal} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>{selectedProduct?.title}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Row>
-            <Col md={6}>
-              <img
-                src={selectedProduct?.image}
-                alt={selectedProduct?.title}
-                className="img-fluid product-modal-image"
-              />
-            </Col>
-            <Col md={6}>
-              <h4>
-                {selectedProduct?.discountedPrice || selectedProduct?.price}
-              </h4>
-              <p>
-                <strong>Số lượng còn lại:</strong> {selectedProduct?.stock}
-              </p>
-              <p>
-                <strong>Số lượng trong giỏ hàng:</strong>{" "}
-                {getCartItemQuantity(selectedProduct?.id) || 0}
-              </p>
-              <p>
-                <strong>Số lượng tối đa có thể thêm:</strong>{" "}
-                {selectedProduct?.stock -
-                  (getCartItemQuantity(selectedProduct?.id) || 0)}
-              </p>
-              <div className="quantity-selector d-flex align-items-center my-3">
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  onClick={() => handleQuantityChange(-1)}
-                  disabled={quantity <= 1}
-                >
-                  <FaMinus />
-                </Button>
-                <span className="mx-3">{quantity}</span>
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  onClick={() => handleQuantityChange(1)}
-                  disabled={
-                    quantity >=
-                    selectedProduct?.stock -
-                      (getCartItemQuantity(selectedProduct?.id) || 0)
-                  }
-                >
-                  <FaPlus />
-                </Button>
-              </div>
-              <Button
-                className="add-to-cart-button"
-                onClick={() => handleAddToCart(selectedProduct)}
-                disabled={
-                  quantity === 0 ||
-                  selectedProduct?.stock -
-                    (getCartItemQuantity(selectedProduct?.id) || 0) <=
-                    0
-                }
-              >
-                ADD TO CART
-              </Button>
-            </Col>
-          </Row>
-        </Modal.Body>
-      </Modal>
+      <ProductModal
+        showModal={showModal}
+        handleCloseModal={handleCloseModal}
+        selectedProduct={selectedProduct}
+        quantity={quantity}
+        handleQuantityChange={handleQuantityChange}
+        handleAddToCart={handleAddToCart}
+        getCartItemQuantity={getCartItemQuantity}
+      />
     </>
   );
 }
