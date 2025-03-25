@@ -10,6 +10,8 @@ import ChangePasswordPage from "./pages/ChangePasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute"; // Import ProtectedRoute
 import LoginSuccess from "./pages/LoginPage/loginSuccess";
 import OrderSuccess from "./pages/CheckoutPage/OrderSuccess";
+import ProductDetailPage from './pages/ProductDetailPage/index';
+import SearchResultPage from './pages/SearchResultPage/index';
 
 const routes = [
   {
@@ -26,7 +28,7 @@ const routes = [
   },
   {
     path: "/login-success",
-    element: <LoginSuccess />
+    element: <LoginSuccess />,
   },
   {
     path: "/profile",
@@ -43,6 +45,14 @@ const routes = [
     element: (
       <Layout>
         <CategoriesPages />
+      </Layout>
+    ),
+  },
+  {
+    path: "/product/:slug",
+    element: (
+      <Layout>
+        <ProductDetailPage />
       </Layout>
     ),
   },
@@ -80,6 +90,14 @@ const routes = [
           <ChangePasswordPage />
         </Layout>
       </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/search",
+    element: (
+      <Layout>
+        <SearchResultPage />
+      </Layout>
     ),
   },
   {

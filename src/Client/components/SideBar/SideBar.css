@@ -1,38 +1,121 @@
+/* Tổng thể Sidebar */
 .sidebar {
-  padding: 20px;
-  /* background-color: #f9f9f9; */
-  border-radius: 10px;
-  height: fit-content;
+  background-color: #fff;
+  padding: 20px 0;
+  margin-bottom: 30px;
 }
 
-.sidebar h3 {
-  font-size: 18px;
-  font-weight: 600;
+/* Tiêu đề Sidebar */
+.sidebar-title {
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #333;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  padding-left: 15px;
 }
 
-.category-list,
-.price-list {
-  list-style: none;
-  padding: 0;
+/* Bộ lọc (Checkbox) */
+.sidebar-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 0 15px;
+}
+
+/* Checkbox */
+.sidebar-filter-checkbox {
   margin: 0;
 }
 
-.category-list li,
-.price-list li {
-  margin-bottom: 10px;
+.sidebar-filter-checkbox label {
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s ease;
 }
 
-.category-list label,
-.price-list label {
+.sidebar-filter-checkbox input {
+  width: 20px;
+  height: 20px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+
+.sidebar-filter-checkbox input:checked + label {
+  color: #8b5a2b;
+}
+
+/* Nút Lọc và Xóa */
+.sidebar-actions {
   display: flex;
-  align-items: center;
-  font-size: 14px;
-  color: #666;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  margin-top: 20px;
 }
 
-.category-list input,
-.price-list input {
-  margin-right: 10px;
+.apply-filter-button,
+.clear-filter-button {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.apply-filter-button {
+  background-color: #8b5a2b;
+  color: #fff;
+}
+
+.apply-filter-button:hover {
+  background-color: #a16a3a;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.clear-filter-button {
+  background-color: #bbb;
+  color: #fff;
+}
+
+.clear-filter-button:hover {
+  background-color: #999;
+  transform: translateY(-2px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 576px) {
+  .sidebar {
+    padding: 15px 0;
+  }
+
+  .sidebar-title {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+  }
+
+  .sidebar-filters {
+    gap: 10px;
+  }
+
+  .sidebar-filter-checkbox label {
+    font-size: 0.95rem;
+  }
+
+  .sidebar-filter-checkbox input {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+  }
+
+  .apply-filter-button,
+  .clear-filter-button {
+    font-size: 0.95rem;
+    padding: 10px;
+  }
 }

@@ -17,19 +17,20 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "./NavBar.css";
-import { deleteLocalStorage, getLocalStorage } from "../../../../share/hepler/localStorage";
+import { deleteLocalStorage } from "../../../../share/hepler/localStorage";
 import { useCart } from "../../../context/CartContext";
 
 function NavBar() {
   const navigate = useNavigate();
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [showCart, setShowCart] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(""); // Trạng thái cho ô tìm kiếm
   const { cart, removeFromCart, isLoggedIn, avatar } = useCart();
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState("");
   let timeoutId = null;
 
-  // Lấy danh sách danh mục từ API mà không cần token
+  // Lấy danh sách danh mục từ API
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -45,7 +46,6 @@ function NavBar() {
         }
 
         const data = await response.json();
-        console.log("categories: ", data);
         if (Array.isArray(data)) {
           setCategories(data);
         } else {
@@ -79,7 +79,27 @@ function NavBar() {
     navigate("/");
   };
 
-  const totalItems = cart.products?.reduce((total, item) => total + item.quantity, 0) || 0
+  // Xử lý tìm kiếm
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) {
+      alert("Vui lòng nhập từ khóa tìm kiếm!");
+      return;
+    }
+
+    // Tạo query parameters cho tìm kiếm
+    const queryParams = new URLSearchParams({
+      keyword: searchQuery,
+      page: 1,
+      limit: 10, // Mặc định 10 sản phẩm mỗi trang
+    });
+
+    // Điều hướng đến trang kết quả tìm kiếm với query parameters
+    navigate(`/search?${queryParams.toString()}`);
+  };
+
+  const totalItems = cart.products?.reduce((total, item) => total + item.quantity, 0);
+
   const totalPrice = cart.totalAmount;
 
   const formatPrice = (price) => {
@@ -115,7 +135,8 @@ function NavBar() {
                     <Dropdown.Menu className="custom-dropdown-menu">
                       {menu.children && menu.children.length > 0 ? (
                         menu.children.map((child) => (
-                          <Dropdown.Item className="dropdown-item-fixx"
+                          <Dropdown.Item
+                            className="dropdown-item-fixx"
                             key={child._id}
                             onClick={() => handleNavigation(child.slug)}
                           >
@@ -133,14 +154,21 @@ function NavBar() {
               )}
             </Nav>
 
-            <Form className="search-form">
+            <Form className="search-form" onSubmit={handleSearch}>
               <InputGroup>
                 <FormControl
                   type="search"
                   placeholder="Tìm kiếm..."
                   aria-label="Tìm kiếm"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSearch(e);
+                    }
+                  }}
                 />
-                <Button variant="outline-secondary">
+                <Button variant="outline-secondary" type="submit">
                   <FaSearch size={20} />
                 </Button>
               </InputGroup>
@@ -217,7 +245,7 @@ function NavBar() {
                   <div className="cart-item-details">
                     <p className="cart-item-title">{item.productId.title}</p>
                     <p className="cart-item-price">
-                      {item.quantity} x {item.productId.price}
+                      {item.quantity} x {item.discountedPrice || item.price}
                     </p>
                   </div>
                   <Button

@@ -1,5 +1,5 @@
-/* Tổng thể */
-.categories-page-wrapper {
+/* SearchResultsPage.css */
+.search-results-page-wrapper {
   background-color: #f9f9f9;
   margin-top: 100px;
 }
@@ -26,32 +26,6 @@
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.banner-subcategory {
-  color: #8b5a2b;
-  text-decoration: none;
-  transition: color 0.3s ease;
-}
-
-.banner-subcategory:hover {
-  color: #a16a3a;
-}
-
-/* Skeleton Loading cho Banner */
-.banner-skeleton {
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.skeleton-banner-title {
-  width: 70%;
-  height: 40px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-  margin: 0 auto;
-}
-
 /* Breadcrumb */
 .category-breadcrumb {
   background-color: transparent !important;
@@ -76,31 +50,6 @@
 /* Products Header */
 .products-header {
   margin-bottom: 30px;
-}
-
-.products-meta span {
-  font-size: 1rem;
-  color: #666;
-}
-
-.form-select-cate {
-  font-weight: 600;
-}
-
-.sort-select {
-  width: 200px;
-  border-radius: 20px;
-  border: 2px solid #e5e5e5;
-  padding: 8px 15px;
-  font-size: 0.95rem;
-  color: #333;
-  background-color: #fff;
-  transition: border-color 0.3s ease;
-}
-
-.sort-select:focus {
-  border-color: #8b5a2b;
-  box-shadow: none;
 }
 
 .total-product {
@@ -260,10 +209,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px; /* Khoảng cách giữa các phần tử */
+  gap: 10px;
 }
 
-/* Nút Trước/Sau */
 .pagination-btn {
   padding: 8px 16px;
   border: 2px solid #e5e5e5;
@@ -288,10 +236,9 @@
   cursor: not-allowed;
 }
 
-/* Các số trang */
 .pagination-numbers {
   display: flex;
-  gap: 8px; /* Khoảng cách giữa các số */
+  gap: 8px;
 }
 
 .pagination-number {
@@ -299,7 +246,7 @@
   height: 40px;
   padding: 0;
   border: 2px solid #e5e5e5;
-  border-radius: 50%; /* Hình tròn */
+  border-radius: 50%;
   background-color: #fff;
   color: #8b5a2b;
   font-weight: 600;
@@ -324,6 +271,22 @@
 
 /* Responsive Design */
 @media (max-width: 576px) {
+  .banner-title {
+    font-size: 1.8rem;
+  }
+
+  .categories-bouquet-image {
+    height: 150px;
+  }
+
+  .categories-bouquet-title {
+    font-size: 0.95rem;
+  }
+
+  .categories-bouquet-price {
+    font-size: 0.9rem;
+  }
+
   .pagination-controls {
     margin-top: 20px;
     gap: 5px;
