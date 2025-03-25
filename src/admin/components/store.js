@@ -42,7 +42,6 @@ export const useDeleteStore = create((set) => ({
 
 // Tạo store cho danh mục
 export const useCategoryStore = create((set) => ({
-  selectedCategory: null, // Lưu trữ danh mục đã chọn (có thể là object hoặc chỉ _id)
+  selectedCategory: null,
   setSelectedCategory: (category) => set({ selectedCategory: category }),
-  clearSelectedCategory: () => set({ selectedCategory: null }),
 }));

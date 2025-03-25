@@ -7,11 +7,14 @@ import { Outlet, useLocation } from "react-router-dom";
 import logo from "../assets/logo.svg";
 import flower from "../assets/flower.svg";
 import { createTheme } from "@mui/material/styles";
+import { useAuth } from "../AuthContext"; // Thay bằng đường dẫn thực tế
 import SidebarFooterAccount from "./SidebarFooterAccount";
 import BC from "../components/breadcrumb/index";
 import "./style.css";
 
 export default function AdminLayout(props) {
+  const { user, loading } = useAuth();
+  console.log(user)
   const theme = createTheme({
     palette: {
       primary: { main: "#1976d2" },
@@ -37,12 +40,21 @@ export default function AdminLayout(props) {
   const demoWindow = window?.() || undefined;
   const location = useLocation();
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <AppProvider
       navigation={NAVIGATION.filter((item) => !item.hidden)}
       branding={{
         logo: (
-          <img src={logo} alt="Logo" style={{ width: "100%" }} className="Logo" />
+          <img
+            src={logo}
+            alt="Logo"
+            style={{ width: "100%", maxWidth: 200, padding: "8px" }}
+            className="Logo"
+          />
         ),
         title: (
           <span
@@ -82,27 +94,20 @@ export default function AdminLayout(props) {
       window={demoWindow}
     >
       <DashboardLayout
-        sidebarExpandedWidth={240}
+        sidebarExpandedWidth={280}
+        sidebarCollapsedWidth={80}
         slots={{
-          sidebarFooter: (props) => {
-            console.log("Rendering SidebarFooterAccount with props:", props);
-            return <SidebarFooterAccount mini={props.mini} />;
-          },
+          sidebarFooter: SidebarFooterAccount, // Truyền component, không gọi hàm
         }}
         slotProps={{
-          sidebar: {
-            sx: {
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              height: "100vh",
-            },
-          },
+          sidebarFooter: { user: user }, // Truyền data như prop 'user'
         }}
       >
         <PageContainer
           style={{
             maxWidth: 1600,
+            padding: "16px",
+            margin: "0 auto",
             transition: "margin-left 0.3s ease-in-out",
             willChange: "margin-left",
           }}

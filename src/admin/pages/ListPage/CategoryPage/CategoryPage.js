@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Paper,
   Table,
@@ -20,6 +20,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  TextField,
 } from "@mui/material";
 import { get, patch } from "../../../../share/utils/http";
 import { getLocalStorage } from "../../../../share/hepler/localStorage";
@@ -29,6 +30,7 @@ import Filter from "./filter";
 import NotificationAndDialog, {
   showNotification,
 } from "../../../components/NotificationAndDialog/index.js";
+import { useSearchStore } from "../../../components/store";
 
 // Skeleton cho loading
 const SkeletonRow = () => (
@@ -81,7 +83,6 @@ const formatDate = (date) => new Date(date).toLocaleDateString("vi-VN");
 
 const hasInactiveParent = (category, allCategories) => {
   if (!category.parentId) return false;
-
   const parent = allCategories.find((cat) => cat.id === category.parentId);
   if (!parent) return false;
   return (
@@ -124,6 +125,22 @@ const updateCategoryStatus = (categories, idToUpdate, newStatus) => {
   });
 };
 
+// Hàm cập nhật tiêu đề danh mục trong danh sách
+const updateCategoryTitle = (categories, idToUpdate, newTitle) => {
+  return categories.map((cat) => {
+    if (cat.id === idToUpdate) {
+      return { ...cat, title: newTitle };
+    }
+    if (cat.children && cat.children.length > 0) {
+      return {
+        ...cat,
+        children: updateCategoryTitle(cat.children, idToUpdate, newTitle),
+      };
+    }
+    return cat;
+  });
+};
+
 const filterCategoriesByStatus = (categories) => {
   return categories
     .filter((cat) => ["active", "inactive"].includes(cat.status))
@@ -133,12 +150,30 @@ const filterCategoriesByStatus = (categories) => {
     }));
 };
 
-// Hàm ánh xạ đệ quy cho danh mục và danh mục con
+// Hàm lọc danh mục theo từ khóa tìm kiếm
+const filterCategoriesBySearch = (categories, searchTerm) => {
+  const searchLower = searchTerm.toLowerCase().trim();
+  return categories
+    .filter((cat) =>
+      cat.title.toLowerCase().includes(searchLower) ||
+      (cat.children &&
+        cat.children.some((child) =>
+          filterCategoriesBySearch([child], searchLower).length > 0
+        ))
+    )
+    .map((cat) => ({
+      ...cat,
+      children: cat.children
+        ? filterCategoriesBySearch(cat.children, searchLower)
+        : [],
+    }));
+};
+
 const formatCategoryData = (categories) => {
   return categories.map((row) => ({
     ...row,
-    id: row._id || row.id, // Ánh xạ id cho danh mục hiện tại
-    children: row.children ? formatCategoryData(row.children) : [], // Ánh xạ đệ quy cho children
+    id: row._id || row.id,
+    children: row.children ? formatCategoryData(row.children) : [],
   }));
 };
 
@@ -147,11 +182,11 @@ const CategoryRow = ({
   depth = 0,
   handleDelete,
   handleToggleStatus,
+  handleEdit,
   navigate,
   isLastChild = false,
   allCategories,
 }) => {
-  console.log("row trong CategoryRow:", row);
   const [open] = useState(true);
   const hasChildren = row.children && row.children.length > 0;
   const isInactiveDueToParent = hasInactiveParent(row, allCategories);
@@ -249,10 +284,11 @@ const CategoryRow = ({
         </TableCell>
         <TableCell align="center" sx={{ width: "150px", padding: "8px" }}>
           <span
-            className={`status-indicator ${row.status === "active" ? "active" : "inactive"}`}
+            className={`status-indicator ${
+              row.status === "active" ? "active" : "inactive"
+            }`}
             onClick={() => {
               if (!isInactiveDueToParent) {
-                console.log("ID trước khi gọi handleToggleStatus:", row.id);
                 handleToggleStatus(row.id, row.status);
               }
             }}
@@ -291,7 +327,7 @@ const CategoryRow = ({
               onClick={(e) => {
                 if (!isInactiveDueToParent) {
                   e.stopPropagation();
-                  navigate(`/admin/categories/edit/${row.id}`);
+                  handleEdit(row); // Gọi hàm handleEdit thay vì navigate
                 }
               }}
             >
@@ -329,6 +365,7 @@ const CategoryRow = ({
                       depth={depth + 1}
                       handleDelete={handleDelete}
                       handleToggleStatus={handleToggleStatus}
+                      handleEdit={handleEdit}
                       navigate={navigate}
                       isLastChild={index === row.children.length - 1}
                       allCategories={allCategories}
@@ -345,7 +382,8 @@ const CategoryRow = ({
 };
 
 export default function CategoryListPage() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState([]); // Dữ liệu gốc từ server
+  const [filteredData, setFilteredData] = useState([]); // Dữ liệu đã lọc để hiển thị
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState({
@@ -357,8 +395,49 @@ export default function CategoryListPage() {
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [productDialogOpen, setProductDialogOpen] = useState(false);
   const [categoryWithProducts, setCategoryWithProducts] = useState(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false); // State cho popup chỉnh sửa
+  const [categoryToEdit, setCategoryToEdit] = useState(null); // Danh mục đang chỉnh sửa
+  const [editTitle, setEditTitle] = useState(""); // Tiêu đề mới
   const token = getLocalStorage("token");
   const navigate = useNavigate();
+
+  // Lấy searchTerm từ store
+  const { searchTerm } = useSearchStore();
+
+  // Hàm lấy dữ liệu từ server
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const result = await get(token, `/admin/categories?search=`); // Có thể thêm query search nếu cần
+      if (result.data?.length) {
+        const formattedData = formatCategoryData(result.data);
+        setData(filterCategoriesByStatus(formattedData));
+        setFilteredData(filterCategoriesByStatus(formattedData)); // Ban đầu hiển thị toàn bộ
+      } else {
+        setData([]);
+        setFilteredData([]);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Lọc dữ liệu khi searchTerm thay đổi
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = filterCategoriesBySearch(data, searchTerm);
+      setFilteredData(filtered);
+    } else {
+      setFilteredData(data); // Nếu không có từ khóa, hiển thị toàn bộ dữ liệu gốc
+    }
+  }, [searchTerm, data]);
+
+  // Tải dữ liệu ban đầu
+  useEffect(() => {
+    fetchData();
+  }, [token]);
 
   const handleDelete = async (id) => {
     const category = findCategoryById(data, id);
@@ -435,7 +514,6 @@ export default function CategoryListPage() {
   };
 
   const handleToggleStatus = async (id, currentStatus) => {
-    console.log("ID trong handleToggleStatus:", id);
     if (!id) {
       showNotification(
         setNotification,
@@ -461,7 +539,9 @@ export default function CategoryListPage() {
         });
         showNotification(
           setNotification,
-          `Đã chuyển trạng thái thành ${newStatus === "active" ? "Đang hoạt động" : "Dừng hoạt động"}!`,
+          `Đã chuyển trạng thái thành ${
+            newStatus === "active" ? "Đang hoạt động" : "Dừng hoạt động"
+          }!`,
           "success"
         );
       } else {
@@ -476,27 +556,60 @@ export default function CategoryListPage() {
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const result = await get(token, `/admin/categories?search=`);
-        console.log("Dữ liệu gốc từ server:", result.data);
-        if (result.data?.length) {
-          const formattedData = formatCategoryData(result.data);
-          console.log("Dữ liệu sau khi ánh xạ:", formattedData);
-          setData(filterCategoriesByStatus(formattedData));
-        } else {
-          setData([]);
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  // Hàm xử lý khi nhấn vào nút chỉnh sửa
+  const handleEdit = (category) => {
+    setCategoryToEdit(category);
+    setEditTitle(category.title); // Đặt tiêu đề hiện tại vào input
+    setEditDialogOpen(true);
+  };
+
+  // Hàm xử lý cập nhật danh mục
+  const confirmEdit = async () => {
+    if (!categoryToEdit || !editTitle.trim()) {
+      showNotification(
+        setNotification,
+        "Tiêu đề danh mục không được để trống!",
+        "error"
+      );
+      return;
+    }
+
+    try {
+      const response = await patch(
+        token,
+        `/admin/categories/${categoryToEdit.id}`,
+        { title: editTitle },
+        { "Content-Type": "application/json" }
+      );
+      if (response.data) {
+        setData((prevData) => {
+          const updatedData = updateCategoryTitle(
+            prevData,
+            categoryToEdit.id,
+            editTitle
+          );
+          return [...updatedData];
+        });
+        showNotification(
+          setNotification,
+          "Cập nhật danh mục thành công!",
+          "success"
+        );
+      } else {
+        throw new Error("Cập nhật danh mục thất bại!");
       }
-    };
-    fetchData();
-  }, [token]);
+    } catch (err) {
+      showNotification(
+        setNotification,
+        err.message || "Cập nhật danh mục thất bại!",
+        "error"
+      );
+    } finally {
+      setEditDialogOpen(false);
+      setCategoryToEdit(null);
+      setEditTitle("");
+    }
+  };
 
   return (
     <Paper sx={{ height: "100%", width: "100%" }}>
@@ -584,13 +697,14 @@ export default function CategoryListPage() {
                   </TableCell>
                 </TableRow>
               ))
-            ) : data.length > 0 ? (
-              data.map((row) => (
+            ) : filteredData.length > 0 ? (
+              filteredData.map((row) => (
                 <CategoryRow
                   key={row.id}
                   row={row}
                   handleDelete={handleDelete}
                   handleToggleStatus={handleToggleStatus}
+                  handleEdit={handleEdit}
                   navigate={navigate}
                   allCategories={data}
                 />
@@ -598,7 +712,7 @@ export default function CategoryListPage() {
             ) : (
               <TableRow>
                 <TableCell colSpan={6} align="center">
-                  Không có dữ liệu
+                  Không có dữ liệu phù hợp
                 </TableCell>
               </TableRow>
             )}
@@ -606,6 +720,7 @@ export default function CategoryListPage() {
         </Table>
       </TableContainer>
 
+      {/* Dialog xác nhận xóa */}
       <NotificationAndDialog
         openNotification={notification.open}
         setOpenNotification={(value) =>
@@ -621,6 +736,7 @@ export default function CategoryListPage() {
         onCancel={() => setDialogOpen(false)}
       />
 
+      {/* Dialog cảnh báo danh mục chứa sản phẩm */}
       <Dialog
         open={productDialogOpen}
         onClose={() => setProductDialogOpen(false)}
@@ -691,6 +807,45 @@ export default function CategoryListPage() {
             variant="contained"
           >
             Quản lý sản phẩm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog chỉnh sửa danh mục */}
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
+        <DialogTitle>Chỉnh sửa danh mục</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Vui lòng nhập tiêu đề mới cho danh mục{" "}
+            <strong>{categoryToEdit?.title}</strong>.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Tiêu đề danh mục"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setEditDialogOpen(false)}
+            color="primary"
+            variant="outlined"
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={confirmEdit}
+            color="primary"
+            variant="contained"
+            disabled={!editTitle.trim()} // Vô hiệu hóa nút nếu tiêu đề trống
+          >
+            Cập nhật
           </Button>
         </DialogActions>
       </Dialog>

@@ -13,6 +13,10 @@ function SidebarPreview(props) {
         variant={mini ? "condensed" : "expanded"}
         handleClick={handleClick}
         open={open}
+        sx={{
+          width: "100%",
+          padding: "8px",
+        }}
       />
     </Stack>
   );

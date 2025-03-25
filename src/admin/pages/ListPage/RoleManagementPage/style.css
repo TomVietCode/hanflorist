@@ -1,7 +1,38 @@
 /* styles.css */
+
+/* Căn giữa nội dung trong ô */
+.center-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* CSS cho ô của DataGrid */
+.MuiDataGrid-cell {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Style cho hover-cell */
+.hover-cell {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+  padding: 0 10px;
+  overflow: hidden;
+  font-size: 17px;
+}
+
 /* Hiển thị nội dung khi hover vào ô */
 .MuiDataGrid-root .hover-cell:hover .hover-content {
   opacity: 1 !important;
+  visibility: visible !important;
   transform: translateY(-15px);
 }
 
@@ -11,104 +42,107 @@
   color: rgb(77, 77, 237);
 }
 
-/* Căn giữa nội dung trong ô */
-.center-cell {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-/* css filter */
-.MuiDataGrid-cell {
-  white-space: nowrap; /* Ngăn chặn xuống dòng */
-  overflow: hidden; /* Ẩn nội dung tràn */
-  text-overflow: ellipsis; /* Hiển thị dấu "..." khi tràn */
+/* Style cho hover-title */
+.hover-title {
+  transition: transform 0.3s ease-in-out, color 0.3s ease-in-out;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  cursor: pointer;
 }
 
-.box_icon{
+/* Style cho hover-content */
+.hover-content {
+  position: absolute;
+  left: 10px;
+  bottom: -10px;
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out, transform 0.3s ease-in-out;
+  padding: 5px;
+}
+
+/* Style cho box_icon */
+.box_icon {
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 5px;
   cursor: pointer;
   height: 35px;
+  width: 35px;
   transition: all 0.3s ease;
+  border: 1px solid transparent; /* Thêm viền mặc định */
 }
-.bi1:hover{
+
+/* Style cho các nút cụ thể */
+.box_icon.bi1 {
+  border-color: #17a2b8;
+  color: #17a2b8;
+}
+.box_icon.bi1:hover {
   color: white !important;
   background-color: #17a2b8;
+  border-color: #17a2b8;
 }
-.bi2:hover{
+
+.box_icon.bi2 {
+  border-color: #ffc107;
+  color: #ffc107;
+}
+.box_icon.bi2:hover {
   color: white !important;
   background-color: #ffc107;
+  border-color: #ffc107;
 }
-.bi3:hover{
+
+.box_icon.bi3 {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+.box_icon.bi3:hover {
   color: white !important;
   background-color: #dc3545;
+  border-color: #dc3545;
 }
-.fix_bi2{
-  margin-right: 6px;
-}
-.icon{
+
+.icon {
   margin: 5px;
+  font-size: 20px; /* Tăng kích thước icon cho rõ ràng hơn */
 }
 
-.icon_reset{
-  margin: 5px;
-}
-
-.botton_reset :hover{
-  background-color: #1976d2 !important;
-  color: aliceblue !important;
-}
-
-
-.botton_delete :hover{
-  background-color: #1976d2;
-  color: aliceblue !important;
-}
-
-
-/* Css active bottom */
+/* CSS cho status-indicator */
 .status-indicator {
   padding: 6px 12px;
   border-radius: 20px;
   font-weight: 500;
-  margin: 0 10px;
   cursor: pointer;
   text-align: center;
-  transition: color 0.3s ease, border-color 0.3s ease; 
+  transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
 }
 
 .status-indicator.active {
-  color: #4caf50; 
-  border: solid 1px #4caf50; 
+  color: #4caf50;
+  border: solid 1px #4caf50;
 }
 
 .status-indicator.inactive {
-  color: #f44336; 
+  color: #f44336;
   border: solid 1px #f44336;
 }
 
-/* Hiệu ứng hover */
+/* Hiệu ứng hover cho status-indicator */
 .status-indicator.active:hover {
-  color: white; 
+  color: white;
   border-color: #4caf50;
-  background-color: #4caf50; 
+  background-color: #4caf50;
 }
 
 .status-indicator.inactive:hover {
-  color: white; 
+  color: white;
   border-color: #f44336;
-  background-color: #f44336; 
+  background-color: #f44336;
 }
-
-.css-1gd5lh1-MuiPaper-root{
-  margin-top: 0 !important;
-  padding: 0 !important;
-}
-.css-14vrnb9-MuiDataGrid-root{
-  border-radius : 0 !important;
-}
-
-
-

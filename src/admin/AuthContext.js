@@ -15,17 +15,18 @@ export const AuthProvider = ({ children }) => {
         },
       });
       const data = await response.json();
-      console.log("Fetch user response:", data);
+      console.log("Fetch user response:", data.data);
+      
       if (response.ok) {
         setUser({
-          name: data.name || "Người dùng",
-          email: data.email || "Không có email",
-          avatar: data.avatar || "https://via.placeholder.com/40",
-          username: data.username || "Không có tên người dùng",
-          role: data.role || "Không có vai trò",
-          status: data.status || "Không có trạng thái",
-          createdAt: data.createdAt || new Date().toISOString(),
-          updatedAt: data.updatedAt || new Date().toISOString(),
+          name: data.data.name || "Người dùng",
+          email: data.data.email || "Không có email",
+          avatar: data.data.avatar || "https://via.placeholder.com/40",
+          username: data.data.username || "Không có tên người dùng",
+          role: data.data.role || "Không có vai trò",
+          status: data.data.status || "Không có trạng thái",
+          createdAt: data.data.createdAt || new Date().toISOString(),
+          updatedAt: data.data.updatedAt || new Date().toISOString(),
         });
       } else {
         console.error("Failed to fetch user:", data.message);

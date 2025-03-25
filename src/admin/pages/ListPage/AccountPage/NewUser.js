@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Container,
@@ -14,30 +14,76 @@ import {
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import Notification, { showSuccess, showError } from "../../../components/Notification/index"; // Giả sử file Notification.js cùng thư mục
 
 const UserAddPage = () => {
   const [user, setUser] = useState({
     name: "",
     email: "",
-    username: "", // Thêm trường username
-    password: "", // Thêm trường password
-    roleId: "admin", // Giá trị mặc định là admin
+    username: "",
+    password: "",
+    roleId: "", // Để trống ban đầu, sẽ được cập nhật sau khi lấy roles
     status: "active",
   });
-  const [error, setError] = useState(null);
+  const [roles, setRoles] = useState([]); // State để lưu danh sách roles từ backend
+  const [notificationState, setNotificationState] = useState({
+    open: false,
+    severity: "success",
+    message: "",
+  });
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
+  // Xử lý đóng thông báo
+  const handleCloseNotification = () => {
+    setNotificationState({ ...notificationState, open: false });
+  };
+
+  // Lấy danh sách roles từ backend
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await fetch("http://localhost:3001/admin/roles", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Lỗi khi lấy danh sách vai trò");
+        }
+
+        const result = await response.json();
+        const rolesData = result.data || [];
+        setRoles(rolesData);
+
+        // Nếu có roles, set roleId mặc định là role đầu tiên
+        if (rolesData.length > 0) {
+          setUser((prev) => ({ ...prev, roleId: rolesData[0]._id }));
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách vai trò:", error);
+        showError("Không thể lấy danh sách vai trò: " + error.message, setNotificationState);
+      }
+    };
+
+    if (token) {
+      fetchRoles();
+    } else {
+      showError("Bạn cần đăng nhập để thực hiện hành động này!", setNotificationState);
+    }
+  }, [token]);
+
   // Hàm kiểm tra form hợp lệ
   const isFormValid = () => {
     return (
-      user.name.trim() !== "" && // Họ tên không rỗng
-      user.email.trim() !== "" && // Email không rỗng
-      user.username.trim() !== "" && // Tên tài khoản không rỗng
-      user.password.trim() !== "" && // Mật khẩu không rỗng
-      user.roleId !== "" && // Phân quyền không rỗng
-      user.status !== "" // Trạng thái không rỗng
+      user.name.trim() !== "" &&
+      user.email.trim() !== "" &&
+      user.username.trim() !== "" &&
+      user.password.trim() !== "" &&
+      user.roleId !== "" &&
+      user.status !== ""
     );
   };
 
@@ -49,7 +95,7 @@ const UserAddPage = () => {
   // Xử lý submit form
   const handleSubmit = async () => {
     if (!token) {
-      setError("Bạn cần đăng nhập để thực hiện hành động này!");
+      showError("Bạn cần đăng nhập để thực hiện hành động này!", setNotificationState);
       return;
     }
 
@@ -66,9 +112,9 @@ const UserAddPage = () => {
         body: JSON.stringify({
           name: user.name,
           email: user.email,
-          username: user.username, // Thêm username vào body
-          password: user.password, // Thêm password vào body
-          roleId: user.roleId, // Giá trị sẽ là "admin" hoặc "client"
+          username: user.username,
+          password: user.password,
+          roleId: user.roleId, // Gửi roleId là _id của role
           status: user.status,
         }),
       });
@@ -80,21 +126,23 @@ const UserAddPage = () => {
       const result = await response.json();
 
       if (result.data) {
-        setError(null);
+        showSuccess("Tạo tài khoản thành công!", setNotificationState);
         setUser({
           name: "",
           email: "",
-          username: "", // Reset username
-          password: "", // Reset password
-          roleId: "admin",
+          username: "",
+          password: "",
+          roleId: roles.length > 0 ? roles[0]._id : "", // Reset về role đầu tiên
           status: "active",
         });
-        // Điều hướng về trang danh sách người dùng
-        navigate("/admin/users");
+        // Điều hướng về trang danh sách người dùng sau 2 giây
+        setTimeout(() => {
+          navigate("/admin/users");
+        }, 2000);
       }
     } catch (error) {
       console.error("Lỗi khi tạo tài khoản:", error);
-      setError(error.message || "Tạo mới tài khoản thất bại");
+      showError(error.message || "Tạo mới tài khoản thất bại", setNotificationState);
     }
   };
 
@@ -245,9 +293,13 @@ const UserAddPage = () => {
                       border: "none",
                     },
                   }}
+                  disabled={roles.length === 0} // Vô hiệu hóa nếu không có roles
                 >
-                  <MenuItem value="admin">Quản trị viên</MenuItem>
-                  <MenuItem value="client">Người dùng</MenuItem>
+                  {roles.map((role) => (
+                    <MenuItem key={role._id} value={role._id}>
+                      {role.title}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
@@ -330,7 +382,7 @@ const UserAddPage = () => {
                   borderRadius: "20px",
                   "&:hover": { backgroundColor: "#1565c0" },
                   "&.Mui-disabled": {
-                    backgroundColor: "#bdbdbd", // Màu khi bị vô hiệu hóa
+                    backgroundColor: "#bdbdbd",
                     color: "#fff",
                   },
                 }}
@@ -338,18 +390,17 @@ const UserAddPage = () => {
                 Thêm tài khoản
               </Button>
             </Grid>
-
-            {/* Thông báo lỗi */}
-            {error && (
-              <Grid item xs={12}>
-                <Typography color="error" sx={{ mt: 2, textAlign: "center" }}>
-                  {error}
-                </Typography>
-              </Grid>
-            )}
           </Grid>
         </CardContent>
       </Card>
+
+      {/* Thông báo */}
+      <Notification
+        open={notificationState.open}
+        severity={notificationState.severity}
+        message={notificationState.message}
+        onClose={handleCloseNotification}
+      />
     </Container>
   );
 };

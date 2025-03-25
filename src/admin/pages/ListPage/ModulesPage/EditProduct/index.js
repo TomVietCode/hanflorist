@@ -25,31 +25,35 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { Editor } from "@tinymce/tinymce-react";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CategorySelect from "../../CategoryPage/CateforySelect.js";
 import NotificationAndDialog, {
   showNotification,
-} from "../../../../components/NotificationAndDialog/index.js"; // Import component thông báo
+} from "../../../../components/NotificationAndDialog/index.js";
+import { useCategoryStore } from "../../../../components/store.js";
 import "./style.css";
 
 const EditProductPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
+  const [currentCategoryId, setCurrentCategoryId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isFeatured, setIsFeatured] = useState(false);
   const [description, setDescription] = useState("");
+  const { selectedCategory, setSelectedCategory } = useCategoryStore();
 
-  // State cho thông báo
   const [openNotification, setOpenNotification] = useState({
     open: false,
     message: "",
     severity: "success",
   });
 
+  const [categories, setCategories] = useState([]);
+  const [openCategorySelect, setOpenCategorySelect] = useState(false);
+  const token = localStorage.getItem("token");
+
   const fetchProductById = async (productId) => {
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch(
         `http://localhost:3001/admin/products/${productId}`,
         {
@@ -64,8 +68,17 @@ const EditProductPage = () => {
         throw new Error(`Error: ${response.statusText}`);
       }
       const data = await response.json();
-      setProduct(data.data);
-      setIsFeatured(data.data.isFeatured || false);
+      const productData = data.data;
+      console.log("Product Data:", productData);
+      console.log("Category ID from API:", productData.category);
+      setProduct(productData);
+      setIsFeatured(productData.isFeatured || false);
+      // Nếu category là object, lấy _id; nếu là string, dùng trực tiếp
+      const categoryId = typeof productData.category === "object" && productData.category?._id
+        ? productData.category._id
+        : productData.category || null;
+      setCurrentCategoryId(categoryId);
+      setDescription(productData.description || "Chưa có mô tả");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -73,13 +86,59 @@ const EditProductPage = () => {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`http://localhost:3001/admin/categories`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+      const result = await response.json();
+      const activeCategories = (result.data || []).filter(
+        (category) => category.status === "active"
+      );
+      console.log("Categories:", activeCategories);
+      setCategories(activeCategories);
+    } catch (err) {
+      console.error("Lỗi khi lấy danh mục:", err);
+    }
+  };
+
   useEffect(() => {
-    fetchProductById(id);
+    const loadData = async () => {
+      await fetchCategories(); // Tải danh mục trước
+      await fetchProductById(id); // Sau đó tải sản phẩm
+    };
+    loadData();
   }, [id]);
 
   useEffect(() => {
-    setDescription(product?.description || "Chưa có mô tả");
-  }, [product?.description]);
+    if (currentCategoryId && categories.length > 0) {
+      const findCategoryById = (categories, id) => {
+        for (const category of categories) {
+          if (category._id === id) return category;
+          if (category.children && category.children.length > 0) {
+            const found = findCategoryById(category.children, id);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      const category = findCategoryById(categories, currentCategoryId);
+      console.log("Found Category:", category);
+      if (category) {
+        setSelectedCategory(category); // Luôn đặt lại selectedCategory nếu tìm thấy
+      } else {
+        console.warn(`Không tìm thấy danh mục với ID: ${currentCategoryId}`);
+        setSelectedCategory(null); // Reset nếu không tìm thấy
+      }
+    }
+  }, [currentCategoryId, categories, setSelectedCategory]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -89,10 +148,7 @@ const EditProductPage = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setProduct({
-        ...product,
-        thumbnail: file,
-      });
+      setProduct({ ...product, thumbnail: file });
     }
   };
 
@@ -106,13 +162,88 @@ const EditProductPage = () => {
     }
   };
 
-  const handleCategoryChange = (category) => {
-    setProduct((prev) => ({ ...prev, category: category._id }));
+  const handleSelectCategory = (category) => {
+    if (
+      (!category.children || category.children.length === 0) &&
+      category.status === "active"
+    ) {
+      setProduct((prev) => ({ ...prev, category: category._id }));
+      setSelectedCategory(category);
+      setCurrentCategoryId(category._id);
+      setOpenCategorySelect(false);
+    }
+  };
+
+  const flattenCategories = (cats, depth = 0) => {
+    let flat = [];
+    cats.forEach((cat) => {
+      if (cat.status === "active") {
+        flat.push({ ...cat, depth, isParent: !cat.parentId });
+        if (cat.children && cat.children.length > 0) {
+          flat = flat.concat(flattenCategories(cat.children, depth + 1));
+        }
+      }
+    });
+    return flat;
+  };
+
+  const renderCategories = () => {
+    const flatCategories = flattenCategories(categories);
+    if (flatCategories.length === 0) {
+      return (
+        <MenuItem disabled>
+          <Typography variant="body2">Không có danh mục đang hoạt động</Typography>
+        </MenuItem>
+      );
+    }
+
+    return flatCategories.map((category) => {
+      const isSelected = selectedCategory?._id === category._id;
+      const isParent = category.isParent;
+      const hasChildren = category.children && category.children.length > 0;
+
+      return (
+        <MenuItem
+          key={category._id}
+          value={category._id}
+          disabled={hasChildren}
+          sx={{
+            pl: 2 + category.depth * 2,
+            fontWeight: isParent ? "bold" : "normal",
+            backgroundColor: isSelected
+              ? "#e3f2fd"
+              : isParent
+              ? "#f0f4f8"
+              : "#fafafa",
+            "&:hover": {
+              backgroundColor: isParent ? "#e8eef4" : "#e0f7fa",
+            },
+            borderBottom: "1px solid #e0e0e0",
+            "&.Mui-disabled": {
+              opacity: 0.6,
+              cursor: "not-allowed",
+              backgroundColor: "#f0f4f8",
+            },
+            transition: "background-color 0.2s ease",
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSelectCategory(category);
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{ flexGrow: 1, whiteSpace: "normal", wordBreak: "break-word" }}
+          >
+            {category.title}
+          </Typography>
+        </MenuItem>
+      );
+    });
   };
 
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem("token");
       const baseUrl = "http://localhost:3001";
       const path = `/admin/products/${id}`;
 
@@ -144,12 +275,11 @@ const EditProductPage = () => {
       const result = await response.json();
       console.log("Sản phẩm đã được cập nhật:", result.data);
       setError(null);
-      showNotification(setOpenNotification, "Cập nhật sản phẩm thành công", "success"); // Hiển thị thông báo thành công
-      
-      // Trì hoãn chuyển hướng để thông báo hiển thị trong 2 giây
+      showNotification(setOpenNotification, "Cập nhật sản phẩm thành công", "success");
+
       setTimeout(() => {
         navigate("/admin/products");
-      }, 2000); // Chuyển hướng sau 2 giây
+      }, 2000);
     } catch (error) {
       console.error("Lỗi khi cập nhật sản phẩm:", error);
       setError(error.message || "Cập nhật sản phẩm thất bại");
@@ -157,7 +287,7 @@ const EditProductPage = () => {
         setOpenNotification,
         error.message || "Cập nhật sản phẩm thất bại",
         "error"
-      ); // Hiển thị thông báo lỗi
+      );
     }
   };
 
@@ -207,11 +337,7 @@ const EditProductPage = () => {
                       },
                     },
                   }}
-                  InputProps={{
-                    style: {
-                      height: "2.5rem",
-                    },
-                  }}
+                  InputProps={{ style: { height: "2.5rem" } }}
                 />
               </Grid>
 
@@ -256,9 +382,7 @@ const EditProductPage = () => {
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    "&:hover": {
-                      cursor: "pointer",
-                    },
+                    "&:hover": { cursor: "pointer" },
                   }}
                 >
                   Hình ảnh
@@ -282,9 +406,7 @@ const EditProductPage = () => {
                         ? "2px solid #1565c0"
                         : "2px dashed #ccc",
                       position: "relative",
-                      "&:hover .delete-icon": {
-                        opacity: 1,
-                      },
+                      "&:hover .delete-icon": { opacity: 1 },
                     }}
                   >
                     {product?.thumbnail ? (
@@ -308,9 +430,7 @@ const EditProductPage = () => {
                             transform: "translate(-50%, -50%)",
                             backgroundColor: "rgba(0,0,0,0.5)",
                             opacity: 0,
-                            "&:hover": {
-                              backgroundColor: "rgba(0,0,0,0.7)",
-                            },
+                            "&:hover": { backgroundColor: "rgba(0,0,0,0.7)" },
                             transition: "opacity 0.3s ease",
                             zIndex: 2,
                           }}
@@ -388,9 +508,7 @@ const EditProductPage = () => {
                       endAdornment: (
                         <InputAdornment position="end">VND</InputAdornment>
                       ),
-                      style: {
-                        height: "2.5rem",
-                      },
+                      style: { height: "2.5rem" },
                     }}
                   />
                 </Grid>
@@ -418,9 +536,7 @@ const EditProductPage = () => {
                       endAdornment: (
                         <InputAdornment position="end">%</InputAdornment>
                       ),
-                      style: {
-                        height: "2.5rem",
-                      },
+                      style: { height: "2.5rem" },
                     }}
                   />
                 </Grid>
@@ -447,11 +563,7 @@ const EditProductPage = () => {
                         },
                       },
                     }}
-                    InputProps={{
-                      style: {
-                        height: "2.5rem",
-                      },
-                    }}
+                    InputProps={{ style: { height: "2.5rem" } }}
                   />
                 </Grid>
               </Grid>
@@ -463,61 +575,60 @@ const EditProductPage = () => {
                 alignItems="center"
               >
                 <Grid item xs={5}>
-                  <CategorySelect onCategoryChange={handleCategoryChange} />
-                </Grid>
-
-                <Grid
-                  item
-                  xs={5}
-                  display="flex"
-                  justifyContent="center"
-                  sx={{ marginTop: "2.1rem" }}
-                >
-                  <FormControlLabel
-                    sx={{
-                      border: "1px solid #ccc",
-                      borderRadius: "100px",
-                      width: "12rem",
-                      transition: "0.3s",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      userSelect: "none",
-                      "&:hover": {
-                        borderColor: "#4CAF50",
+                  <Typography variant="h6" gutterBottom>
+                    Danh mục sản phẩm
+                  </Typography>
+                  <FormControl fullWidth>
+                    <Select
+                      open={openCategorySelect}
+                      onOpen={() => setOpenCategorySelect(true)}
+                      onClose={() => setOpenCategorySelect(false)}
+                      value={selectedCategory?._id || ""}
+                      displayEmpty
+                      renderValue={() => {
+                        console.log("Selected Category in render:", selectedCategory);
+                        return categories.length === 0
+                          ? "Chưa có danh mục đang hoạt động"
+                          : selectedCategory
+                          ? selectedCategory.title
+                          : "Chưa chọn danh mục";
+                      }}
+                      sx={{
+                        borderRadius: 1,
+                        height: "2.5rem",
                         backgroundColor: "#f5f5f5",
-                      },
-                      "&.checked": {
-                        backgroundColor: "#e8f5e9",
-                        borderColor: "#4CAF50",
-                      },
-                    }}
-                    control={
-                      <Checkbox
-                        checked={isFeatured}
-                        onChange={(e) => setIsFeatured(e.target.checked)}
-                        icon={
-                          <RadioButtonUncheckedIcon
-                            sx={{ marginBottom: "1px" }}
-                          />
-                        }
-                        checkedIcon={
-                          <CheckCircleIcon
-                            sx={{ color: "green", marginBottom: "1px" }}
-                          />
-                        }
-                      />
-                    }
-                    label="Sản phẩm nổi bật"
-                    className={isFeatured ? "checked" : ""}
-                  />
+                        "&:hover": { backgroundColor: "#e0e0e0" },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#e0e0e0",
+                        },
+                      }}
+                      MenuProps={{
+                        autoFocus: false,
+                        PaperProps: {
+                          sx: {
+                            maxHeight: "300px",
+                            overflowY: "auto",
+                            width: "300px",
+                            border: "1px solid #e0e0e0",
+                            borderRadius: 1,
+                            backgroundColor: "#fff",
+                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                          },
+                        },
+                        anchorOrigin: { vertical: "bottom", horizontal: "left" },
+                        transformOrigin: { vertical: "top", horizontal: "left" },
+                      }}
+                    >
+                      {renderCategories()}
+                    </Select>
+                  </FormControl>
                 </Grid>
               </Grid>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Danh mục và trạng thái */}
+        {/* Trạng thái */}
         <Grid item xs={12} md={3}>
           <Card sx={{ p: 0.5 }}>
             <CardContent>
@@ -538,31 +649,21 @@ const EditProductPage = () => {
                     borderRadius: 1,
                     border: "none",
                     height: "2.5rem",
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      border: "none",
-                    },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      border: "none",
-                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": { border: "none" },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": { border: "none" },
                   }}
                   className={
                     product?.status === "active"
                       ? "active"
                       : product?.status === "inactive"
-                        ? "inactive"
-                        : ""
+                      ? "inactive"
+                      : ""
                   }
                 >
-                  <MenuItem
-                    className="status-indicator-add active"
-                    value="active"
-                  >
+                  <MenuItem className="status-indicator-add active" value="active">
                     Hoạt động
                   </MenuItem>
-                  <MenuItem
-                    className="status-indicator-add inactive"
-                    value="inactive"
-                  >
+                  <MenuItem className="status-indicator-add inactive" value="inactive">
                     Dừng hoạt động
                   </MenuItem>
                 </Select>
@@ -573,11 +674,7 @@ const EditProductPage = () => {
           <Grid
             item
             xs={12}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              marginTop: "1rem",
-            }}
+            sx={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}
           >
             <Button
               variant="contained"
@@ -593,9 +690,7 @@ const EditProductPage = () => {
                 alignItems: "center",
                 fontSize: "1rem",
                 borderRadius: "20px",
-                "&:hover": {
-                  backgroundColor: "#ffc107",
-                },
+                "&:hover": { backgroundColor: "#ffc107" },
               }}
             >
               Lưu sản phẩm
@@ -609,7 +704,6 @@ const EditProductPage = () => {
         </Grid>
       </Grid>
 
-      {/* Component thông báo */}
       <NotificationAndDialog
         openNotification={openNotification.open}
         setOpenNotification={(value) =>
@@ -617,8 +711,8 @@ const EditProductPage = () => {
         }
         notificationMessage={openNotification.message}
         notificationSeverity={openNotification.severity}
-        dialogOpen={false} // Không cần dialog trong trang này
-        setDialogOpen={() => {}} // Placeholder cho prop bắt buộc
+        dialogOpen={false}
+        setDialogOpen={() => {}}
         dialogTitle=""
         dialogMessage=""
         onConfirm={() => {}}

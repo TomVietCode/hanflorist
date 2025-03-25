@@ -516,7 +516,7 @@ export default function ProductListPage() {
       try {
         let url = `/admin/products?search=${encodeURIComponent(
           searchTerm
-        )}&status=${statusTerm}&sort=${encodeURIComponent(sortTerm)}`;
+        )}&status=${statusTerm}&sort=${encodeURIComponent(sortTerm)}&limit=30`;
         const result = await get(token, url);
         if (result.data?.length) {
           let formattedData = result.data.map((row, index) => ({
@@ -528,6 +528,7 @@ export default function ProductListPage() {
           formattedData = sortData(formattedData, sortTerm);
           setData(formattedData);
           console.log(formattedData);
+          console.log("Số lượng sản phẩm nhận được:", formattedData.length);
         } else {
           setData([]);
         }
@@ -547,7 +548,7 @@ export default function ProductListPage() {
   }, [token, searchTerm, isActive, statusTerm, sortTerm]);
 
   return (
-    <Paper className="ProductListPage" sx={{ height: "100%", width: "100%" }}>
+    <Paper className="ProductListPage" sx={{ height:"100%", width: "100%" }}>
       {error && (
         <div style={{ color: "red", padding: "10px" }}>Error: {error}</div>
       )}
@@ -575,7 +576,7 @@ export default function ProductListPage() {
         slots={{
           loadingOverlay: () => (
             <div>
-              {[...Array(5)].map((_, index) => (
+              {[...Array(10)].map((_, index) => (
                 <SkeletonRow key={index} />
               ))}
             </div>
