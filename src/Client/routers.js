@@ -9,8 +9,9 @@ import ProfilePage from "./pages/ProfilePage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import ProtectedRoute from "./components/ProtectedRoute"; // Import ProtectedRoute
 import LoginSuccess from "./pages/LoginPage/loginSuccess";
-import ProductDetailPage from "./pages/ProductDetailPage";
-import SearchResultPage from "./pages/SearchResultPage";
+import OrderSuccess from "./pages/CheckoutPage/OrderSuccess";
+import ProductDetailPage from './pages/ProductDetailPage/index';
+import SearchResultPage from './pages/SearchResultPage/index';
 
 const routes = [
   {
@@ -68,12 +69,18 @@ const routes = [
   {
     path: "/checkout",
     element: (
-      <ProtectedRoute>
         <Layout>
           <CheckoutPage />
         </Layout>
-      </ProtectedRoute>
     ),
+  },
+  {
+    path: "/order-success",
+    element: (
+      <Layout>
+        <OrderSuccess />
+      </Layout>
+  ),
   },
   {
     path: "/change-password",

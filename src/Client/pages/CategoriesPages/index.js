@@ -184,8 +184,7 @@ function CategoriesPages() {
           priceValue: product.price,
           discount: product.discountPercentage || 0,
           stock: product.stock || 0,
-          category: product.category || "",
-          subCategory: product.subCategory || "",
+          categoryId: product.categoryId || "",
           priceRange: determinePriceRange(product.price),
           discountedPrice: product.discountPercentage
             ? calculateDiscountedPrice(
@@ -246,18 +245,7 @@ function CategoriesPages() {
   };
 
   const handleAddToCart = (product) => {
-    const currentInCart = getCartItemQuantity(product.id) || 0;
-    const totalQuantity = currentInCart + quantity;
-
-    if (totalQuantity > product.stock) {
-      alert(
-        `Không thể thêm vào giỏ hàng! Tổng số lượng (${totalQuantity}) vượt quá số lượng còn lại (${product.stock}).`
-      );
-      return;
-    }
-
-    addToCart(product, quantity);
-    setShowModal(false);
+    addToCart(product, 1);
   };
 
   const handleViewDetails = (product) => {

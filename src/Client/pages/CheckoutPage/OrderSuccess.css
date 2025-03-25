@@ -1,0 +1,23 @@
+/* src/pages/client/OrderSuccess.css */
+.order-success {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.success-title {
+  color: #28a745; /* Màu xanh thành công */
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+p {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+strong {
+  color: #007bff; /* Màu xanh nổi bật cho orderId */
+}

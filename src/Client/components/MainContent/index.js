@@ -72,7 +72,7 @@ function MainContent() {
       try {
         const response = await get("", "/v1/products");
         console.log("Products Response:", response);
-
+        
         const productData = Array.isArray(response)
           ? response
           : response?.data || [];
@@ -100,6 +100,7 @@ function MainContent() {
           .map((product) => ({
             ...product,
             discount: `${product.discount}% OFF`,
+            discountPercentage: product.discount,
             originalPrice: formatPrice(product.price),
             discountedPrice: calculateDiscountedPrice(
               product.price,
@@ -130,7 +131,6 @@ function MainContent() {
               "",
               `/v1/products/category/${category.slug}`
             );
-            console.log(`Products for category ${category.slug}:`, response);
 
             const productData = Array.isArray(response)
               ? response
@@ -184,6 +184,7 @@ function MainContent() {
   };
 
   const handleAddToCart = (product) => {
+    console.log(product.image)
     const currentInCart = getCartItemQuantity(product.id) || 0;
     const totalQuantity = currentInCart + quantity;
 
@@ -193,13 +194,12 @@ function MainContent() {
       );
       return;
     }
-
     addToCart(
       {
         id: product.id,
         title: product.title,
-        price: product.price, // Đảm bảo price là số
-        discountedPrice: product.discountedPrice || null,
+        priceValue: product.priceValue, 
+        discount: product.discountPercentage || 0,
         image: product.image,
         stock: product.stock,
       },

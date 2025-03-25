@@ -1,12 +1,14 @@
+// src/pages/client/CheckoutPage.js
 import React, { useState } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import "./CheckoutPage.css";
 import vietnamLocations from "../../../share/vietnamLocations";
+import { postPublic } from "../../../share/utils/http";
 import { useCart } from "../../context/CartContext";
 
 function CheckoutPage() {
-  const { cart, clearCart, isLoading } = useCart();
+  const { cart, clearCart } = useCart(); // clearCart nếu có trong CartContext
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: "",
@@ -19,9 +21,10 @@ function CheckoutPage() {
     deliveryDate: "",
     district: "",
     city: "",
-    paymentMethod: "cod",
+    paymentMethod: "COD",
     note: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -32,41 +35,55 @@ function CheckoutPage() {
     }));
   };
 
-  const calculateSubtotal = () => {
-    return cart.reduce((total, item) => {
-      const price = item.discountedPrice
-        ? parseFloat(item.discountedPrice.replace(/[^0-9]/g, ""))
-        : parseFloat(item.price.replace(/[^0-9]/g, ""));
-      return total + price * item.quantity;
-    }, 0);
-  };
+  const totalPayment = cart.totalAmount;
 
-  const calculateShippingFee = () => {
-    if (formData.receiveAtStore) return 0;
-    if (!formData.city) return 0;
-    if (formData.city === "Hà Nội" || formData.city === "TP Hồ Chí Minh") {
-      return 30000;
-    }
-    return 50000;
-  };
-
-  const subtotal = calculateSubtotal();
-  const shippingFee = calculateShippingFee();
-  const totalPrice = subtotal + shippingFee;
   const formatPrice = (price) => `${price.toLocaleString("vi-VN")} đ`;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    clearCart(); // Xóa giỏ hàng (localStorage hoặc database)
-    alert("Đơn hàng đã được đặt thành công!");
-    navigate("/");
+    setIsLoading(true);
+
+    // Chuẩn bị dữ liệu gửi lên backend
+    const orderData = {
+      cart: {
+        products: cart.products.map(item => ({
+          productId: item.productId._id,
+          quantity: item.quantity,
+          subTotal: item.subTotal
+        })),
+        totalAmount: cart.totalAmount || 1
+      },
+      shippingInfo: {
+        name: formData.fullName ,
+        email: formData.email,
+        phone: formData.phone ,
+        address: formData.receiveAtStore
+          ? "Nhận tại cửa hàng"
+          : `${formData.district}, ${formData.city}`,
+      },
+      paymentMethod: formData.paymentMethod, // COD hoặc QR
+      recipientType: formData.receiverType,
+      deliveryDate: new Date(formData.deliveryDate).toISOString(),
+      deliveryMethod: formData.receiveAtStore ? "pickup" : "delivery",
+    };
+    try {
+      const response = await postPublic('/v1/orders', orderData);
+      const data = response?.data
+      clearCart(); 
+      window.location.href = data?.paymentUrl
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại!");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isLoading) {
     return (
       <Container className="checkout-page py-5">
         <h1 className="checkout-title">Thông tin đặt hàng</h1>
-        <p>Đang tải giỏ hàng...</p>
+        <p>Đang xử lý đơn hàng...</p>
       </Container>
     );
   }
@@ -90,9 +107,7 @@ function CheckoutPage() {
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>
-                Email người đặt hoa (chúng tôi sẽ gửi mail)
-              </Form.Label>
+              <Form.Label>Email người đặt hoa</Form.Label>
               <Form.Control
                 type="email"
                 name="email"
@@ -155,7 +170,7 @@ function CheckoutPage() {
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Nhận tại cửa hàng/Giao đến địa chỉ cửa tiệm</Form.Label>
+              <Form.Label>Nhận tại cửa hàng/Giao đến địa chỉ</Form.Label>
               <Form.Select
                 name="receiveAtStore"
                 value={formData.receiveAtStore ? "store" : "delivery"}
@@ -169,7 +184,7 @@ function CheckoutPage() {
                 }
               >
                 <option value="store">Nhận tại cửa hàng</option>
-                <option value="delivery">Giao đến địa chỉ cửa tiệm</option>
+                <option value="delivery">Giao đến địa chỉ</option>
               </Form.Select>
             </Form.Group>
 
@@ -199,10 +214,7 @@ function CheckoutPage() {
                       {formData.city &&
                         vietnamLocations.districts[formData.city]?.map(
                           (district) => (
-                            <option
-                              key={district.value}
-                              value={district.value}
-                            >
+                            <option key={district.value} value={district.value}>
                               {district.label}
                             </option>
                           )
@@ -246,24 +258,24 @@ function CheckoutPage() {
             <Form.Group className="mb-3">
               <Form.Check
                 type="radio"
-                label="Đặt có vận chuyển (COD/Đóng đúng dung lệ 8.3)"
+                label="Thanh toán khi nhận hàng (COD)"
                 name="paymentMethod"
-                value="cod"
-                checked={formData.paymentMethod === "cod"}
+                value="COD"
+                checked={formData.paymentMethod === "COD"}
                 onChange={handleInputChange}
               />
               <Form.Check
                 type="radio"
-                label="Thanh toán Chuyển khoản bằng QR"
+                label="Thanh toán online"
                 name="paymentMethod"
-                value="qr"
-                checked={formData.paymentMethod === "qr"}
+                value="VNPay"
+                checked={formData.paymentMethod === "VNPay"}
                 onChange={handleInputChange}
               />
             </Form.Group>
 
-            <Button type="submit" className="place-order-button">
-              ĐẶT HÀNG
+            <Button type="submit" className="place-order-button" disabled={isLoading}>
+              {isLoading ? "Đang xử lý..." : "ĐẶT HÀNG"}
             </Button>
           </Form>
         </Col>
@@ -272,33 +284,26 @@ function CheckoutPage() {
           <h1 className="order-title">Đơn hàng của bạn</h1>
           <div className="order-summary">
             <div className="order-items">
-              {cart.length === 0 ? (
+              {cart.products?.length === 0 ? (
                 <p>Đơn hàng của bạn đang trống.</p>
               ) : (
-                cart.map((item) => (
-                  <div key={item.id} className="order-item d-flex mb-3">
+                cart.products?.map((item) => (
+                  <div key={item.productId._id} className="order-item d-flex mb-3">
                     <img
-                      src={item.image}
-                      alt={item.title}
+                      src={item.productId.thumbnail}
+                      alt={item.productId.title}
                       className="order-item-image"
                     />
                     <div className="order-item-details flex-grow-1">
-                      <p>{item.title}</p>
-                      <p className="order-item-code">Mã sản phẩm: {item.id}</p>
+                      <p>{item.productId.title}</p>
+                      <p className="order-item-code">Mã sản phẩm: {item.productId._id}</p>
                       <p>
                         Số lượng: {item.quantity} x{" "}
-                        {item.discountedPrice || item.price}
+                        {formatPrice(item.productId.price * (1 - item.productId.discountPercentage / 100))}
                       </p>
                     </div>
                     <div className="order-item-total">
-                      {formatPrice(
-                        (item.discountedPrice
-                          ? parseFloat(
-                              item.discountedPrice.replace(/[^0-9]/g, "")
-                            )
-                          : parseFloat(item.price.replace(/[^0-9]/g, ""))) *
-                          item.quantity
-                      )}
+                      {formatPrice(item.subTotal)}
                     </div>
                   </div>
                 ))
@@ -307,17 +312,15 @@ function CheckoutPage() {
             <div className="order-totals">
               <div className="totals-row">
                 <span>Tổng cộng</span>
-                <span>{formatPrice(subtotal)}</span>
+                <span>{formatPrice(cart.totalAmount)}</span>
               </div>
               <div className="totals-row">
                 <span>Phí vận chuyển</span>
-                <span>
-                  {shippingFee === 0 ? "Miễn phí" : formatPrice(shippingFee)}
-                </span>
+                <span>{"Miễn phí"}</span>
               </div>
               <div className="totals-row total">
                 <span>Tổng thanh toán</span>
-                <span>{formatPrice(totalPrice)}</span>
+                <span>{formatPrice(totalPayment)}</span>
               </div>
             </div>
           </div>

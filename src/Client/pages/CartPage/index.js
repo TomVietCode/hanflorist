@@ -64,7 +64,7 @@ function CartPage() {
               </tr>
             </thead>
             <tbody>
-              {cart.map((item) => (
+              {cart.products.map((item) => (
                 <tr key={item.id}>
                   <td>
                     <img
