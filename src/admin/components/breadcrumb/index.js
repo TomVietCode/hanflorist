@@ -12,7 +12,7 @@ const breadcrumbNameMap = {
   settings: "Cài đặt",
   categories: "Danh mục sản phẩm",
   roles: "Nhóm quyền",
-  permissions: "Phân quyền",
+  permissions: "Đơn hàng",
   products: "Danh sách sản phẩm",
   users: "Tài khoản",
   "new-users": "Thêm tài khoản",
@@ -24,6 +24,8 @@ const breadcrumbNameMap = {
   "new-roles": "Thêm quyền",
   "edit-role": "Sửa quyền",
   delete: "Sản phẩm đã xóa",
+  orders: "Đơn hàng",
+  "view-order": "Thông tin đơn hàng"
 };
 
 function DynamicBreadcrumbs() {

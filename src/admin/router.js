@@ -1,4 +1,3 @@
-// router.js
 import { Navigate } from "react-router-dom";
 import DashboardLayout from "./components/AdminLayout.js";
 import Login from "./login";
@@ -9,7 +8,8 @@ import CategoryPage from "./pages/ListPage/CategoryPage/CategoryPage.js";
 import NewCategoryPage from "./pages/ListPage/ModulesPage/NewCategoryPage/index.js";
 import RoleManagementPage from "./pages/ListPage/RoleManagementPage/RoleManagementPage.js";
 import AddNewRole from "./pages/ListPage/ModulesPage/NewRole/index.js";
-import PermissionPage from "./pages/ListPage/PermissionPage/PermissionPage.js";
+import PermissionPage from "./pages/ListPage/OderPage/Oder.js";
+import InforOder from "./pages/ListPage/OderPage/inforOder.js"; // Đổi tên import thành InforOder
 import AccountPage from "./pages/ListPage/AccountPage/AccountPage.js";
 import NewUser from "./pages/ListPage/AccountPage/NewUser.js";
 import SettingsPage from "./pages/ListPage/SettingsPage/SettingsPage.js";
@@ -20,95 +20,99 @@ import NotFound from "./pages/ListPage/ModulesPage/404NotFound/index.js";
 import PrivateRoute from "./privateRouter.js";
 
 // Thêm các trang mới cho profile và change-password
-import ProfilePage from "./pages/ListPage/ProfilePage/ProfilePage.js"; // Trang thông tin tài khoản
-import ChangePasswordPage from "./pages/ListPage/ProfilePage/ChangePasswordPage.js"; // Trang đổi mật khẩu
+import ProfilePage from "./pages/ListPage/ProfilePage/ProfilePage.js";
+import ChangePasswordPage from "./pages/ListPage/ProfilePage/ChangePasswordPage.js";
 
 const routes = [
   {
     element: <PrivateRoute />,
     children: [
       {
-        path: "/admin", // Route cha cho các trang admin
+        path: "/admin",
         element: <DashboardLayout />,
         children: [
           {
-            path: "", // /admin
-            element: <Navigate to="/admin/dashboard" replace />, // Chuyển hướng mặc định về dashboard
+            path: "",
+            element: <Navigate to="/admin/dashboard" replace />,
           },
           {
-            path: "dashboard", // /admin/dashboard
+            path: "dashboard",
             element: <DashboardPage />,
           },
           {
-            path: "products", // /admin/products
+            path: "products",
             element: <ProductListPage />,
           },
           {
-            path: "products/delete", // /admin/products/delete
+            path: "products/delete",
             element: <DeletePage />,
           },
           {
-            path: "products/add-products", // /admin/products/add-products
+            path: "products/add-products",
             element: <AddProductPage />,
           },
           {
-            path: "products/view-products/:id", // /admin/products/view-products/:id
+            path: "products/view-products/:id",
             element: <ProductDetail />,
           },
           {
-            path: "products/edit-products/:id", // /admin/products/edit-products/:id
+            path: "products/edit-products/:id",
             element: <EditProduct />,
           },
           {
-            path: "categories", // /admin/categories
+            path: "categories",
             element: <CategoryPage />,
           },
           {
-            path: "categories/add-categories", // /admin/categories/add-categories
+            path: "categories/add-categories",
             element: <NewCategoryPage />,
           },
           {
-            path: "roles", // /admin/roles
+            path: "roles",
             element: <RoleManagementPage />,
           },
           {
-            path: "roles/new-role", // /admin/roles/new-role
+            path: "roles/new-role",
             element: <AddNewRole />,
           },
           {
-            path: "roles/edit-role", // /admin/roles/edit-role
+            path: "roles/edit-role",
             element: <AddNewRole />,
           },
           {
-            path: "permissions", // /admin/permissions
+            path: "orders", // Sửa "oders" thành "orders"
             element: <PermissionPage />,
           },
           {
-            path: "users", // /admin/users
+            path: "orders/view-order/:orderId", // Cập nhật route để khớp với OrderManagement
+            element: <InforOder />, // Sử dụng InforOder
+          },
+          {
+            path: "users",
             element: <AccountPage />,
           },
           {
-            path: "users/new-users", // /admin/users/new-users
+            path: "users/new-users",
             element: <NewUser />,
           },
           {
-            path: "users/view-users", // /admin/users/view-users
+            path: "users/view-users",
             element: <NewUser />,
           },
           {
-            path: "users/edit-users", // /admin/users/edit-users
+            path: "users/edit-users",
             element: <NewUser />,
           },
           {
-            path: "settings", // /admin/settings
+            path: "settings",
             element: <SettingsPage />,
           },
           {
-            path: "profile", // /admin/profile
+            path: "profile",
             element: <ProfilePage />,
           },
           {
-            path: "change-password", // /admin/change-password
+            path: "change-password",
             element: <ChangePasswordPage />,
           },
         ],

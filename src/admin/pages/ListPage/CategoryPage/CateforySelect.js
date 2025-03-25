@@ -9,12 +9,34 @@ import {
 import { get } from "../../../../share/utils/http.js";
 import { useCategoryStore } from "../../../components/store.js";
 
-const CategorySelect = ({ isForProduct = true }) => {
+const CategorySelect = ({ onCategoryChange, initialCategoryId }) => {
   const [categories, setCategories] = useState([]);
   const [open, setOpen] = useState(false);
 
   const { selectedCategory, setSelectedCategory } = useCategoryStore();
   const token = localStorage.getItem("token");
+
+  // Hàm tìm danh mục theo ID trong danh sách categories (bao gồm cả children)
+  const findCategoryById = (categories, id) => {
+    for (const category of categories) {
+      if (category._id === id) return category;
+      if (category.children && category.children.length > 0) {
+        const found = findCategoryById(category.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  // Đồng bộ selectedCategory với initialCategoryId khi có dữ liệu
+  useEffect(() => {
+    if (initialCategoryId && categories.length > 0) {
+      const category = findCategoryById(categories, initialCategoryId);
+      if (category && category._id !== selectedCategory?._id) {
+        setSelectedCategory(category);
+      }
+    }
+  }, [initialCategoryId, categories, selectedCategory, setSelectedCategory]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -46,6 +68,7 @@ const CategorySelect = ({ isForProduct = true }) => {
       category.status === "active"
     ) {
       setSelectedCategory(category);
+      onCategoryChange(category);
       setOpen(false);
     }
   };
@@ -53,7 +76,7 @@ const CategorySelect = ({ isForProduct = true }) => {
   const flattenCategories = (cats, depth = 0) => {
     let flat = [];
     cats.forEach((cat) => {
-      if (cat.status === "active") { // Chỉ thêm nếu active
+      if (cat.status === "active") {
         flat.push({ ...cat, depth, isParent: !cat.parentId });
         if (cat.children && cat.children.length > 0) {
           flat = flat.concat(flattenCategories(cat.children, depth + 1));
@@ -68,7 +91,7 @@ const CategorySelect = ({ isForProduct = true }) => {
     if (flatCategories.length === 0) {
       return (
         <MenuItem disabled>
-          <Typography variant="body2">Không có danh mục active</Typography>
+          <Typography variant="body2">Không có danh mục đang hoạt động</Typography>
         </MenuItem>
       );
     }
