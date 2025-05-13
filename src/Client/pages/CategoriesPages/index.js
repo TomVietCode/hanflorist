@@ -16,6 +16,7 @@ import { FaEye } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
 import ProductModal from "../../components/ProductModal";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import { getPublic, getPublicNative } from '../../../share/utils/http';
 
 function CategoriesPages() {
   const { category } = useParams();
@@ -64,18 +65,8 @@ function CategoriesPages() {
     const fetchCategories = async () => {
       try {
         setBannerLoading(true);
-        const response = await fetch("http://localhost:3001/v1/categories/", {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
-        });
+        const data = await getPublic("/v1/categories/");
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
         if (Array.isArray(data)) {
           setCategories(data);
         } else {
@@ -129,21 +120,7 @@ function CategoriesPages() {
           if (maxPrice) queryParams.append("maxPrice", maxPrice);
         }
 
-        const response = await fetch(
-          `http://localhost:3001/v1/products/category/${category}?${queryParams.toString()}`,
-          {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = await getPublic(`/v1/products/category/${category}?${queryParams.toString()}`);
         console.log("API Response:", data);
 
         const productData = data.data || [];

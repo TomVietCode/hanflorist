@@ -17,6 +17,7 @@ import CreateRoleModal from "./CreateRoleModal";
 import PermissionModal from "./PermissionModal";
 import Notification, { showSuccess, showError, showConfirmDialog } from "../../../components/Notification/index";
 import "./style.css";
+import { get, del, patch } from "../../../../share/utils/http";
 
 // Skeleton cho loading
 const SkeletonRow = () => (
@@ -133,17 +134,7 @@ const RoleManagementPage = () => {
   const fetchRoles = async () => {
     setLoading(true);
     try {
-      const url = new URL("http://localhost:3001/admin/roles");
-
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        throw new Error("Lỗi khi lấy danh sách nhóm quyền");
-      }
-
-      const result = await response.json();
+      const result = await get(token, "/admin/roles");
       setRoles(result.data || []);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách nhóm quyền:", error);
@@ -160,15 +151,7 @@ const RoleManagementPage = () => {
   // Xử lý xóa nhóm quyền
   const handleDeleteRole = async (roleId) => {
     try {
-      const response = await fetch(`http://localhost:3001/admin/roles/${roleId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) {
-        throw new Error("Lỗi khi xóa nhóm quyền");
-      }
-
+      const result = await del(token, `/admin/roles/${roleId}`);
       setRoles(roles.filter((role) => role._id !== roleId));
       showSuccess("Xóa nhóm quyền thành công!", setNotificationState);
     } catch (error) {
@@ -190,23 +173,12 @@ const RoleManagementPage = () => {
 
       // Gửi yêu cầu PATCH để cập nhật trạng thái
       const roleToUpdate = roles.find((role) => role._id === roleId);
-      const response = await fetch(`http://localhost:3001/admin/roles/${roleId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: roleToUpdate.title,
-          description: roleToUpdate.description,
-          permissions: roleToUpdate.permissions,
-          status: newStatus,
-        }),
+      await patch(token, `/admin/roles/${roleId}`, {
+        title: roleToUpdate.title,
+        description: roleToUpdate.description,
+        permissions: roleToUpdate.permissions,
+        status: newStatus,
       });
-
-      if (!response.ok) {
-        throw new Error("Lỗi khi cập nhật trạng thái");
-      }
 
       showSuccess("Cập nhật trạng thái thành công!", setNotificationState);
     } catch (error) {

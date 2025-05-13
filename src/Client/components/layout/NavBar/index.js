@@ -19,6 +19,8 @@ import { useState, useEffect } from "react";
 import "./NavBar.css";
 import { deleteLocalStorage } from "../../../../share/hepler/localStorage";
 import { useCart } from "../../../context/CartContext";
+import { getLocalStorage } from "../../../../share/hepler/localStorage";
+import { getPublic } from "../../../../share/utils/http";
 
 function NavBar() {
   const navigate = useNavigate();
@@ -34,18 +36,8 @@ function NavBar() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://localhost:3001/v1/categories", {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = await getPublic("/v1/categories");
+        
         if (Array.isArray(data)) {
           setCategories(data);
         } else {

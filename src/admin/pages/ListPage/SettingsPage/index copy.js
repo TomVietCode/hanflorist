@@ -16,6 +16,7 @@ import AppTheme from "./shared-theme/AppTheme";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { useNavigate } from "react-router-dom";
 import logo from "./assets/logo.svg";
+import { postPublic } from "../../../../share/utils/http";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -102,23 +103,14 @@ export default function SignUp(props) {
     }
 
     try {
-      const response = await fetch("http://localhost:3001/admin/auth/login", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      });
-
-      if (response.status === 200) {
-        const result = await response.json();
+      const result = await postPublic("/admin/auth/login", userData);
+      
+      if (result.data) {
         localStorage.setItem("token", result.data);
         localStorage.setItem("loginSuccess", "true");
         navigate("/admin");
       } else {
-        const errorData = await response.json();
-        setSubmitError(errorData.message || "Đăng nhập thất bại!");
+        setSubmitError(result.message || "Đăng nhập thất bại!");
       }
     } catch (error) {
       setSubmitError("Đã có lỗi xảy ra, vui lòng thử lại sau.");

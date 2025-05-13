@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
-import { get, del } from "../../../../share/utils/http";
+import { get, del, patch } from "../../../../share/utils/http";
 import { getLocalStorage } from "../../../../share/hepler/localStorage";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -283,7 +283,7 @@ const getColumns = (navigate, handleDelete, searchTerm, toggleStatus) => [
           className={`status-indicator ${isActive ? "active" : "inactive"}`}
           onClick={(e) => {
             e.stopPropagation();
-            toggleStatus(params.row.id);
+            toggleStatus(params.row.id, params.value);
           }}
         >
           {isActive ? "Đang hoạt động" : "Dừng hoạt động"}
@@ -372,8 +372,7 @@ export default function ProductListPage() {
   };
 
   // Hàm thay đổi trạng thái sản phẩm
-  const toggleStatus = (id) => {
-    const currentStatus = data.find((item) => item._id === id).status;
+  const toggleStatus = (id, currentStatus) => {
     const newStatus = currentStatus === "active" ? "inactive" : "active";
     setData((prev) =>
       prev.map((item) =>
@@ -381,18 +380,8 @@ export default function ProductListPage() {
       )
     );
 
-    fetch(`http://localhost:3001/admin/products/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ status: newStatus }),
-    })
+    patch(token, `/admin/products/${id}`, { status: newStatus })
       .then((response) => {
-        if (!response.ok) {
-          throw new Error();
-        }
         showNotification(setOpenNotification, "Cập nhật trạng thái thành công", "success");
       })
       .catch((error) => {
@@ -460,7 +449,7 @@ export default function ProductListPage() {
         }
       );
     } else {
-      // Xử lý cập nhật trạng thái hàng loạt (không cần xác nhận)
+      // Xử lý cập nhật trạng thái hàng loạt
       const newStatus = selectedAction === "Đang hoạt động" ? "active" : "inactive";
       setData((prev) =>
         prev.map((item) =>
@@ -471,21 +460,10 @@ export default function ProductListPage() {
       );
 
       try {
-        const response = await fetch(`http://localhost:3001/admin/products/`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            ids: selectedProductIds,
-            updates: { status: newStatus },
-          }),
+        await patch(token, `/admin/products/`, {
+          ids: selectedProductIds,
+          updates: { status: newStatus },
         });
-
-        if (!response.ok) {
-          throw new Error();
-        }
 
         showNotification(
           setOpenNotification,

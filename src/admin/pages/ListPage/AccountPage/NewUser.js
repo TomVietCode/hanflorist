@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Container,
-  TextField,
-  Button,
-  Box,
-  Card,
-  CardContent,
-  Select,
-  MenuItem,
-  FormControl,
-  Grid,
-  Typography,
-} from "@mui/material";
+import Container from "@mui/material/Container";
+import Grid from "@mui/material/Grid";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import FormControl from "@mui/material/FormControl";
+import Typography from "@mui/material/Typography";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AddIcon from "@mui/icons-material/Add";
 import Notification, { showSuccess, showError } from "../../../components/Notification/index"; // Giả sử file Notification.js cùng thư mục
+import { get, post } from "../../../../share/utils/http";
 
 const UserAddPage = () => {
   const [user, setUser] = useState({
@@ -44,17 +43,7 @@ const UserAddPage = () => {
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        const response = await fetch("http://localhost:3001/admin/roles", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Lỗi khi lấy danh sách vai trò");
-        }
-
-        const result = await response.json();
+        const result = await get(token, "/admin/roles");
         const rolesData = result.data || [];
         setRoles(rolesData);
 
@@ -99,31 +88,15 @@ const UserAddPage = () => {
       return;
     }
 
-    const baseUrl = "http://localhost:3001";
-    const path = "/admin/users";
-
     try {
-      const response = await fetch(`${baseUrl}${path}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: user.name,
-          email: user.email,
-          username: user.username,
-          password: user.password,
-          roleId: user.roleId, // Gửi roleId là _id của role
-          status: user.status,
-        }),
+      const result = await post(token, "/admin/users", {
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        password: user.password,
+        roleId: user.roleId,
+        status: user.status,
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const result = await response.json();
 
       if (result.data) {
         showSuccess("Tạo tài khoản thành công!", setNotificationState);

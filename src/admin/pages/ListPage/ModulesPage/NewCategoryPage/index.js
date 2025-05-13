@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 import NotificationAndDialog, {
   showNotification,
 } from "../../../../components/NotificationAndDialog/index.js";
-import { get } from "../../../../../share/utils/http.js";
+import { get, post } from "../../../../../share/utils/http.js";
 import "./style.css"; // Đảm bảo import file CSS nếu cần
 
 const AddCategoryPage = () => {
@@ -73,43 +73,23 @@ const AddCategoryPage = () => {
 
   // Xử lý gửi form tạo danh mục
   const handleSubmit = async () => {
-    // Kiểm tra dữ liệu trước khi gửi
-    if (!category.title) {
-      showNotification(setNotification, "Tiêu đề danh mục không được để trống", "error");
-      return;
-    }
-
-    if (!category.status) {
-      showNotification(setNotification, "Trạng thái không được để trống", "error");
-      return;
-    }
-
     setLoading(true);
     try {
+      if (!isFormValid()) {
+        setLoading(false);
+        return;
+      }
+
       const requestBody = {
-        title: category.title,
+        title: category.title.trim(),
         status: category.status,
       };
 
-      // Nếu có danh mục cha được chọn, thêm parentId vào request body
       if (selectedParentCategory?._id) {
         requestBody.parentId = selectedParentCategory._id;
       }
       
-
-      const response = await fetch("http://localhost:3001/admin/categories", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Tạo mới danh mục thất bại");
-      }
+      await post(token, "/admin/categories", requestBody);
 
       showNotification(setNotification, "Tạo danh mục thành công", "success");
       setTimeout(() => navigate("/admin/categories"), 2000);

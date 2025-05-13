@@ -30,6 +30,7 @@ import NotificationAndDialog, {
 } from "../../../../components/NotificationAndDialog/index.js";
 import { useCategoryStore } from "../../../../components/store.js";
 import "./style.css";
+import { get, patchWithFormData } from "../../../../../share/utils/http";
 
 const EditProductPage = () => {
   const { id } = useParams();
@@ -54,20 +55,7 @@ const EditProductPage = () => {
 
   const fetchProductById = async (productId) => {
     try {
-      const response = await fetch(
-        `http://localhost:3001/admin/products/${productId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
-      const data = await response.json();
+      const data = await get(token, `/admin/products/${productId}`);
       const productData = data.data;
       console.log("Product Data:", productData);
       console.log("Category ID from API:", productData.category);
@@ -88,17 +76,7 @@ const EditProductPage = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`http://localhost:3001/admin/categories`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
-      const result = await response.json();
+      const result = await get(token, "/admin/categories");
       const activeCategories = (result.data || []).filter(
         (category) => category.status === "active"
       );
@@ -244,9 +222,6 @@ const EditProductPage = () => {
 
   const handleSubmit = async () => {
     try {
-      const baseUrl = "http://localhost:3001";
-      const path = `/admin/products/${id}`;
-
       const formData = new FormData();
       formData.append("title", product.title);
       formData.append("description", description);
@@ -260,19 +235,8 @@ const EditProductPage = () => {
         formData.append("thumbnail", product.thumbnail);
       }
 
-      const response = await fetch(`${baseUrl}${path}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = await patchWithFormData(token, `/admin/products/${id}`, formData);
+      
       console.log("Sản phẩm đã được cập nhật:", result.data);
       setError(null);
       showNotification(setOpenNotification, "Cập nhật sản phẩm thành công", "success");

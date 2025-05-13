@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, Breadcrumb } from "react-bootstrap";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { HiOutlineShoppingBag } from "react-icons/hi2";
-import { FaEye } from "react-icons/fa";
+import { FaEye, FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { useCart } from "../../context/CartContext";
 import ProductModal from "../../components/ProductModal";
+import { getPublicNative } from "../../../share/utils/http";
 import "./SearchResultPage.css"; 
 
 function SearchResultPage() {
@@ -45,12 +46,10 @@ function SearchResultPage() {
 
   useEffect(() => {
     const fetchSearchResults = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        setError(null);
-
         const query = new URLSearchParams({
-          keyword,
+          keyword: keyword,
           page: currentPage,
           limit: productsPerPage,
         });
@@ -61,21 +60,7 @@ function SearchResultPage() {
         if (sortBy) query.append("sortBy", sortBy);
         if (order) query.append("order", order);
 
-        const response = await fetch(
-          `http://localhost:3001/v1/search?${query.toString()}`,
-          {
-            method: "GET",
-            headers: {
-              Accept: "application/json",
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = await getPublicNative(`http://localhost:3001/v1/search?${query.toString()}`);
         console.log("Search API Response:", data);
 
         const productData = data.data || [];

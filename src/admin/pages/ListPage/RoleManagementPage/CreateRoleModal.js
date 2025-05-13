@@ -8,6 +8,7 @@ import {
   Button,
 } from "@mui/material";
 import Notification, { showSuccess, showError } from "../../../components/Notification/index";
+import { post, patch } from "../../../../share/utils/http";
 
 const CreateRoleModal = ({
   open,
@@ -36,28 +37,21 @@ const CreateRoleModal = ({
   // Xử lý tạo/chỉnh sửa nhóm quyền
   const handleSaveRole = async () => {
     try {
-      const method = selectedRole ? "PATCH" : "POST";
-      const url = selectedRole
-        ? `http://localhost:3001/admin/roles/${selectedRole._id}`
-        : "http://localhost:3001/admin/roles";
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: newRole.title,
-          description: newRole.description,
-          permissions: newRole.permissions || [],
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Lỗi khi lưu nhóm quyền");
+      const roleData = {
+        title: newRole.title,
+        description: newRole.description,
+        permissions: newRole.permissions || [],
+      };
+      
+      let result;
+      if (selectedRole) {
+        // Cập nhật nhóm quyền
+        result = await patch(token, `/admin/roles/${selectedRole._id}`, roleData);
+      } else {
+        // Tạo nhóm quyền mới
+        result = await post(token, "/admin/roles", roleData);
       }
 
-      const result = await response.json();
       if (selectedRole) {
         // Cập nhật nhóm quyền trong danh sách
         setRoles(

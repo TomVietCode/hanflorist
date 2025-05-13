@@ -37,6 +37,7 @@ import Notification, {
   showConfirmDialog,
 } from "../../../components/Notification";
 import "./style.css";
+import { get, patch, del } from "../../../../share/utils/http";
 
 // Định nghĩa các cột
 const columns = (
@@ -275,19 +276,7 @@ export default function UserListPage() {
   const fetchRoles = async () => {
     setRolesLoading(true);
     try {
-      const response = await fetch("http://localhost:3001/admin/roles", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = await get(token, "/admin/roles");
       const rolesData = result.data || [];
       setRoles(rolesData);
     } catch (error) {
@@ -306,24 +295,9 @@ export default function UserListPage() {
   const fetchUsers = async (page, pageSize, type) => {
     setLoading(true);
     try {
-      const url = new URL("http://localhost:3001/admin/users");
-      url.searchParams.append("role", type);
-      url.searchParams.append("page", page + 1);
-      url.searchParams.append("limit", pageSize);
+      const url = `/admin/users?role=${type}&page=${page + 1}&limit=${pageSize}`;
 
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const responseData = await response.json();
+      const responseData = await get(token, url);
       const data = Array.isArray(responseData)
         ? responseData
         : responseData.data || [];
@@ -360,20 +334,7 @@ export default function UserListPage() {
   // Hàm gọi API để xóa người dùng
   const handleDelete = async (userId, isHard) => {
     try {
-      const response = await fetch(`http://localhost:3001/admin/users/${userId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify({
-          isHard: true,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      await del(token, `/admin/users/${userId}`);
 
       showSuccess(
         isHard
@@ -408,18 +369,7 @@ export default function UserListPage() {
         )
       );
 
-      const response = await fetch(`http://localhost:3001/admin/users/${userId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      await patch(token, `/admin/users/${userId}`, { status: newStatus });
 
       showSuccess("Cập nhật trạng thái thành công!", setNotificationState);
       fetchUsers(paginationModel.page, paginationModel.pageSize, userType);
@@ -470,25 +420,11 @@ export default function UserListPage() {
     }
 
     try {
-      const response = await fetch(
-        `http://localhost:3001/admin/users/${selectedUser.realId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-          body: JSON.stringify({
-            name: editUser.name,
-            email: editUser.email,
-            roleId: editUser.roleId,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      const response = await patch(token, `/admin/users/${selectedUser.realId}`, {
+        name: editUser.name,
+        email: editUser.email,
+        roleId: editUser.roleId,
+      });
 
       showSuccess(
         "Cập nhật thông tin người dùng thành công!",

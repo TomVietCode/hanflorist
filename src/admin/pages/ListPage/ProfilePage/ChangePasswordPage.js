@@ -1,6 +1,7 @@
 // pages/ListPage/ChangePasswordPage/index.js
 import React, { useState } from "react";
 import { Typography, Box, TextField, Button } from "@mui/material";
+import { post } from "../../../../share/utils/http";
 
 const ChangePasswordPage = () => {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -21,20 +22,12 @@ const ChangePasswordPage = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/admin/auth/change-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
+      const data = await post(token, "/admin/auth/change-password", {
+        currentPassword,
+        newPassword,
       });
 
-      const data = await response.json();
-      if (response.ok) {
+      if (data.status !== "error") {
         setSuccess("Đổi mật khẩu thành công!");
       } else {
         setError(data.message || "Đổi mật khẩu thất bại!");

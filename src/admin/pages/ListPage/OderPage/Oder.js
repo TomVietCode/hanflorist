@@ -13,6 +13,7 @@ import { getLocalStorage } from "../../../../share/hepler/localStorage";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import SearchIcon from "@mui/icons-material/Search";
 import "./style.css";
+import { get } from "../../../../share/utils/http";
 
 // Skeleton cho loading
 const SkeletonRow = () => (
@@ -137,19 +138,7 @@ export default function OrderManagement() {
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        const response = await fetch("http://localhost:3001/admin/orders", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token && { Authorization: `Bearer ${token}` }),
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
-        }
-
-        const data1 = await response.json();
+        const data1 = await get(token, "/admin/orders");
         const data = data1.data;
 
         const formattedData = Array.isArray(data)

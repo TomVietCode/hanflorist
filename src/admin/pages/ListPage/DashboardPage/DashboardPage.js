@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { getLocalStorage } from "../../../../share/hepler/localStorage";
 import Loading from "../../../components/loading/loding";
+import { get } from "../../../../share/utils/http";
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -42,33 +43,13 @@ const AdminDashboard = () => {
       setLoading(true);
       try {
         // Gọi API để lấy dữ liệu
-        const [productsRes, categoriesRes, adminsRes, clientsRes, ordersRes] = await Promise.all([
-          fetch("http://localhost:3001/admin/products", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch("http://localhost:3001/admin/categories", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch("http://localhost:3001/admin/users?role=admin", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch("http://localhost:3001/admin/users?role=client", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch("http://localhost:3001/admin/orders", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+        const [productsData, categoriesData, adminsData, clientsData, ordersData] = await Promise.all([
+          get(token, "/admin/products"),
+          get(token, "/admin/categories"),
+          get(token, "/admin/users?role=admin"),
+          get(token, "/admin/users?role=client"),
+          get(token, "/admin/orders"),
         ]);
-
-        if (!productsRes.ok || !categoriesRes.ok || !adminsRes.ok || !clientsRes.ok || !ordersRes.ok) {
-          throw new Error("Không thể tải dữ liệu");
-        }
-
-        const productsData = await productsRes.json();
-        const categoriesData = await categoriesRes.json();
-        const adminsData = await adminsRes.json();
-        const clientsData = await clientsRes.json();
-        const ordersData = await ordersRes.json();
 
         // Xử lý dữ liệu linh hoạt
         const products = Array.isArray(productsData) ? productsData : productsData.data || [];

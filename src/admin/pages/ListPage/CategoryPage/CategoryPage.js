@@ -22,7 +22,7 @@ import {
   ListItemText,
   TextField,
 } from "@mui/material";
-import { get, patch } from "../../../../share/utils/http";
+import { get, patch, del } from "../../../../share/utils/http";
 import { getLocalStorage } from "../../../../share/hepler/localStorage";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -471,21 +471,7 @@ export default function CategoryListPage() {
     if (!categoryToDelete) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:3001/admin/categories/${categoryToDelete}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Xóa danh mục thất bại!");
-      }
+      await del(token, `/admin/categories/${categoryToDelete}`);
 
       const removeCategoryById = (categories, id) => {
         return categories.filter((cat) => {

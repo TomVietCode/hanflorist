@@ -1,6 +1,7 @@
 // pages/ListPage/GetPermissionByRole/GetPermissionByRole.js
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../AuthContext";
+import { get } from "../../../../share/utils/http";
 
 const GetPermissionByRole = () => {
   const { token } = useAuth(); // Lấy token từ AuthContext
@@ -11,14 +12,7 @@ const GetPermissionByRole = () => {
   useEffect(() => {
     const fetchRolesAndPermissions = async () => {
       try {
-        const response = await fetch("http://localhost:3001/admin/roles", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const result = await response.json();
-
-        if (!response.ok) {
-          throw new Error(result.message || "Lỗi khi lấy danh sách roles");
-        }
+        const result = await get(token, "/admin/roles");
 
         // Lấy danh sách roles và permissions
         const rolesData = result.data.roles || [];

@@ -1,5 +1,6 @@
 // AuthContext.js
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { get, postPublic } from "../share/utils/http";
 
 const AuthContext = createContext();
 
@@ -9,15 +10,10 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = useCallback(async (token) => {
     try {
-      const response = await fetch("http://localhost:3001/admin/users/profile", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
+      const data = await get(token, "/admin/users/profile");
       console.log("Fetch user response:", data.data);
       
-      if (response.ok) {
+      if (data.status !== "error") {
         setUser({
           name: data.data.name || "Người dùng",
           email: data.data.email || "Không có email",
@@ -53,17 +49,9 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await fetch("http://localhost:3001/admin/auth/login", {
-        method: "POST",
-        headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await response.json();
+      const data = await postPublic("/admin/auth/login", { username, password });
       console.log("Login response:", data);
-      if (response.ok) {
+      if (data.status !== "error") {
         localStorage.setItem("token", data.data);
         await fetchUser(data.data);
         return true;

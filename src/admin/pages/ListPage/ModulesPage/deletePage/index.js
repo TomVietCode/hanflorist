@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataGrid } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
-import { get, del } from "../../../../../share/utils/http";
+import { get, patch, del } from "../../../../../share/utils/http";
 import { getLocalStorage } from "../../../../../share/hepler/localStorage";
 import RestoreIcon from "@mui/icons-material/Restore";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
@@ -294,20 +294,9 @@ export default function DeletedProductListPage() {
   // Hàm khôi phục sản phẩm
   const handleRestore = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3001/admin/products/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          status: "active",
-        }),
+      await patch(token, `/admin/products/${id}`, {
+        status: "active",
       });
-
-      if (!response.ok) {
-        throw new Error("Không thể khôi phục sản phẩm!");
-      }
 
       // Xóa sản phẩm khỏi danh sách sau khi khôi phục
       setData((prev) => prev.filter((item) => item._id !== id));
@@ -320,25 +309,14 @@ export default function DeletedProductListPage() {
   // Hàm xóa vĩnh viễn sản phẩm
   const handlePermanentDelete = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3001/admin/products/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          "isHard": true,
-        }),
+      await del(token, `/admin/products/${id}`, {
+        isHard: true,
       });
 
-      if (!response.ok) {
-        throw new Error("Không thể khôi phục sản phẩm!");
-      }
-
-      // Xóa sản phẩm khỏi danh sách sau khi khôi phục
+      // Xóa sản phẩm khỏi danh sách sau khi xóa vĩnh viễn
       setData((prev) => prev.filter((item) => item._id !== id));
     } catch (error) {
-      console.error("Lỗi khôi phục sản phẩm:", error);
+      console.error("Lỗi xóa vĩnh viễn sản phẩm:", error);
       setError(error.message);
     }
   };

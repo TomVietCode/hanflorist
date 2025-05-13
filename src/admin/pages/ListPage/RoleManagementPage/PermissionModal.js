@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import { CheckBox, CheckBoxOutlineBlank, Undo, Save } from "@mui/icons-material";
 import Notification, { showSuccess, showError } from '../../../components/Notification/index'; // Giả sử file thông báo nằm ở cùng thư mục
+import { get, patch } from "../../../../share/utils/http";
 
 // Danh sách các module và hành động cho phân quyền
 const modules = [
@@ -67,10 +68,7 @@ const PermissionModal = ({
   useEffect(() => {
     const fetchPermissions = async () => {
       try {
-        const response = await fetch("http://localhost:3001/admin/roles", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const result = await response.json();
+        const result = await get(token, "/admin/roles");
         const perms = result.data.permissions || [];
 
         const grouped = perms.reduce((acc, perm) => {
@@ -163,20 +161,8 @@ const PermissionModal = ({
         description: roleDescription,
       };
 
-      const response = await fetch("http://localhost:3001/admin/roles/permissions/", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updatedRoleData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Lỗi khi cập nhật vai trò");
-      }
-
-      const result = await response.json();
+      const result = await patch(token, "/admin/roles/permissions/", updatedRoleData);
+      
       if (result.data !== true) {
         throw new Error("Cập nhật vai trò không thành công");
       }
@@ -266,16 +252,7 @@ const PermissionModal = ({
         });
       });
 
-      const response = await fetch(`http://localhost:3001/admin/roles/permissions`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify([{ id: selectedRole._id, permissions: permissionsArray }]),
-      });
-
-      if (!response.ok) throw new Error("Lỗi khi lưu phân quyền");
+      await patch(token, "/admin/roles/permissions", [{ id: selectedRole._id, permissions: permissionsArray }]);
 
       // Cập nhật state cha ngay lập tức
       setRoles((prev) =>

@@ -2,19 +2,17 @@
   "name": "admin_dashbroad",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.4.0",
     "@mui/lab": "^6.0.0-beta.23",
     "@mui/material": "^6.4.0",
-    "@mui/toolpad": "^0.1.51",
     "@mui/x-data-grid": "^7.23.6",
     "@tinymce/tinymce-react": "^5.1.1",
-    "@toolpad/core": "^0.11.0",
     "axios": "^1.8.4",
     "bootstrap": "^5.3.3",
-    "cra-template": "1.2.0",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.9",
     "react-color": "^2.19.3",
@@ -22,21 +20,13 @@
     "react-icons": "^5.5.0",
     "react-paginate": "^8.3.0",
     "react-router-dom": "^6.28.1",
-    "react-scripts": "^5.0.1",
     "web-vitals": "^4.2.4",
     "zustand": "^5.0.3"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "browserslist": {
     "production": [
@@ -49,5 +39,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.1.4"
   }
 }

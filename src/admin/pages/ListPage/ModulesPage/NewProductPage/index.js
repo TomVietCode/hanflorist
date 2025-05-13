@@ -15,6 +15,7 @@ import {
   Checkbox,
   FormControlLabel,
   IconButton,
+  Switch,
 } from "@mui/material";
 import AddCircleTwoToneIcon from "@mui/icons-material/AddCircleTwoTone";
 import AddIcon from "@mui/icons-material/Add";
@@ -26,6 +27,7 @@ import { getLocalStorage } from "../../../../../share/hepler/localStorage.js";
 import CategorySelect from "../../CategoryPage/CateforySelect.js";
 import { useCategoryStore } from "../../../../components/store.js";
 import "./style.css";
+import { postWithFormData } from "../../../../../share/utils/http";
 
 const AddProductPage = () => {
   const [isFeatured, setIsFeatured] = useState(false);
@@ -72,11 +74,9 @@ const AddProductPage = () => {
 
   const handleSubmit = async () => {
     const token = getLocalStorage("token");
-    const path = "/admin/products";
-    const baseUrl = "http://localhost:3001";
 
-    if (!selectedCategory || !selectedCategory._id) {
-      setError("Vui lòng chọn danh mục sản phẩm");
+    if (!isFormValid()) {
+      setError("Vui lòng điền đầy đủ thông tin bắt buộc!");
       return;
     }
 
@@ -84,28 +84,17 @@ const AddProductPage = () => {
     formData.append("title", product.title);
     formData.append("description", product.description);
     formData.append("price", product.price);
-    formData.append("discount", product.discount || "0");
+    formData.append("discountPercentage", product.discount || "0");
     formData.append("stock", product.quantity);
-    formData.append("categoryId", selectedCategory._id);
+    formData.append("category", selectedCategory?._id || "");
+    formData.append("isFeatured", isFeatured.toString());
     formData.append("status", product.status);
     if (product.thumbnail) {
       formData.append("thumbnail", product.thumbnail);
     }
 
     try {
-      const response = await fetch(`${baseUrl}${path}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = await postWithFormData(token, "/admin/products", formData);
 
       if (result.data) {
         setError(null);

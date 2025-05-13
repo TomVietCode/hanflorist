@@ -15,6 +15,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import BorderColorIcon from "@mui/icons-material/BorderColor";
 import { styled } from "@mui/system";
+import { get } from "../../../../../share/utils/http";
 import "./style.css";
 
 // Hàm để loại bỏ tất cả thẻ HTML và chỉ giữ nội dung văn bản thô
@@ -40,20 +41,7 @@ const ProductDetail = () => {
   const fetchProductById = async (productId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `http://localhost:3001/admin/products/${productId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
-      const data = await response.json();
+      const data = await get(token, `/admin/products/${productId}`);
       setProduct(data.data);
       console.log(data.data);
     } catch (err) {

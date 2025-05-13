@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Container, Form, Button, Card, Alert, Image } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { get } from "../../../share/utils/http";
+import { get, patchWithFormData } from "../../../share/utils/http";
 import { getLocalStorage, setLocalStorage, deleteLocalStorage } from "../../../share/hepler/localStorage";
 import "./ProfilePage.css";
 import { useCart } from "../../context/CartContext";
@@ -71,35 +71,6 @@ function ProfilePage() {
     }
   };
 
-  const customPatch = async (token, path, data) => {
-    const response = await fetch(API_DOMAIN + path, {
-      method: "PATCH",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: data,
-    });
-
-    if (!response.ok) {
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const errorData = await response.json();
-        throw new Error(
-          `HTTP error! Status: ${response.status}, Message: ${errorData.message || "Không có thông tin lỗi"}`
-        );
-      } else {
-        const text = await response.text();
-        throw new Error(
-          `Phản hồi không phải JSON (Status: ${response.status}): ${text.substring(0, 100)}...`
-        );
-      }
-    }
-
-    const result = await response.json();
-    return result;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -120,7 +91,7 @@ function ProfilePage() {
         formDataToSend.append("avatar", formData.avatar);
       }
 
-      const response = await customPatch(token, "/v1/users/profile", formDataToSend);
+      const response = await patchWithFormData(token, "/v1/users/profile", formDataToSend);
 
       if (response.data) {
         setSuccess("Cập nhật thông tin thành công!");

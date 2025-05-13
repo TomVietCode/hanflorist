@@ -14,6 +14,7 @@ import {
   Button,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { get } from "../../../../share/utils/http";
 import "./style.css";
 
 // Component trang chi tiết đơn hàng
@@ -23,6 +24,7 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
   // Lấy thông tin chi tiết đơn hàng
   useEffect(() => {
@@ -36,8 +38,7 @@ export default function OrderDetailPage() {
 
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:3001/admin/orders/${orderId}`, {
-          method: "GET",
+        const response = await get(`http://localhost:3001/admin/orders/${orderId}`, {
           headers: {
             "Content-Type": "application/json",
           },
