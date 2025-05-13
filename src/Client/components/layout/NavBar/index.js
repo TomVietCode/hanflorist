@@ -27,7 +27,7 @@ function NavBar() {
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [showCart, setShowCart] = useState(false);
   const [searchQuery, setSearchQuery] = useState(""); // Trạng thái cho ô tìm kiếm
-  const { cart, removeFromCart, isLoggedIn, avatar } = useCart();
+  const { cart, removeFromCart, isLoggedIn, avatar, refreshUserData } = useCart();
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState("");
   let timeoutId = null;
@@ -51,6 +51,11 @@ function NavBar() {
     fetchCategories();
   }, []);
 
+  // Refresh user data when component mounts
+  useEffect(() => {
+    refreshUserData();
+  }, [refreshUserData]);
+
   const handleMouseEnter = (index) => {
     if (timeoutId) clearTimeout(timeoutId);
     setActiveDropdown(index);
@@ -68,7 +73,7 @@ function NavBar() {
   const handleLogout = () => {
     deleteLocalStorage("jwt_token");
     deleteLocalStorage("user_avatar");
-    navigate("/");
+    window.location.reload(); // Reload để cập nhật trạng thái đăng nhập
   };
 
   // Xử lý tìm kiếm
@@ -90,9 +95,8 @@ function NavBar() {
     navigate(`/search?${queryParams.toString()}`);
   };
 
-  const totalItems = cart.products?.reduce((total, item) => total + item.quantity, 0);
-
-  const totalPrice = cart.totalAmount;
+  const totalItems = cart.products?.reduce((total, item) => total + item.quantity, 0) || 0;
+  const totalPrice = cart.totalAmount || 0;
 
   const formatPrice = (price) => {
     return `${price?.toLocaleString("vi-VN")} đ`;
@@ -146,7 +150,7 @@ function NavBar() {
               )}
             </Nav>
 
-            <Form className="search-form" onSubmit={handleSearch}>
+            <Form className="search-form d-flex mx-auto" onSubmit={handleSearch}>
               <InputGroup>
                 <FormControl
                   type="search"
@@ -166,46 +170,48 @@ function NavBar() {
               </InputGroup>
             </Form>
 
-            <div className="nav-icon" onClick={() => setShowCart(true)}>
-              <HiOutlineShoppingBag className="cart-icon icon" />
-              {totalItems > 0 && (
-                <span className="cart-badge">{totalItems}</span>
-              )}
-            </div>
+            <div className="d-flex align-items-center">
+              <div className="nav-icon" onClick={() => setShowCart(true)}>
+                <HiOutlineShoppingBag className="cart-icon icon" />
+                {totalItems > 0 && (
+                  <span className="cart-badge">{totalItems}</span>
+                )}
+              </div>
 
-            <Dropdown className="nav-icon">
-              <Dropdown.Toggle as="div" className="user-icon">
-                {isLoggedIn && avatar ? (
-                  <Image
-                    src={avatar}
-                    roundedCircle
-                    width={24}
-                    height={24}
-                    alt="User Avatar"
-                    className="user-avatar"
-                  />
-                ) : (
-                  <SlUser className="user-icon icon" />
-                )}
-              </Dropdown.Toggle>
-              <Dropdown.Menu align="end" className="custom-dropdown-menu">
-                {isLoggedIn ? (
-                  <>
-                    <Dropdown.Item onClick={() => navigate("/profile")}>
-                      Chỉnh Sửa Thông Tin
+              <Dropdown className="nav-icon">
+                <Dropdown.Toggle as="div" className="user-icon">
+                  {isLoggedIn && avatar ? (
+                    <Image
+                      src={avatar}
+                      roundedCircle
+                      width={24}
+                      height={24}
+                      alt="User Avatar"
+                      className="user-avatar"
+                    />
+                  ) : (
+                    <SlUser className="user-icon icon" />
+                  )}
+                </Dropdown.Toggle>
+                <Dropdown.Menu align="end" className="custom-dropdown-menu">
+                  {isLoggedIn ? (
+                    <>
+                      <Dropdown.Item onClick={() => navigate("/profile")}>
+                        Chỉnh Sửa Thông Tin
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={() => navigate("/change-password")}>
+                        Đổi Mật Khẩu
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={handleLogout}>Đăng Xuất</Dropdown.Item>
+                    </>
+                  ) : (
+                    <Dropdown.Item onClick={() => navigate("/login")}>
+                      Đăng Nhập
                     </Dropdown.Item>
-                    <Dropdown.Item onClick={() => navigate("/change-password")}>
-                      Đổi Mật Khẩu
-                    </Dropdown.Item>
-                    <Dropdown.Item onClick={handleLogout}>Đăng Xuất</Dropdown.Item>
-                  </>
-                ) : (
-                  <Dropdown.Item onClick={() => navigate("/login")}>
-                    Đăng Nhập
-                  </Dropdown.Item>
-                )}
-              </Dropdown.Menu>
-            </Dropdown>
+                  )}
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
           </Navbar.Collapse>
         </Container>
       </Navbar>
@@ -221,7 +227,7 @@ function NavBar() {
         </Offcanvas.Header>
         <Offcanvas.Body className="cart-offcanvas-body">
           <div className="cart-items-list">
-            {cart.products?.length === 0 ? (
+            {!cart.products || cart.products.length === 0 ? (
               <p>Giỏ hàng của bạn đang trống.</p>
             ) : (
               cart.products?.map((item) => (
@@ -251,7 +257,7 @@ function NavBar() {
               ))
             )}
           </div>
-          {cart.products?.length > 0 && (
+          {cart.products && cart.products.length > 0 && (
             <div className="cart-footer">
               <div className="cart-total">
                 <span>Tổng tiền:</span>

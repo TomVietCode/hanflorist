@@ -60,7 +60,7 @@ function SearchResultPage() {
         if (sortBy) query.append("sortBy", sortBy);
         if (order) query.append("order", order);
 
-        const data = await getPublicNative(`http://localhost:3001/v1/search?${query.toString()}`);
+        const data = await getPublicNative(`/v1/search?${query.toString()}`);
         console.log("Search API Response:", data);
 
         const productData = data.data || [];

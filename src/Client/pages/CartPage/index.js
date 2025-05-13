@@ -6,17 +6,19 @@ import { FaMinus, FaPlus } from "react-icons/fa";
 import './CartPage.css';
 
 function CartPage() {
-  const { cart, removeFromCart, updateQuantity } = useCart();
+  const { cart, removeFromCart, updateCartItemQuantity } = useCart();
   const navigate = useNavigate();
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
 
   // Tính tổng tiền trước giảm giá
   const calculateSubtotal = () => {
-    return cart.reduce((total, item) => {
-      const price = item.discountedPrice
-        ? parseFloat(item.discountedPrice.replace(/[^0-9]/g, ""))
-        : parseFloat(item.price.replace(/[^0-9]/g, ""));
+    if (!cart.products || cart.products.length === 0) {
+      return 0;
+    }
+    
+    return cart.products.reduce((total, item) => {
+      const price = item.productId && item.productId.price ? item.productId.price : 0;
       return total + price * item.quantity;
     }, 0);
   };
@@ -39,17 +41,28 @@ function CartPage() {
   const formatPrice = (price) => `${price.toLocaleString("vi-VN")} đ`;
 
   // Xử lý tăng/giảm số lượng
-  const handleQuantityChange = (itemId, newQuantity) => {
+  const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity >= 1) {
-      updateQuantity(itemId, newQuantity);
+      updateCartItemQuantity(productId, newQuantity);
     }
   };
+
+  // Kiểm tra xem giỏ hàng có dữ liệu hay không
+  const isCartEmpty = !cart.products || cart.products.length === 0;
 
   return (
     <Container className="cart-page py-5">
       <h1 className="cart-title">Giỏ hàng</h1>
-      {cart.length === 0 ? (
-        <p>Giỏ hàng của bạn đang trống.</p>
+      {isCartEmpty ? (
+        <div className="empty-cart">
+          <p>Giỏ hàng của bạn đang trống.</p>
+          <Button 
+            className="continue-shopping-button" 
+            onClick={() => navigate("/")}
+          >
+            Tiếp tục mua sắm
+          </Button>
+        </div>
       ) : (
         <>
           <Table responsive className="cart-table">
@@ -65,24 +78,25 @@ function CartPage() {
             </thead>
             <tbody>
               {cart.products.map((item) => (
-                <tr key={item.id}>
+                <tr key={item.productId._id}>
                   <td>
                     <img
-                      src={item.image}
-                      alt={item.title}
+                      src={item.productId.thumbnail}
+                      alt={item.productId.title}
                       className="cart-item-image"
                     />
                   </td>
-                  <td>{item.title}</td>
-                  <td>{item.discountedPrice || item.price}</td>
+                  <td>{item.productId.title}</td>
+                  <td>{formatPrice(item.productId.price)}</td>
                   <td>
                     <div className="quantity-selector">
                       <Button
                         variant="outline-secondary"
                         size="sm"
                         onClick={() =>
-                          handleQuantityChange(item.id, item.quantity - 1)
+                          handleQuantityChange(item.productId._id, item.quantity - 1)
                         }
+                        disabled={item.quantity <= 1}
                       >
                         <FaMinus />
                       </Button>
@@ -91,7 +105,7 @@ function CartPage() {
                         variant="outline-secondary"
                         size="sm"
                         onClick={() =>
-                          handleQuantityChange(item.id, item.quantity + 1)
+                          handleQuantityChange(item.productId._id, item.quantity + 1)
                         }
                       >
                         <FaPlus />
@@ -99,18 +113,13 @@ function CartPage() {
                     </div>
                   </td>
                   <td>
-                    {formatPrice(
-                      (item.discountedPrice
-                        ? parseFloat(item.discountedPrice.replace(/[^0-9]/g, ""))
-                        : parseFloat(item.price.replace(/[^0-9]/g, ""))) *
-                        item.quantity
-                    )}
+                    {formatPrice(item.productId.price * item.quantity)}
                   </td>
                   <td>
                     <Button
                       variant="link"
                       className="remove-button"
-                      onClick={() => removeFromCart(item.id)}
+                      onClick={() => removeFromCart(item.productId._id)}
                     >
                       ×
                     </Button>
@@ -153,12 +162,6 @@ function CartPage() {
                   <span>Tổng cộng</span>
                   <span>{formatPrice(totalPrice)}</span>
                 </div>
-                <Button
-                  className="update-cart-button"
-                  onClick={() => alert("Giỏ hàng đã được cập nhật!")}
-                >
-                  CẬP NHẬT GIỎ HÀNG
-                </Button>
                 <Button
                   className="proceed-checkout-button"
                   onClick={() => navigate("/checkout")}

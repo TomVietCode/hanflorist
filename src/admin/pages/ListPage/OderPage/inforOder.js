@@ -38,7 +38,7 @@ export default function OrderDetailPage() {
 
       setLoading(true);
       try {
-        const response = await get(`http://localhost:3001/admin/orders/${orderId}`, {
+        const response = await get(token, `/admin/orders/${orderId}`, {
           headers: {
             "Content-Type": "application/json",
           },

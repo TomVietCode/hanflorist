@@ -24,7 +24,11 @@ function LoginPage() {
   const [success, setSuccess] = useState("");
 
   const handleGoogleLogin = () => {
-    window.location.href = `${process.env.REACT_APP_API_DOMAIN}/auth/google`;
+    const currentDomain = window.location.origin;
+    localStorage.setItem('frontendDomain', currentDomain);
+    
+    const baseUrl = process.env.REACT_APP_API_URL || 'https://hanflorist-be.onrender.com';
+    window.location.href = `${baseUrl}/auth/google`;
   };
 
   useEffect(() => {

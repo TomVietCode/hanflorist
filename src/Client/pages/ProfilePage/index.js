@@ -19,8 +19,6 @@ function ProfilePage() {
   const [previewAvatar, setPreviewAvatar] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const API_DOMAIN = "http://localhost:3001";
-
   useEffect(() => {
     const fetchUserProfile = async () => {
       const token = getLocalStorage("jwt_token");

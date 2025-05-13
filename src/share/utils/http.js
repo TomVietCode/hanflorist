@@ -1,4 +1,4 @@
-const API_DOMAIN= "https://hanflorist-be.onrender.com"
+const API_DOMAIN = process.env.REACT_APP_API_URL || "https://hanflorist-be.onrender.com"
 
 export const get = async (token, path) => {
   const response = await fetch(API_DOMAIN + path, {
@@ -23,8 +23,8 @@ export const getPublic = async (path) => {
   return result
 }
 
-export const getPublicNative = async (url) => {
-  const response = await fetch(url, {
+export const getPublicNative = async (path) => {
+  const response = await fetch(API_DOMAIN + path, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

@@ -59,19 +59,17 @@ const routes = [
   {
     path: "/cart",
     element: (
-      <ProtectedRoute>
-        <Layout>
-          <CartPage />
-        </Layout>
-      </ProtectedRoute>
+      <Layout>
+        <CartPage />
+      </Layout>
     ),
   },
   {
     path: "/checkout",
     element: (
-        <Layout>
-          <CheckoutPage />
-        </Layout>
+      <Layout>
+        <CheckoutPage />
+      </Layout>
     ),
   },
   {
