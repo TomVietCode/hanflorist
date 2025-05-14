@@ -176,6 +176,14 @@ const columns = (
     cellClassName: "hover-cell",
   },
   {
+    field: "username",
+    headerName: "Tên đăng nhập",
+    flex: 1.5,
+    align: "center",
+    headerAlign: "center",
+    headerClassName: "header-style",
+  },
+  {
     field: "role",
     headerName: "Phân quyền",
     align: "center",
@@ -246,9 +254,12 @@ export default function UserListPage() {
     name: "",
     email: "",
     roleId: "",
+    username: "",
   }); // State để lưu thông tin chỉnh sửa
   const [roles, setRoles] = useState([]); // State để lưu danh sách vai trò
   const [rolesLoading, setRolesLoading] = useState(false); // State để xử lý trạng thái loading của roles
+  const [currentUserRoleId, setCurrentUserRoleId] = useState(null); // State để lưu trữ role của người dùng hiện tại
+  const [hasRoleManagementPermission, setHasRoleManagementPermission] = useState(false); // State kiểm tra quyền quản lý role
 
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
@@ -291,6 +302,33 @@ export default function UserListPage() {
     }
   };
 
+  // Hàm gọi API để lấy thông tin profile của người dùng hiện tại
+  const fetchCurrentUserProfile = async () => {
+    try {
+      const result = await get(token, "/admin/users/profile");
+      const userData = result.data || {};
+      console.log("Current user profile:", userData);
+      
+      // Lưu roleId của người dùng hiện tại
+      if (userData.roleId) {
+        setCurrentUserRoleId(userData.roleId);
+        
+        // Kiểm tra xem role của người dùng hiện tại có quyền quản lý roles không
+        if (roles.length > 0) {
+          const currentUserRole = roles.find(role => role._id === userData.roleId);
+          if (currentUserRole && currentUserRole.permissions) {
+            // Kiểm tra xem role hiện tại có quyền user_update không
+            setHasRoleManagementPermission(
+              currentUserRole.permissions.includes("user_update")
+            );
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching current user profile:", error);
+    }
+  };
+
   // Hàm gọi API để lấy danh sách người dùng
   const fetchUsers = async (page, pageSize, type) => {
     setLoading(true);
@@ -303,20 +341,37 @@ export default function UserListPage() {
         : responseData.data || [];
       const total = responseData.total || data.length;
 
+      console.log("User data from API:", data); // Debug log
+
       const mappedUsers = data.map((user, index) => {
-        const userRole = roles.find((role) => role._id === user.roleId);
+        // Extract role title directly from the nested roleId object if available
+        let roleTitle = "Không có quyền";
+        
+        if (user.roleId && typeof user.roleId === 'object' && user.roleId.title) {
+          // If roleId is an object with title property (populated)
+          roleTitle = user.roleId.title;
+        } else if (user.roleId && typeof user.roleId === 'string') {
+          // If roleId is just a string ID, try to find the role in our roles array
+          const userRole = roles.find((role) => role._id === user.roleId);
+          if (userRole) {
+            roleTitle = userRole.title;
+          }
+        }
+        
         return {
           id: index + 1,
           realId: user._id || user.id,
           avatar: user.avatar || "https://via.placeholder.com/40",
           name: user.name || "",
-          role: userRole ? userRole.title : (type === "admin" ? "Quản trị viên" : "Khách hàng"),
+          username: user.username || "",
+          role: roleTitle,
           email: user.email || "",
           status: user.status || "active",
-          roleId: user.roleId || "",
+          roleId: typeof user.roleId === 'object' ? user.roleId._id : user.roleId || "",
         };
       });
 
+      console.log("Mapped users:", mappedUsers); // Debug log
       setUsers(mappedUsers);
       setFilteredUsers(mappedUsers);
       setTotalRows(total);
@@ -401,30 +456,62 @@ export default function UserListPage() {
   // Hàm xử lý chỉnh sửa thông tin người dùng
   const handleEdit = (user) => {
     setSelectedUser(user);
+    
+    // Make sure we use the correct roleId, whether it's a string or part of an object
+    let roleId = "";
+    if (user.roleId) {
+      roleId = user.roleId; // Already extracted in fetchUsers function
+    }
+    
+    console.log("Editing user with roleId:", roleId);
+    console.log("User data for editing:", user);
+    
     setEditUser({
       name: user.name,
       email: user.email,
-      roleId: user.roleId || "",
+      roleId: roleId,
+      username: user.username || "",
     });
     setEditDialogOpen(true);
   };
 
   // Hàm xử lý cập nhật thông tin người dùng
   const confirmEdit = async () => {
-    if (!editUser.name.trim() || !editUser.email.trim() || !editUser.roleId) {
+    if (!editUser.name.trim() || !editUser.email.trim()) {
       showError(
-        "Vui lòng điền đầy đủ thông tin!",
+        "Vui lòng điền đầy đủ họ tên và email!",
+        setNotificationState
+      );
+      return;
+    }
+
+    // Kiểm tra quyền chỉnh sửa Role - chỉ Admin mới được phân quyền
+    if (userType !== "admin" && editUser.roleId) {
+      showError(
+        "Bạn không có quyền phân quyền cho người dùng!",
         setNotificationState
       );
       return;
     }
 
     try {
-      const response = await patch(token, `/admin/users/${selectedUser.realId}`, {
+      console.log("Updating user with data:", editUser);
+      const updateData = {
         name: editUser.name,
         email: editUser.email,
-        roleId: editUser.roleId,
-      });
+      };
+      
+      // Chỉ thêm roleId nếu có giá trị và đang thao tác tài khoản admin
+      if (editUser.roleId && userType === "admin") {
+        updateData.roleId = editUser.roleId;
+      }
+      
+      // Only include username if it's not empty
+      if (editUser.username && editUser.username.trim() !== "") {
+        updateData.username = editUser.username;
+      }
+      
+      const response = await patch(token, `/admin/users/${selectedUser.realId}`, updateData);
 
       showSuccess(
         "Cập nhật thông tin người dùng thành công!",
@@ -433,13 +520,21 @@ export default function UserListPage() {
       fetchUsers(paginationModel.page, paginationModel.pageSize, userType);
       setEditDialogOpen(false);
       setSelectedUser(null);
-      setEditUser({ name: "", email: "", roleId: "" });
+      setEditUser({ name: "", email: "", roleId: "", username: "" });
     } catch (error) {
       console.error("Error updating user:", error);
-      showError(
-        "Có lỗi xảy ra khi cập nhật thông tin người dùng!",
-        setNotificationState
-      );
+      let errorMessage = "Có lỗi xảy ra khi cập nhật thông tin người dùng!";
+      
+      if (error.response) {
+        // Xử lý lỗi từ server
+        if (error.response.status === 403) {
+          errorMessage = "Bạn không có quyền cập nhật thông tin người dùng này!";
+        } else if (error.response.data && error.response.data.message) {
+          errorMessage = error.response.data.message;
+        }
+      }
+      
+      showError(errorMessage, setNotificationState);
     }
   };
 
@@ -470,6 +565,13 @@ export default function UserListPage() {
       );
     }
   }, [token]);
+
+  // Fetch user profile sau khi lấy roles
+  useEffect(() => {
+    if (token && roles.length > 0) {
+      fetchCurrentUserProfile();
+    }
+  }, [token, roles]);
 
   // Gọi fetchUsers sau khi roles đã được tải
   useEffect(() => {
@@ -653,6 +755,9 @@ export default function UserListPage() {
                       <strong>Họ tên:</strong> {selectedUser.name}
                     </Typography>
                     <Typography variant="body1" sx={{ fontSize: "1.1rem" }}>
+                      <strong>Tên đăng nhập:</strong> {selectedUser.username || "Không có"}
+                    </Typography>
+                    <Typography variant="body1" sx={{ fontSize: "1.1rem" }}>
                       <strong>Email:</strong> {selectedUser.email}
                     </Typography>
                     <Typography variant="body1" sx={{ fontSize: "1.1rem" }}>
@@ -738,6 +843,34 @@ export default function UserListPage() {
                 </Grid>
                 <Grid item xs={12}>
                   <Typography variant="h6" gutterBottom>
+                    Tên đăng nhập
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    name="username"
+                    value={editUser.username}
+                    onChange={(e) =>
+                      setEditUser({ ...editUser, username: e.target.value })
+                    }
+                    placeholder="Tên đăng nhập"
+                    sx={{
+                      backgroundColor: "#f5f5f5",
+                      borderRadius: 1,
+                      "& .MuiOutlinedInput-root": {
+                        "&:hover fieldset": {
+                          borderColor: "#1976d2",
+                          transition: "border-color 0.3s ease",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: "#1976d2",
+                        },
+                      },
+                    }}
+                    InputProps={{ style: { height: "2.5rem" } }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="h6" gutterBottom>
                     Email{" "}
                     <Typography component="span" color="error">
                       *
@@ -798,8 +931,13 @@ export default function UserListPage() {
                             borderColor: "#1976d2",
                           },
                         }}
-                        disabled={roles.length === 0}
+                        displayEmpty
                       >
+                        <MenuItem value="" disabled>
+                          {selectedUser && selectedUser.role 
+                            ? `Hiện tại: ${selectedUser.role}` 
+                            : "Chưa có nhóm quyền"}
+                        </MenuItem>
                         {Array.isArray(roles) && roles.length > 0 ? (
                           roles.map((role) => (
                             <MenuItem key={role._id} value={role._id}>
@@ -812,6 +950,11 @@ export default function UserListPage() {
                       </Select>
                     )}
                   </FormControl>
+                  {selectedUser && selectedUser.role && !editUser.roleId && (
+                    <Typography variant="body2" color="primary" sx={{ mt: 1 }}>
+                      Hiện tại: {selectedUser.role}
+                    </Typography>
+                  )}
                 </Grid>
               </Grid>
             </CardContent>

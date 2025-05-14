@@ -134,8 +134,17 @@ function CategoriesPages() {
           .split("-")
           .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(" ");
+        let isParentCategory = false;
 
-        if (productData.length > 0 && categories.length > 0) {
+        // Check if the current category is a parent category
+        const parentCategory = categories.find(cat => cat.slug === category);
+        if (parentCategory) {
+          foundSubLabel = parentCategory.title;
+          setMainLabel("Danh mục");
+          isParentCategory = true;
+        } 
+        // If it's not a parent category and we have products, try to determine the parent-child relationship
+        else if (productData.length > 0 && categories.length > 0) {
           const categoryId = productData[0].categoryId;
           categories.forEach((mainCategory) => {
             if (mainCategory.children) {

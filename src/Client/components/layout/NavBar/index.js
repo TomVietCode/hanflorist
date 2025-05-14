@@ -70,6 +70,13 @@ function NavBar() {
     navigate(`/categories/${slug}`);
   };
 
+  // Xử lý điều hướng đến danh mục cha
+  const handleParentNavigation = (menu) => {
+    setActiveDropdown(null);
+    // Đảm bảo chúng ta luôn sử dụng slug của danh mục cha
+    navigate(`/categories/${menu.slug}`);
+  };
+
   const handleLogout = () => {
     deleteLocalStorage("jwt_token");
     deleteLocalStorage("user_avatar");
@@ -120,11 +127,7 @@ function NavBar() {
                   >
                     <Dropdown.Toggle
                       as={Nav.Link}
-                      onClick={() =>
-                        handleNavigation(
-                          menu.children[0]?.slug || menu.slug
-                        )
-                      }
+                      onClick={() => handleParentNavigation(menu)}
                     >
                       {menu.title} <IoIosArrowDown />
                     </Dropdown.Toggle>

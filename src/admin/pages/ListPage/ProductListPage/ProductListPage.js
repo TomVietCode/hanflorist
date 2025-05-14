@@ -317,7 +317,7 @@ export default function ProductListPage() {
   const [filterSort, setFilterSort] = useState("");
   const token = getLocalStorage("token");
   const [paginationModel, setPaginationModel] = useState({
-    pageSize: 5,
+    pageSize: 10,
     page: 0,
   });
   const navigate = useNavigate();
@@ -494,7 +494,7 @@ export default function ProductListPage() {
       try {
         let url = `/admin/products?search=${encodeURIComponent(
           searchTerm
-        )}&status=${statusTerm}&sort=${encodeURIComponent(sortTerm)}&limit=30`;
+        )}&status=${statusTerm}&sort=${encodeURIComponent(sortTerm)}&limit=100`;
         const result = await get(token, url);
         if (result.data?.length) {
           let formattedData = result.data.map((row, index) => ({
@@ -541,7 +541,7 @@ export default function ProductListPage() {
         columns={getColumns(navigate, handleDelete, searchTerm, toggleStatus)}
         pagination
         paginationModel={paginationModel}
-        pageSizeOptions={[5, 10, 20]}
+        pageSizeOptions={[10, 20, 50, 100]}
         checkboxSelection
         onRowSelectionModelChange={(ids) => {
           setSelectedProductIds(ids); // Cập nhật danh sách sản phẩm được chọn
